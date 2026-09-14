@@ -425,7 +425,7 @@ Aba própria no painel, com seis gráficos alimentados por `/api/stats/analitico
 
 ## 🗄️ Banco de dados
 
-A pasta `database/` traz o modelo físico completo em Oracle, com **15 tabelas**, **45 restrições CHECK**, 8 UNIQUE, 11 chaves estrangeiras e 15 índices.
+A pasta `database/` traz o modelo físico completo em Oracle, com **15 tabelas**, **45 restrições CHECK**, 8 UNIQUE, 10 chaves estrangeiras e 15 índices.
 
 | Arquivo | Conteúdo |
 |---|---|
@@ -529,7 +529,7 @@ Dois testes existem por causa de defeitos reais desta fase:
 
 | Arquivo | O que é |
 |---|---|
-| [`docs/Protege_Mais_Fase6_Documento.pdf`](docs/Protege_Mais_Fase6_Documento.pdf) | **Documento técnico da Fase 6**, 81 páginas: IoT, IA, SQL avançado e estruturas de dados |
+| [`docs/Protege_Mais_Fase6_Documento.pdf`](docs/Protege_Mais_Fase6_Documento.pdf) | **Documento técnico da Fase 6**, 82 páginas: IoT, IA, SQL avançado e estruturas de dados |
 | [`docs/Protege_Mais_Fase6_Apresentacao.pdf`](docs/Protege_Mais_Fase6_Apresentacao.pdf) | Apresentação da Fase 6, 10 slides |
 | [`docs/Protege_Mais_Fase6_Apresentacao.html`](docs/Protege_Mais_Fase6_Apresentacao.html) | A mesma apresentação, navegável, com o roteiro do apresentador embutido (tecla `N`) |
 | [`docs/Protege_Mais_Fase6_Roteiro_do_Pitch.md`](docs/Protege_Mais_Fase6_Roteiro_do_Pitch.md) | Roteiro do vídeo, bloco a bloco, com marcação de tempo |

@@ -471,7 +471,7 @@ CREATE INDEX idx_auditoria_acao     ON AUDITORIA_LOG (acao);
 --
 --    CREATE TABLE ....... 12
 --    PRIMARY KEY ........ 12   (1 composta: DENUNCIA_HISTORICO)
---    FOREIGN KEY ........ 11
+--    FOREIGN KEY ........ 10
 --    UNIQUE .............  6
 --    CHECK .............. 30
 --    CREATE INDEX ....... 13
