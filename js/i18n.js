@@ -228,6 +228,12 @@ const I18n = (() => {
       'react.titulo':'Versão em React deste formulário',
       'react.sub':'Mesmo cadastro, implementado como componente React consumindo a mesma API. Útil para comparar as duas abordagens de front-end.',
       'react.abrir':'Abrir',
+      // -- Simulador de dispositivos de campo (Fase 6) --
+      'iot.titulo':'Simulador de dispositivos de campo (Fase 6)',
+      'iot.sub':'Botão de pânico, tornozeleira com perímetro e totem público conversando com a mesma API. Instrumento de teste: ocupa o lugar do hardware.',
+      'iot.abrir':'Abrir',
+      'nav.dispositivos':'Dispositivos de campo',
+      'nav.reincidencia':'Focos de reincidência',
       // -- Kanban --
       'kanban.titulo':'🗂️ Kanban de Denúncias',
       'kanban.sub':'Arraste um card entre as colunas para mudar o status. A mudança pede confirmação.',
@@ -496,6 +502,12 @@ const I18n = (() => {
       'react.titulo':'React version of this form',
       'react.sub':'Same submission form, built as a React component consuming the same API. Useful to compare both front-end approaches.',
       'react.abrir':'Open',
+      // -- Field device simulator (Phase 6) --
+      'iot.titulo':'Field device simulator (Phase 6)',
+      'iot.sub':'Panic button, ankle monitor with a perimeter and public kiosk talking to the same API. A test instrument standing in for the hardware.',
+      'iot.abrir':'Open',
+      'nav.dispositivos':'Field devices',
+      'nav.reincidencia':'Recurrence clusters',
       // -- Kanban --
       'kanban.titulo':'🗂️ Reports Kanban',
       'kanban.sub':'Drag a card between columns to change its status. The change asks for confirmation.',

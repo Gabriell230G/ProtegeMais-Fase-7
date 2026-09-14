@@ -44,6 +44,24 @@ function toggleDarkMode() {
     localStorage.setItem('darkMode', 'true');
   }
   _atualizarBtnDark(!isDark);
+  redesenharGraficos();
+}
+
+/**
+ * Repinta os graficos apos a troca de tema.
+ *
+ * Sem isto, quem alterna o tema com o relatorio aberto continua vendo a
+ * grade da paleta anterior ate trocar de aba, o que da a impressao de que
+ * o modo escuro so funciona pela metade.
+ */
+function redesenharGraficos() {
+  if (typeof Chart === 'undefined') return;
+  const aba = document.querySelector('.dashboard-content:not([style*="display: none"])');
+  const id = aba ? aba.id : '';
+  if (id === 'tab-resumo') { if (typeof initCharts === 'function') setTimeout(initCharts, 30); }
+  if (id === 'tab-estatistica' && typeof Estatistica !== 'undefined' && Estatistica.abrir) {
+    setTimeout(() => Estatistica.abrir(), 30);
+  }
 }
 
 function _atualizarBtnDark(isDark) {
@@ -167,6 +185,16 @@ function navigate(page) {
     if (page === 'dashboard') Panico.esconder();
     else Panico.mostrar();
   }
+
+  // O chatbot do VigIA atende QUEM DENUNCIA: ele explica o formulário, tira
+  // dúvida sobre anonimato e ensina a acompanhar o protocolo. Nada disso
+  // serve a quem está do outro lado do balcão, e um balão flutuante sobre a
+  // mesa de trabalho de quem atende é só um obstáculo cobrindo a tabela.
+  // Dentro do painel, o VigIA continua presente onde ele de fato ajuda o
+  // servidor: no bloco de análise do Resumo.
+  const chatFab = document.getElementById('chatbot-btn');
+  if (chatFab) chatFab.style.display = (page === 'dashboard') ? 'none' : '';
+  if (page === 'dashboard' && typeof Chatbot !== 'undefined' && Chatbot.close) Chatbot.close();
 
   if (page === 'dashboard') {
     // O painel le do banco. A carga e assincrona: as telas desenham com o
@@ -1135,7 +1163,7 @@ function showDashTab(tab, el) {
     if (typeof showToast === 'function') showToast('🔒 Seu perfil não tem acesso a esta área.');
     return;
   }
-  ['resumo', 'backlog', 'status-d', 'mapa', 'kanban', 'equipe', 'estatistica', 'auditoria'].forEach(t => {
+  ['resumo', 'backlog', 'status-d', 'mapa', 'kanban', 'equipe', 'dispositivos', 'reincidencia', 'estatistica', 'auditoria'].forEach(t => {
     const tabEl = document.getElementById('tab-' + t);
     if (tabEl) tabEl.style.display = 'none';
   });
@@ -1154,6 +1182,18 @@ function showDashTab(tab, el) {
     if (typeof Fluxo !== 'undefined') Fluxo.atualizar();
   }
   if (tab === 'equipe' && typeof Equipe !== 'undefined') { Equipe.render(); }
+
+  // O barramento de dispositivos so vive enquanto a aba esta aberta: sair
+  // dela para o intervalo de atualizacao, para o painel nao ficar batendo
+  // na API de uma tela que ninguem esta olhando.
+  if (typeof Dispositivos !== 'undefined') {
+    if (tab === 'dispositivos') Dispositivos.abrir(); else Dispositivos.fechar();
+  }
+
+  // A analise de focos e recalculada no servidor a cada abertura: a base
+  // muda, e um agrupamento de ontem apresentado como se fosse de agora
+  // seria pior do que nao apresentar nada.
+  if (tab === 'reincidencia' && typeof Reincidencia !== 'undefined') Reincidencia.abrir();
   // O relatorio e calculado no servidor a cada abertura: os numeros mudam
   // conforme a equipe conclui casos, e um cache mudo seria pior que esperar.
   if (tab === 'estatistica' && typeof Estatistica !== 'undefined') { Estatistica.carregar(); }
@@ -1427,20 +1467,40 @@ function filtrarPorEstado(uf) {
   }, 100);
 }
 
+/**
+ * Cores dos graficos conforme o tema vigente.
+ *
+ * O Chart.js desenha num canvas, e um canvas nao herda CSS: grade, rotulos
+ * e legenda sao pintados por JavaScript com a cor que o codigo mandar. Um
+ * cinza claro escolhido para fundo branco vira um borrao luminoso sobre
+ * fundo escuro, e foi exatamente o que acontecia no relatorio estatistico.
+ * Por isso a cor precisa ser perguntada ao tema, e nao fixada no codigo.
+ */
+function coresDoGrafico() {
+  const escuro = document.documentElement.getAttribute('data-theme') === 'dark';
+  return escuro
+    ? { grade: 'rgba(148,163,184,.16)', texto: '#94a3b8', borda: '#334155' }
+    : { grade: '#f1f5f9',               texto: '#64748b', borda: '#e2e8f0' };
+}
+window.coresDoGrafico = coresDoGrafico;
+
 function _createChart(id, type, data) {
   const canvas = document.getElementById(id);
   if (!canvas) return;
   const existing = Chart.getChart(canvas);
   if (existing) existing.destroy();
   const isDonut = type === 'doughnut';
+  const c = coresDoGrafico();
   new Chart(canvas, {
     type, data,
     options: {
       responsive: true, maintainAspectRatio: false,
-      plugins: { legend: { display: isDonut, position: 'bottom', labels: { padding: 12, font: { size: 11 } } } },
+      plugins: { legend: { display: isDonut, position: 'bottom',
+                           labels: { padding: 12, font: { size: 11 }, color: c.texto } } },
       scales: isDonut ? {} : {
-        y: { beginAtZero: true, ticks: { precision: 0 }, grid: { color: '#f1f5f9' } },
-        x: { grid: { display: false } }
+        y: { beginAtZero: true, ticks: { precision: 0, color: c.texto },
+             grid: { color: c.grade }, border: { color: c.borda } },
+        x: { ticks: { color: c.texto }, grid: { display: false }, border: { color: c.borda } }
       }
     }
   });

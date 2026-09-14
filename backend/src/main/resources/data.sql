@@ -1021,3 +1021,569 @@ WHERE d.protocolo = '#2026-10120' AND NOT EXISTS (SELECT 1 FROM denuncia_histori
 INSERT INTO denuncia_historico (denuncia_id, ordem, status, data, hora)
 SELECT d.id, 1, 'concluida', '23/04/2026', '19:47' FROM denuncia d
 WHERE d.protocolo = '#2026-10120' AND NOT EXISTS (SELECT 1 FROM denuncia_historico h WHERE h.denuncia_id = d.id AND h.ordem = 1);
+
+-- =====================================================================
+--  FASE 6  .  Zona de exclusao de demonstracao
+--  Uma medida protetiva ficticia em Barueri, raio de 500 m. O simulador
+--  de telemetria usa esta tornozeleira. O INSERT e idempotente: a
+--  aplicacao reexecuta este script a cada subida, e sem o NOT EXISTS a
+--  restricao de unicidade derrubaria o contexto no segundo start.
+-- =====================================================================
+INSERT INTO zona_exclusao (processo, tornozeleira, lat_protegida, lng_protegida, raio_metros, ativa, dentro_do_perimetro)
+SELECT '0007441-88.2026', 'TZ-4471', -23.5108, -46.8760, 500, TRUE, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM zona_exclusao z WHERE z.tornozeleira = 'TZ-4471');
+
+-- =====================================================================
+--  FASE 6  .  Totens de demonstracao
+--  Tres pontos: dois ativos e um retirado para manutencao. O desativado
+--  existe de proposito, para que a demonstracao mostre um equipamento
+--  sendo recusado pela mesma porta por onde um equipamento desconhecido
+--  e recusado.
+-- =====================================================================
+INSERT INTO ponto_totem (dispositivo, local_instalacao, estado, cidade, latitude, longitude, ativo)
+SELECT 'TT-001', 'UBS Central de Barueri', 'SP', 'Barueri', -23.5106, -46.8761, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM ponto_totem p WHERE p.dispositivo = 'TT-001');
+
+INSERT INTO ponto_totem (dispositivo, local_instalacao, estado, cidade, latitude, longitude, ativo)
+SELECT 'TT-002', 'Terminal Rodoviario de Barueri', 'SP', 'Barueri', -23.5147, -46.8792, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM ponto_totem p WHERE p.dispositivo = 'TT-002');
+
+INSERT INTO ponto_totem (dispositivo, local_instalacao, estado, cidade, latitude, longitude, ativo)
+SELECT 'TT-003', 'CRAS Jardim Belval (em manutencao)', 'SP', 'Barueri', -23.5231, -46.8654, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM ponto_totem p WHERE p.dispositivo = 'TT-003');
+
+INSERT INTO ponto_totem (dispositivo, local_instalacao, estado, cidade, latitude, longitude, ativo)
+SELECT 'TT-004', 'CRAS Vila Boa Vista', 'SP', 'Barueri', -23.5052, -46.8703, TRUE
+WHERE NOT EXISTS (SELECT 1 FROM ponto_totem p WHERE p.dispositivo = 'TT-004');
+
+-- =====================================================================
+--  FASE 6 . Carga de demonstracao do barramento de dispositivos
+--
+--  106 eventos entre 01/04 e 15/05/2026 nas tres origens, e as
+--  65 denuncias que os eventos aceitos abriram. Os dois lados sao
+--  emitidos juntos de proposito: um evento que aponta para um protocolo
+--  inexistente quebraria a consulta que cruza barramento e denuncia, e e
+--  justamente ela que prova que a urgencia sai do VigIA lendo o texto, e
+--  nao do aparelho que enviou.
+--
+--  Esta e carga de EXEMPLO, no mesmo regime do restante deste arquivo. A
+--  semente do gerador e o RM 561601, de modo que a carga e identica em
+--  qualquer maquina: os numeros do relatorio podem ser conferidos na
+--  origem por quem corrige.
+--
+--  Idempotente: sem isto, cada subida da aplicacao somaria outra carga e
+--  as metricas mudariam sozinhas a cada reinicio.
+-- =====================================================================
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90034', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Entrada no perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4471. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-03 00:18:09', TIMESTAMP '2026-04-08 11:27:45', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90034');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90052', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: meu vizinho bate na esposa toda semana e ontem ouvi ela gritando por socorro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-03 17:06:43', TIMESTAMP '2026-04-12 06:08:38', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90052');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90059', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: meu filho e o unico negro da turma e o professor o trata diferente todo dia Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-04 17:30:51', TIMESTAMP '2026-04-11 05:03:29', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90059');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90055', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: ele me empurrou na frente das criancas e disse que ia voltar hoje a noite Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'ALTA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-04 17:50:09', TIMESTAMP '2026-04-14 03:10:18', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90055');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90041', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Permanencia dentro do perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4488. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'analise', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-06 11:36:37', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90041');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90031', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.493490, -46.872952', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.493490, -46.872952. Bateria do aparelho em 68%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-06 18:57:29', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90031');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90023', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.506058, -46.856359', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8823. Coordenada informada pelo aparelho: -23.506058, -46.856359. Bateria do aparelho em 78%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-07 19:05:06', TIMESTAMP '2026-04-17 19:59:49', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90023');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90001', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.515158, -46.866988', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.515158, -46.866988. Bateria do aparelho em 41%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-08 16:32:43', TIMESTAMP '2026-04-11 04:08:14', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90001');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90002', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.515158, -46.866988', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.515158, -46.866988. Bateria do aparelho em 41%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-08 16:34:59', TIMESTAMP '2026-04-12 17:39:47', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90002');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90020', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.512566, -46.870659', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.512566, -46.870659. Bateria do aparelho em 53%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-09 15:24:49', TIMESTAMP '2026-04-14 18:08:58', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90020');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90039', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Entrada no perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4471. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'analise', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-10 18:25:50', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90039');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90028', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.494225, -46.870920', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.494225, -46.870920. Bateria do aparelho em 43%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-11 10:44:32', TIMESTAMP '2026-04-16 00:21:00', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90028');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90033', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Entrada no perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4502. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-11 20:34:57', TIMESTAMP '2026-04-17 18:35:25', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90033');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90057', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'UBS Central de Barueri', 'Registro feito em totem de atendimento publico, em UBS Central de Barueri. Relato da pessoa: meu filho e o unico negro da turma e o professor o trata diferente todo dia Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'analise', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-12 17:23:57', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90057');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90051', 'outros', 'Barueri, SP', 'SP', 'Barueri', 'CRAS Vila Boa Vista', 'Registro feito em totem de atendimento publico, em CRAS Vila Boa Vista. Relato da pessoa: o posto cobra por senha de atendimento e quem nao paga espera o dia inteiro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'analise', TRUE, 80, 'high', 'Alta', 'BAIXA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-14 23:14:25', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90051');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90026', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.529138, -46.873435', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.529138, -46.873435. Bateria do aparelho em 78%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-16 00:43:37', TIMESTAMP '2026-04-21 13:45:32', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90026');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90027', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.529138, -46.873435', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.529138, -46.873435. Bateria do aparelho em 78%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-16 00:46:17', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90027');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90032', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.502191, -46.893715', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8812. Coordenada informada pelo aparelho: -23.502191, -46.893715. Bateria do aparelho em 14%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-16 23:26:16', TIMESTAMP '2026-04-24 10:01:18', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90032');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90007', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.505891, -46.891161', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8823. Coordenada informada pelo aparelho: -23.505891, -46.891161. Bateria do aparelho em 30%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-19 13:14:09', TIMESTAMP '2026-04-25 19:29:59', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90007');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90064', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'UBS Central de Barueri', 'Registro feito em totem de atendimento publico, em UBS Central de Barueri. Relato da pessoa: meu filho e o unico negro da turma e o professor o trata diferente todo dia Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'recebida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-19 18:46:20', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90064');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90022', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.514919, -46.856703', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.514919, -46.856703. Bateria do aparelho em 64%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-20 08:36:11', TIMESTAMP '2026-05-03 23:05:56', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90022');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90015', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.519861, -46.866587', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.519861, -46.866587. Bateria do aparelho em 74%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-21 10:50:49', TIMESTAMP '2026-04-25 10:52:15', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90015');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90010', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.493224, -46.867712', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.493224, -46.867712. Bateria do aparelho em 45%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-21 14:06:15', TIMESTAMP '2026-04-25 13:31:41', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90010');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90012', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.502003, -46.873422', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.502003, -46.873422. Bateria do aparelho em 56%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-22 11:44:18', TIMESTAMP '2026-04-26 18:28:56', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90012');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90025', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.510507, -46.863805', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8831. Coordenada informada pelo aparelho: -23.510507, -46.863805. Bateria do aparelho em 58%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-22 16:18:39', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90025');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90044', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: meu filho e o unico negro da turma e o professor o trata diferente todo dia Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-22 20:42:23', TIMESTAMP '2026-04-28 00:15:30', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90044');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90017', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.522242, -46.888176', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8823. Coordenada informada pelo aparelho: -23.522242, -46.888176. Bateria do aparelho em 78%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-23 07:55:07', TIMESTAMP '2026-04-28 10:33:31', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90017');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90018', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.522242, -46.888176', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8823. Coordenada informada pelo aparelho: -23.522242, -46.888176. Bateria do aparelho em 78%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-23 07:57:20', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90018');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90040', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Permanencia dentro do perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4502. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'analise', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-24 07:49:11', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90040');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90003', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.509459, -46.884370', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8831. Coordenada informada pelo aparelho: -23.509459, -46.884370. Bateria do aparelho em 40%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-24 09:48:18', TIMESTAMP '2026-05-05 00:03:39', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90003');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90004', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.520811, -46.877979', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8817. Coordenada informada pelo aparelho: -23.520811, -46.877979. Bateria do aparelho em 78%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-25 19:14:06', TIMESTAMP '2026-04-30 14:01:37', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90004');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90062', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'UBS Central de Barueri', 'Registro feito em totem de atendimento publico, em UBS Central de Barueri. Relato da pessoa: meu vizinho bate na esposa toda semana e ontem ouvi ela gritando por socorro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-25 22:29:58', TIMESTAMP '2026-04-29 08:29:00', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90062');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90013', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.527121, -46.859377', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8831. Coordenada informada pelo aparelho: -23.527121, -46.859377. Bateria do aparelho em 34%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-26 16:02:07', TIMESTAMP '2026-04-29 19:04:59', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90013');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90014', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.527121, -46.859377', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8831. Coordenada informada pelo aparelho: -23.527121, -46.859377. Bateria do aparelho em 34%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-26 16:05:04', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90014');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90016', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.506090, -46.886147', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8823. Coordenada informada pelo aparelho: -23.506090, -46.886147. Bateria do aparelho em 61%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-26 21:01:01', TIMESTAMP '2026-04-28 10:04:22', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90016');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90011', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.496800, -46.869264', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.496800, -46.869264. Bateria do aparelho em 56%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'recebida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-27 10:26:22', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90011');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90009', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.524786, -46.859830', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8823. Coordenada informada pelo aparelho: -23.524786, -46.859830. Bateria do aparelho em 82%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-27 19:33:52', TIMESTAMP '2026-05-01 14:42:59', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90009');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90045', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: meu vizinho bate na esposa toda semana e ontem ouvi ela gritando por socorro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-27 22:07:05', TIMESTAMP '2026-05-09 12:26:45', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90045');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90035', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Permanencia dentro do perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4488. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-30 08:24:28', TIMESTAMP '2026-05-07 17:44:37', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90035');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90008', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.504321, -46.861554', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8812. Coordenada informada pelo aparelho: -23.504321, -46.861554. Bateria do aparelho em 59%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-30 18:44:12', TIMESTAMP '2026-05-03 00:48:31', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90008');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90050', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: fui recusada no atendimento por causa da minha religiao e ninguem explicou Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-30 19:05:18', TIMESTAMP '2026-05-06 16:54:15', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90050');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90043', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Permanencia dentro do perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4502. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-04-30 21:51:52', TIMESTAMP '2026-05-08 19:48:01', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90043');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90024', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.521747, -46.887235', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.521747, -46.887235. Bateria do aparelho em 30%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-01 01:58:33', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90024');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90056', 'assedio', 'Barueri, SP', 'SP', 'Barueri', 'UBS Central de Barueri', 'Registro feito em totem de atendimento publico, em UBS Central de Barueri. Relato da pessoa: um homem me segue na saida do turno da noite ha duas semanas Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-01 18:18:32', TIMESTAMP '2026-05-03 21:38:41', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90056');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90029', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.525971, -46.893956', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8812. Coordenada informada pelo aparelho: -23.525971, -46.893956. Bateria do aparelho em 46%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-02 00:12:12', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90029');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90030', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.525971, -46.893956', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8812. Coordenada informada pelo aparelho: -23.525971, -46.893956. Bateria do aparelho em 46%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-02 00:14:33', TIMESTAMP '2026-05-06 08:08:18', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90030');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90021', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.499492, -46.883989', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8812. Coordenada informada pelo aparelho: -23.499492, -46.883989. Bateria do aparelho em 37%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-02 11:26:44', TIMESTAMP '2026-05-05 08:54:05', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90021');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90049', 'assedio', 'Barueri, SP', 'SP', 'Barueri', 'CRAS Vila Boa Vista', 'Registro feito em totem de atendimento publico, em CRAS Vila Boa Vista. Relato da pessoa: um homem me segue na saida do turno da noite ha duas semanas Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-03 17:31:05', TIMESTAMP '2026-05-14 17:15:14', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90049');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90042', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Permanencia dentro do perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4488. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-03 18:07:13', TIMESTAMP '2026-05-08 17:41:17', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90042');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90037', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Entrada no perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4502. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-05 00:37:28', TIMESTAMP '2026-05-10 11:06:44', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90037');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90053', 'outros', 'Barueri, SP', 'SP', 'Barueri', 'CRAS Vila Boa Vista', 'Registro feito em totem de atendimento publico, em CRAS Vila Boa Vista. Relato da pessoa: o posto cobra por senha de atendimento e quem nao paga espera o dia inteiro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'BAIXA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-06 14:53:53', TIMESTAMP '2026-05-12 10:17:24', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90053');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90047', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'CRAS Vila Boa Vista', 'Registro feito em totem de atendimento publico, em CRAS Vila Boa Vista. Relato da pessoa: fui recusada no atendimento por causa da minha religiao e ninguem explicou Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-06 22:52:20', TIMESTAMP '2026-05-17 18:41:46', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90047');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90019', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.510358, -46.868280', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.510358, -46.868280. Bateria do aparelho em 27%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'analise', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-07 00:31:48', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90019');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90061', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'CRAS Vila Boa Vista', 'Registro feito em totem de atendimento publico, em CRAS Vila Boa Vista. Relato da pessoa: meu vizinho bate na esposa toda semana e ontem ouvi ela gritando por socorro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-07 17:30:12', TIMESTAMP '2026-05-11 16:55:38', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90061');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90058', 'outros', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: o posto cobra por senha de atendimento e quem nao paga espera o dia inteiro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'BAIXA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-08 15:51:32', TIMESTAMP '2026-05-17 01:05:56', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90058');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90065', 'outros', 'Barueri, SP', 'SP', 'Barueri', 'UBS Central de Barueri', 'Registro feito em totem de atendimento publico, em UBS Central de Barueri. Relato da pessoa: o posto cobra por senha de atendimento e quem nao paga espera o dia inteiro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'BAIXA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-08 18:40:37', TIMESTAMP '2026-05-17 07:05:05', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90065');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90063', 'outros', 'Barueri, SP', 'SP', 'Barueri', 'UBS Central de Barueri', 'Registro feito em totem de atendimento publico, em UBS Central de Barueri. Relato da pessoa: o posto cobra por senha de atendimento e quem nao paga espera o dia inteiro Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'BAIXA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-09 20:17:29', TIMESTAMP '2026-05-15 17:08:50', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90063');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90048', 'assedio', 'Barueri, SP', 'SP', 'Barueri', 'CRAS Vila Boa Vista', 'Registro feito em totem de atendimento publico, em CRAS Vila Boa Vista. Relato da pessoa: meu chefe faz comentarios sobre meu corpo toda vez que passa pela minha mesa Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'analise', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-09 22:27:11', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90048');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90060', 'assedio', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: meu chefe faz comentarios sobre meu corpo toda vez que passa pela minha mesa Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'analise', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-11 18:44:53', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90060');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90036', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Entrada no perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4471. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'concluida', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-12 07:43:16', TIMESTAMP '2026-05-16 21:24:04', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90036');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90038', 'violencia', 'Barueri, SP', 'SP', 'Barueri', NULL, 'Descumprimento de medida protetiva detectado agora por monitoracao eletronica. Permanencia dentro do perimetro de exclusao. Processo 0007441-88.2026, equipamento TZ-4471. Evento gerado pelo servidor a partir da telemetria, sem intervencao humana.', 'analise', TRUE, 70, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-13 12:09:54', NULL, FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90038');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90054', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: ele me empurrou na frente das criancas e disse que ia voltar hoje a noite Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'ALTA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-13 15:22:18', TIMESTAMP '2026-05-25 06:05:01', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90054');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90046', 'discriminacao', 'Barueri, SP', 'SP', 'Barueri', 'Terminal Rodoviario de Barueri', 'Registro feito em totem de atendimento publico, em Terminal Rodoviario de Barueri. Relato da pessoa: meu filho e o unico negro da turma e o professor o trata diferente todo dia Registro anonimo por natureza do equipamento: o totem nao pede identificacao.', 'concluida', TRUE, 80, 'high', 'Alta', 'MEDIA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-13 23:38:24', TIMESTAMP '2026-05-17 02:44:09', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90046');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90005', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.517290, -46.888411', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.517290, -46.888411. Bateria do aparelho em 74%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-14 15:34:34', TIMESTAMP '2026-05-23 20:45:36', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90005');
+INSERT INTO denuncia (protocolo, tipo, localidade, estado, cidade, endereco, descricao, status, anonimo, score, score_label, score_txt, urgencia_ia, resumo_ia, origem_analise, criado_em, concluida_em, excluida)
+SELECT '#2026-90006', 'violencia', 'Barueri, SP', 'SP', 'Barueri', 'Coordenada aproximada -23.517290, -46.888411', 'Pedido de socorro enviado agora por botao de panico fisico. Dispositivo SOS-8840. Coordenada informada pelo aparelho: -23.517290, -46.888411. Bateria do aparelho em 74%. Acionamento sem texto: a pessoa nao teve condicao de escrever.', 'concluida', TRUE, 80, 'high', 'Alta', 'CRITICA', 'Caso aberto por dispositivo de campo; classificacao por regras explicaveis.', 'REGRAS', TIMESTAMP '2026-05-14 15:37:00', TIMESTAMP '2026-05-18 18:11:04', FALSE
+WHERE NOT EXISTS (SELECT 1 FROM denuncia x WHERE x.protocolo = '#2026-90006');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.488524, -46.853527, 69, TIMESTAMP '2026-04-02 16:35:03', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-02 16:35:03');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.497262, -46.89986, 35, TIMESTAMP '2026-04-03 00:18:09', 'ACEITO', '#2026-90034', 'Entrada no perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-03 00:18:09');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-03 17:06:43', 'ACEITO', '#2026-90052', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-03 17:06:43');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-04 17:30:51', 'ACEITO', '#2026-90059', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-04 17:30:51');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-04 17:50:09', 'ACEITO', '#2026-90055', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia ALTA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-04 17:50:09');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.480623, -46.852899, 52, TIMESTAMP '2026-04-05 03:47:15', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-05 03:47:15');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.493361, -46.903242, 28, TIMESTAMP '2026-04-06 11:36:37', 'ACEITO', '#2026-90041', 'Permanencia dentro do perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-06 11:36:37');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.49349, -46.872952, 68, TIMESTAMP '2026-04-06 18:57:29', 'ACEITO', '#2026-90031', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-06 18:57:29');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.506058, -46.856359, 78, TIMESTAMP '2026-04-07 19:05:06', 'ACEITO', '#2026-90023', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-07 19:05:06');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.506058, -46.856359, 78, TIMESTAMP '2026-04-07 19:05:11', 'DUPLICADO', '#2026-90023', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-07 19:05:11');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.482235, -46.882788, 60, TIMESTAMP '2026-04-08 13:57:08', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-08 13:57:08');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.515158, -46.866988, 41, TIMESTAMP '2026-04-08 16:32:43', 'ACEITO', '#2026-90001', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-08 16:32:43');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.515158, -46.866988, 39, TIMESTAMP '2026-04-08 16:34:59', 'ACEITO', '#2026-90002', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-08 16:34:59');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.512566, -46.870659, 53, TIMESTAMP '2026-04-09 15:24:49', 'ACEITO', '#2026-90020', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-09 15:24:49');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.512566, -46.870659, 51, TIMESTAMP '2026-04-09 15:24:57', 'DUPLICADO', '#2026-90020', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-09 15:24:57');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.500453, -46.894581, 92, TIMESTAMP '2026-04-09 20:26:08', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-09 20:26:08');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.516429, -46.899413, 56, TIMESTAMP '2026-04-10 06:00:04', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-10 06:00:04');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.492024, -46.890611, 36, TIMESTAMP '2026-04-10 17:13:00', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-10 17:13:00');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.531445, -46.880341, 21, TIMESTAMP '2026-04-10 18:25:50', 'ACEITO', '#2026-90039', 'Entrada no perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-10 18:25:50');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.502886, -46.896386, 66, TIMESTAMP '2026-04-11 00:41:09', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-11 00:41:09');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.494225, -46.87092, 43, TIMESTAMP '2026-04-11 10:44:32', 'ACEITO', '#2026-90028', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-11 10:44:32');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.493182, -46.854011, 27, TIMESTAMP '2026-04-11 20:34:57', 'ACEITO', '#2026-90033', 'Entrada no perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-11 20:34:57');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-001', -23.5106, -46.8761, NULL, TIMESTAMP '2026-04-12 17:23:57', 'ACEITO', '#2026-90057', 'Registro em totem UBS Central de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-001' AND y.recebido_em = TIMESTAMP '2026-04-12 17:23:57');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-004', -23.5052, -46.8703, NULL, TIMESTAMP '2026-04-14 23:14:25', 'ACEITO', '#2026-90051', 'Registro em totem CRAS Vila Boa Vista; caso aberto com urgencia BAIXA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-004' AND y.recebido_em = TIMESTAMP '2026-04-14 23:14:25');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.521584, -46.884813, 60, TIMESTAMP '2026-04-15 18:33:29', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-15 18:33:29');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.529138, -46.873435, 78, TIMESTAMP '2026-04-16 00:43:37', 'ACEITO', '#2026-90026', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-16 00:43:37');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.529138, -46.873435, 76, TIMESTAMP '2026-04-16 00:46:17', 'ACEITO', '#2026-90027', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-16 00:46:17');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.484305, -46.849832, 33, TIMESTAMP '2026-04-16 01:08:54', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-16 01:08:54');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.502191, -46.893715, 14, TIMESTAMP '2026-04-16 23:26:16', 'ACEITO', '#2026-90032', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-04-16 23:26:16');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.502191, -46.893715, 14, TIMESTAMP '2026-04-16 23:26:27', 'DUPLICADO', '#2026-90032', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-04-16 23:26:27');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.507891, -46.879121, 66, TIMESTAMP '2026-04-18 11:44:00', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-18 11:44:00');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.505891, -46.891161, 30, TIMESTAMP '2026-04-19 13:14:09', 'ACEITO', '#2026-90007', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-19 13:14:09');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.505891, -46.891161, 30, TIMESTAMP '2026-04-19 13:14:19', 'DUPLICADO', '#2026-90007', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-19 13:14:19');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-001', -23.5106, -46.8761, NULL, TIMESTAMP '2026-04-19 18:46:20', 'ACEITO', '#2026-90064', 'Registro em totem UBS Central de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-001' AND y.recebido_em = TIMESTAMP '2026-04-19 18:46:20');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-003', NULL, NULL, NULL, TIMESTAMP '2026-04-19 18:46:55', 'DESCARTADO', NULL, 'Totem desconhecido ou desativado'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-003' AND y.recebido_em = TIMESTAMP '2026-04-19 18:46:55');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.514919, -46.856703, 64, TIMESTAMP '2026-04-20 08:36:11', 'ACEITO', '#2026-90022', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-20 08:36:11');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.514919, -46.856703, 62, TIMESTAMP '2026-04-20 08:37:53', 'DUPLICADO', '#2026-90022', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-20 08:37:53');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.519861, -46.866587, 74, TIMESTAMP '2026-04-21 10:50:49', 'ACEITO', '#2026-90015', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-21 10:50:49');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.519861, -46.866587, 74, TIMESTAMP '2026-04-21 10:51:56', 'DUPLICADO', '#2026-90015', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-21 10:51:56');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.493224, -46.867712, 45, TIMESTAMP '2026-04-21 14:06:15', 'ACEITO', '#2026-90010', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-21 14:06:15');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.502003, -46.873422, 56, TIMESTAMP '2026-04-22 11:44:18', 'ACEITO', '#2026-90012', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-22 11:44:18');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8831', -23.510507, -46.863805, 58, TIMESTAMP '2026-04-22 16:18:39', 'ACEITO', '#2026-90025', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8831' AND y.recebido_em = TIMESTAMP '2026-04-22 16:18:39');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-22 19:06:02', 'DESCARTADO', NULL, 'Relato com menos de 15 caracteres'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-22 19:06:02');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-22 20:42:23', 'ACEITO', '#2026-90044', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-22 20:42:23');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-22 23:26:23', 'DESCARTADO', NULL, 'Relato com menos de 15 caracteres'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-22 23:26:23');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.493123, -46.846897, 27, TIMESTAMP '2026-04-23 06:22:28', 'DUPLICADO', NULL, 'Violacao ja alertada ha menos de 600s'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-23 06:22:28');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.522242, -46.888176, 78, TIMESTAMP '2026-04-23 07:55:07', 'ACEITO', '#2026-90017', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-23 07:55:07');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.522242, -46.888176, 78, TIMESTAMP '2026-04-23 07:57:20', 'ACEITO', '#2026-90018', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-23 07:57:20');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.53655, -46.877277, 32, TIMESTAMP '2026-04-24 07:49:11', 'ACEITO', '#2026-90040', 'Permanencia dentro do perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-24 07:49:11');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8831', -23.509459, -46.88437, 40, TIMESTAMP '2026-04-24 09:48:18', 'ACEITO', '#2026-90003', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8831' AND y.recebido_em = TIMESTAMP '2026-04-24 09:48:18');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.523187, -46.87583, 57, TIMESTAMP '2026-04-24 18:21:57', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-24 18:21:57');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-003', NULL, NULL, NULL, TIMESTAMP '2026-04-24 18:57:39', 'DESCARTADO', NULL, 'Totem desconhecido ou desativado'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-003' AND y.recebido_em = TIMESTAMP '2026-04-24 18:57:39');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.506218, -46.901994, 94, TIMESTAMP '2026-04-25 13:09:02', 'DUPLICADO', NULL, 'Violacao ja alertada ha menos de 600s'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-04-25 13:09:02');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.513667, -46.887298, 60, TIMESTAMP '2026-04-25 18:46:06', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-25 18:46:06');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8817', -23.520811, -46.877979, 78, TIMESTAMP '2026-04-25 19:14:06', 'ACEITO', '#2026-90004', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8817' AND y.recebido_em = TIMESTAMP '2026-04-25 19:14:06');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-001', -23.5106, -46.8761, NULL, TIMESTAMP '2026-04-25 22:29:58', 'ACEITO', '#2026-90062', 'Registro em totem UBS Central de Barueri; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-001' AND y.recebido_em = TIMESTAMP '2026-04-25 22:29:58');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.493175, -46.891065, 58, TIMESTAMP '2026-04-26 13:42:14', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-26 13:42:14');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8831', -23.527121, -46.859377, 34, TIMESTAMP '2026-04-26 16:02:07', 'ACEITO', '#2026-90013', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8831' AND y.recebido_em = TIMESTAMP '2026-04-26 16:02:07');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8831', -23.527121, -46.859377, 34, TIMESTAMP '2026-04-26 16:05:04', 'ACEITO', '#2026-90014', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8831' AND y.recebido_em = TIMESTAMP '2026-04-26 16:05:04');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.50609, -46.886147, 61, TIMESTAMP '2026-04-26 21:01:01', 'ACEITO', '#2026-90016', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-26 21:01:01');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.4968, -46.869264, 56, TIMESTAMP '2026-04-27 10:26:22', 'ACEITO', '#2026-90011', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-27 10:26:22');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.4968, -46.869264, 54, TIMESTAMP '2026-04-27 10:27:16', 'DUPLICADO', '#2026-90011', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-04-27 10:27:16');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8823', -23.524786, -46.85983, 82, TIMESTAMP '2026-04-27 19:33:52', 'ACEITO', '#2026-90009', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8823' AND y.recebido_em = TIMESTAMP '2026-04-27 19:33:52');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-27 22:07:05', 'ACEITO', '#2026-90045', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-27 22:07:05');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.486513, -46.867665, 39, TIMESTAMP '2026-04-29 20:01:52', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-29 20:01:52');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.48734, -46.891276, 98, TIMESTAMP '2026-04-30 08:24:28', 'ACEITO', '#2026-90035', 'Permanencia dentro do perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-04-30 08:24:28');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.504321, -46.861554, 59, TIMESTAMP '2026-04-30 18:44:12', 'ACEITO', '#2026-90008', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-04-30 18:44:12');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-04-30 19:05:18', 'ACEITO', '#2026-90050', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-04-30 19:05:18');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.483825, -46.861754, 91, TIMESTAMP '2026-04-30 21:51:52', 'ACEITO', '#2026-90043', 'Permanencia dentro do perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-04-30 21:51:52');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.521747, -46.887235, 30, TIMESTAMP '2026-05-01 01:58:33', 'ACEITO', '#2026-90024', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-05-01 01:58:33');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-001', -23.5106, -46.8761, NULL, TIMESTAMP '2026-05-01 18:18:32', 'ACEITO', '#2026-90056', 'Registro em totem UBS Central de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-001' AND y.recebido_em = TIMESTAMP '2026-05-01 18:18:32');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.525971, -46.893956, 46, TIMESTAMP '2026-05-02 00:12:12', 'ACEITO', '#2026-90029', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-05-02 00:12:12');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.525971, -46.893956, 45, TIMESTAMP '2026-05-02 00:14:33', 'ACEITO', '#2026-90030', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-05-02 00:14:33');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.535587, -46.873559, 22, TIMESTAMP '2026-05-02 07:53:17', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-02 07:53:17');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.504002, -46.902336, 43, TIMESTAMP '2026-05-02 11:21:31', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-05-02 11:21:31');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.499492, -46.883989, 37, TIMESTAMP '2026-05-02 11:26:44', 'ACEITO', '#2026-90021', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-05-02 11:26:44');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8812', -23.499492, -46.883989, 35, TIMESTAMP '2026-05-02 11:27:45', 'DUPLICADO', '#2026-90021', 'Repique dentro de 120s do acionamento anterior; vinculado ao mesmo caso'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8812' AND y.recebido_em = TIMESTAMP '2026-05-02 11:27:45');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.504979, -46.864236, 22, TIMESTAMP '2026-05-03 01:38:04', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-03 01:38:04');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-004', -23.5052, -46.8703, NULL, TIMESTAMP '2026-05-03 17:31:05', 'ACEITO', '#2026-90049', 'Registro em totem CRAS Vila Boa Vista; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-004' AND y.recebido_em = TIMESTAMP '2026-05-03 17:31:05');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.516753, -46.900584, 20, TIMESTAMP '2026-05-03 18:07:13', 'ACEITO', '#2026-90042', 'Permanencia dentro do perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-03 18:07:13');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.486957, -46.88272, 67, TIMESTAMP '2026-05-04 04:02:28', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-05-04 04:02:28');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.519156, -46.892206, 39, TIMESTAMP '2026-05-05 00:37:28', 'ACEITO', '#2026-90037', 'Entrada no perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-05-05 00:37:28');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.494232, -46.905935, 26, TIMESTAMP '2026-05-05 03:16:30', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-05 03:16:30');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-003', NULL, NULL, NULL, TIMESTAMP '2026-05-05 23:41:05', 'DESCARTADO', NULL, 'Totem desconhecido ou desativado'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-003' AND y.recebido_em = TIMESTAMP '2026-05-05 23:41:05');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.490797, -46.904774, 28, TIMESTAMP '2026-05-06 09:53:35', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-06 09:53:35');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-004', -23.5052, -46.8703, NULL, TIMESTAMP '2026-05-06 14:53:53', 'ACEITO', '#2026-90053', 'Registro em totem CRAS Vila Boa Vista; caso aberto com urgencia BAIXA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-004' AND y.recebido_em = TIMESTAMP '2026-05-06 14:53:53');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-004', -23.5052, -46.8703, NULL, TIMESTAMP '2026-05-06 22:52:20', 'ACEITO', '#2026-90047', 'Registro em totem CRAS Vila Boa Vista; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-004' AND y.recebido_em = TIMESTAMP '2026-05-06 22:52:20');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.510358, -46.86828, 27, TIMESTAMP '2026-05-07 00:31:48', 'ACEITO', '#2026-90019', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-05-07 00:31:48');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4502', -23.535526, -46.871638, 41, TIMESTAMP '2026-05-07 01:28:38', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4502' AND y.recebido_em = TIMESTAMP '2026-05-07 01:28:38');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-004', -23.5052, -46.8703, NULL, TIMESTAMP '2026-05-07 17:30:12', 'ACEITO', '#2026-90061', 'Registro em totem CRAS Vila Boa Vista; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-004' AND y.recebido_em = TIMESTAMP '2026-05-07 17:30:12');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.507931, -46.883256, 65, TIMESTAMP '2026-05-08 09:26:11', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-08 09:26:11');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-05-08 15:51:32', 'ACEITO', '#2026-90058', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia BAIXA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-05-08 15:51:32');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-001', -23.5106, -46.8761, NULL, TIMESTAMP '2026-05-08 18:40:37', 'ACEITO', '#2026-90065', 'Registro em totem UBS Central de Barueri; caso aberto com urgencia BAIXA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-001' AND y.recebido_em = TIMESTAMP '2026-05-08 18:40:37');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.491626, -46.855905, 30, TIMESTAMP '2026-05-09 11:36:12', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-09 11:36:12');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-001', -23.5106, -46.8761, NULL, TIMESTAMP '2026-05-09 20:17:29', 'ACEITO', '#2026-90063', 'Registro em totem UBS Central de Barueri; caso aberto com urgencia BAIXA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-001' AND y.recebido_em = TIMESTAMP '2026-05-09 20:17:29');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-004', -23.5052, -46.8703, NULL, TIMESTAMP '2026-05-09 22:27:11', 'ACEITO', '#2026-90048', 'Registro em totem CRAS Vila Boa Vista; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-004' AND y.recebido_em = TIMESTAMP '2026-05-09 22:27:11');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.524941, -46.883922, 94, TIMESTAMP '2026-05-10 03:29:55', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-05-10 03:29:55');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-05-11 18:44:53', 'ACEITO', '#2026-90060', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-05-11 18:44:53');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.522635, -46.866685, 20, TIMESTAMP '2026-05-12 07:43:16', 'ACEITO', '#2026-90036', 'Entrada no perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-05-12 07:43:16');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-003', NULL, NULL, NULL, TIMESTAMP '2026-05-12 21:25:47', 'DESCARTADO', NULL, 'Totem desconhecido ou desativado'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-003' AND y.recebido_em = TIMESTAMP '2026-05-12 21:25:47');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4471', -23.496665, -46.860223, 93, TIMESTAMP '2026-05-13 12:09:54', 'ACEITO', '#2026-90038', 'Permanencia dentro do perimetro de exclusao; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4471' AND y.recebido_em = TIMESTAMP '2026-05-13 12:09:54');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-05-13 15:22:18', 'ACEITO', '#2026-90054', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia ALTA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-05-13 15:22:18');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'TOTEM', 'TT-002', -23.5147, -46.8792, NULL, TIMESTAMP '2026-05-13 23:38:24', 'ACEITO', '#2026-90046', 'Registro em totem Terminal Rodoviario de Barueri; caso aberto com urgencia MEDIA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TT-002' AND y.recebido_em = TIMESTAMP '2026-05-13 23:38:24');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.51729, -46.888411, 74, TIMESTAMP '2026-05-14 15:34:34', 'ACEITO', '#2026-90005', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-05-14 15:34:34');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'SOS', 'SOS-8840', -23.51729, -46.888411, 72, TIMESTAMP '2026-05-14 15:37:00', 'ACEITO', '#2026-90006', 'Acionamento de botao de panico; caso aberto com urgencia CRITICA'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'SOS-8840' AND y.recebido_em = TIMESTAMP '2026-05-14 15:37:00');
+INSERT INTO evento_iot (origem, dispositivo, latitude, longitude, bateria, recebido_em, situacao, protocolo_gerado, detalhe)
+SELECT 'GEOFENCE', 'TZ-4488', -23.491309, -46.854131, 28, TIMESTAMP '2026-05-14 20:30:29', 'ACEITO', NULL, 'Fora do perimetro'
+WHERE NOT EXISTS (SELECT 1 FROM evento_iot y WHERE y.dispositivo = 'TZ-4488' AND y.recebido_em = TIMESTAMP '2026-05-14 20:30:29');

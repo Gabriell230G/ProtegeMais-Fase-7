@@ -1,0 +1,184 @@
+=============================================================================
+ PROTEGE+ | RESULTADOS DAS CONSULTAS DA FASE 6 (Parte 4)
+ HackGov / FIAP . Fase 6 | Gabriel Vasconcellos Gomes . RM 561601
+
+ Base: 106 eventos de dispositivo e 65 denuncias abertas por eles, entre
+ 03/04 e 14/05/2026, produzidos por database/gerar_carga_fase6.py com
+ semente 561601. Somadas as 125 denuncias herdadas das fases anteriores,
+ a base tem 190 denuncias. Reexecutar o gerador reproduz exatamente estes
+ numeros.
+=============================================================================
+
+
+-----------------------------------------------------------------------------
+ CONSULTA 1 . O barramento em uma tabela so  (GROUP BY ... ROLLUP)
+-----------------------------------------------------------------------------
+ origem         | situacao    | eventos | casos_abertos | bateria_media
+ ---------------+-------------+---------+---------------+--------------
+ GEOFENCE       | ACEITO      |      36 |            11 |         49,3
+ GEOFENCE       | DUPLICADO   |       2 |             0 |         60,5
+ GEOFENCE       | .. subtotal |      38 |            11 |         49,9
+ SOS            | ACEITO      |      32 |            32 |         54,6
+ SOS            | DUPLICADO   |       8 |             8 |         49,8
+ SOS            | .. subtotal |      40 |            40 |         53,6
+ TOTEM          | ACEITO      |      22 |            22 |        (sem)
+ TOTEM          | DESCARTADO  |       6 |             0 |        (sem)
+ TOTEM          | .. subtotal |      28 |            22 |        (sem)
+ >> TOTAL GERAL | .. subtotal |     106 |            73 |         51,8
+
+ O QUE ISTO DIZ
+ Cento e seis eventos produziram 73 casos. A tornozeleira e a origem mais
+ falante e a que menos abre caso, e isso e o comportamento correto: ela envia
+ posicao o tempo todo e o normal e estar fora do perimetro.
+
+ A bateria media vazia no totem nao e dado faltando: totem fica na tomada e
+ nao reporta bateria. Uma coluna vazia que significa "nao se aplica" e
+ diferente de uma que significa "nao chegou", e o modelo preserva essa
+ diferenca ao permitir NULL em vez de gravar zero.
+
+
+-----------------------------------------------------------------------------
+ CONSULTA 2 . Quais aparelhos concentram o volume  (RANK, SUM OVER, CTE)
+-----------------------------------------------------------------------------
+ origem   | dispositivo | eventos | posicao | pct_origem | pct_acumulado
+ ---------+-------------+---------+---------+------------+--------------
+ GEOFENCE | TZ-4488     |      16 |       1 |       44,4 |          44,4
+ GEOFENCE | TZ-4471     |      10 |       2 |       27,8 |          72,2
+ GEOFENCE | TZ-4502     |      10 |       2 |       27,8 |         100,0
+ SOS      | SOS-8840    |      10 |       1 |       31,2 |          31,2
+ SOS      | SOS-8817    |       7 |       2 |       21,9 |          53,1
+ SOS      | SOS-8823    |       6 |       3 |       18,8 |          71,9
+ SOS      | SOS-8812    |       5 |       4 |       15,6 |          87,5
+ SOS      | SOS-8831    |       4 |       5 |       12,5 |         100,0
+ TOTEM    | TT-002      |      10 |       1 |       45,5 |          45,5
+ TOTEM    | TT-001      |       6 |       2 |       27,3 |          72,7
+ TOTEM    | TT-004      |       6 |       2 |       27,3 |         100,0
+
+ O QUE ISTO DIZ
+ Nao ha concentracao patologica em nenhuma origem. No botao de panico, dois
+ dos cinco aparelhos somam 53,1%, distribuicao normal para cinco unidades. A
+ leitura util e a que NAO apareceu: nenhum aparelho sozinho acima de 50% da
+ propria origem.
+
+ O RANK repetido em TZ-4471 e TZ-4502, ambos na posicao 2, e correto: RANK
+ empata e pula, e por isso a posicao 3 nao existe naquela origem.
+
+
+-----------------------------------------------------------------------------
+ CONSULTA 3 . A janela de repique de 120 s esta bem calibrada?  (LAG)
+-----------------------------------------------------------------------------
+ faixa                                    | ocorrencias
+ -----------------------------------------+------------
+ a) ate 20 s . toque duplo                |           4
+ b) 20 a 120 s . dentro da janela         |           4
+ c) 120 a 300 s . logo acima da janela    |           6
+ d) acima de 300 s . evento independente  |          21
+
+ O QUE ISTO DIZ
+ Esta e a consulta que audita uma DECISAO DE PROJETO com dado, e nao com a
+ intuicao de quem escreveu o codigo.
+
+ Dos 35 intervalos observados entre acionamentos do mesmo aparelho, 8 caem
+ dentro da janela de 120 s e sao tratados como repique. Os 6 da faixa (c) sao
+ o achado: eles estao logo acima do corte e viraram caso novo.
+
+ Seis ocorrencias logo acima do limite, contra oito dentro dele, e proporcao
+ alta o bastante para merecer investigacao em operacao real: ou ha duas
+ ocorrencias distintas mesmo, ou a janela esta curta e a mesma pessoa esta
+ abrindo dois casos. Com este volume nao da para decidir, e a resposta honesta
+ e essa. O que a consulta entrega nao e a resposta pronta: e o instrumento que
+ passa a medir a janela continuamente, e o criterio para revisa-la.
+
+ Observacao de metodo: os intervalos NAO foram sorteados dentro da janela. O
+ gerador os tira de uma exponencial de media 55 s e depois APLICA a regra dos
+ 120 s, como o servidor faria. Sortear dentro da janela produziria a conclusao
+ "120 s cobre tudo" por construcao, o que seria circular.
+
+
+-----------------------------------------------------------------------------
+ CONSULTA 4 . Totens acima da media  (SUBCONSULTA no HAVING)
+-----------------------------------------------------------------------------
+ dispositivo | local_instalacao               | cidade  | registros | aceitos
+ ------------+--------------------------------+---------+-----------+--------
+ TT-002      | Terminal Rodoviario de Barueri | Barueri |        12 |      10
+
+ O QUE ISTO DIZ
+ A media por totem ativo e de 8,0 registros, e um unico ponto esta acima dela:
+ o Terminal Rodoviario, com 12 registros. TT-001 e TT-004 ficaram ambos em 6.
+
+ O par 12 registros contra 10 aceitos e o dado que orienta acao: dois registros
+ foram recusados ali, e recusa em totem tem causa conhecida e tratavel, relato
+ curto demais, que e problema de instrucao na tela, ou equipamento fora de
+ servico, que e problema de manutencao.
+
+ A media nao e um numero digitado: a subconsulta a recalcula a cada execucao.
+ Um limite fixo, do tipo "mais de 8 registros", envelheceria em silencio
+ conforme o parque crescesse, e continuaria devolvendo resposta com cara de
+ certa.
+
+
+-----------------------------------------------------------------------------
+ CONSULTA 5 . O aparelho decide a urgencia? O dado confirma?
+-----------------------------------------------------------------------------
+ origem   | urgencia | casos | score_medio | exemplo
+ ---------+----------+-------+-------------+-------------
+ GEOFENCE | CRITICA  |    11 |        70,0 | #2026-90033
+ SOS      | CRITICA  |    32 |        80,0 | #2026-90001
+ TOTEM    | MEDIA    |    11 |        80,0 | #2026-90044
+ TOTEM    | BAIXA    |     5 |        80,0 | #2026-90051
+ TOTEM    | CRITICA  |     4 |        80,0 | #2026-90045
+ TOTEM    | ALTA     |     2 |        80,0 | #2026-90054
+
+ O QUE ISTO DIZ
+ O totem produz as QUATRO urgencias. O mesmo equipamento gera de BAIXA a
+ CRITICA conforme o que a pessoa escreveu. Se a origem determinasse a urgencia,
+ o totem teria valor unico, e nao tem.
+
+ SOS e GEOFENCE saem sempre CRITICA, e isso pede leitura cuidadosa para nao ser
+ confundido com o contrario do que a consulta mostra. Nao e a origem que fixa a
+ urgencia: e que o texto que essas duas origens produzem SEMPRE descreve um
+ fato imediato. Um botao de panico e, por definicao, um pedido de socorro
+ agora, e o classificador le "agora" no relato como leria em qualquer texto
+ digitado. A regra e a mesma; o que muda e a entrada.
+
+ A COLUNA DE SCORE PROVA OUTRA COISA, E E A MAIS INTERESSANTE DA TABELA
+ As quatro linhas de TOTEM tem urgencias diferentes e o MESMO score, 80. Isso
+ nao e defeito: score e urgencia medem coisas distintas. O score vem do
+ ScoreService e mede QUANTO O FORMULARIO FOI PREENCHIDO; a urgencia vem do
+ VigIA e mede GRAVIDADE. Todos os registros de totem preenchem os mesmos
+ campos, entao pontuam igual, e ainda assim se separam em quatro urgencias.
+
+ A diferenca de 80 para 70 entre SOS e GEOFENCE tem a mesma natureza: o
+ acionamento de panico grava endereco aproximado, que vale 10 pontos de
+ preenchimento, e o alerta de perimetro nao grava endereco algum, por decisao
+ de privacidade. Os 10 pontos de diferenca sao exatamente essa decisao
+ aparecendo no dado.
+
+
+-----------------------------------------------------------------------------
+ CONSULTA 6 . Aproveitamento por origem
+-----------------------------------------------------------------------------
+ origem   | total | gerou caso | duplicados | descartados | aproveitamento
+ ---------+-------+------------+------------+-------------+---------------
+ SOS      |    40 |         40 |          8 |           0 |         100,0%
+ GEOFENCE |    38 |         11 |          2 |           0 |          28,9%
+ TOTEM    |    28 |         22 |          0 |           6 |          78,6%
+
+ O QUE ISTO DIZ
+ A leitura util NAO e "quanto maior, melhor". Cada origem tem um aproveitamento
+ esperado diferente, e o que informa e o desvio dele.
+
+ SOS em 100% esta no esperado: ninguem aperta um botao de panico por engano com
+ frequencia. Os 8 duplicados tambem contam como "gerou caso", porque um repique
+ fica vinculado ao caso anterior; ele nao abre caso novo, e tambem nao se perde.
+
+ GEOFENCE em 28,9% e a boa noticia da tabela. A tornozeleira reporta posicao
+ continuamente, e o normal e estar fora da area proibida. Um aproveitamento
+ ALTO aqui seria o alarme.
+
+ TOTEM em 78,6% com 6 descartes e o unico numero que pede acao, e as duas
+ causas de descarte sao tratavais.
+
+=============================================================================
+ FIM
+=============================================================================

@@ -451,6 +451,46 @@ const Backend = (() => {
     return {};
   }
 
+  // ── Dispositivos de campo (Fase 6) ───────────────────────────
+  // O painel le o barramento de eventos; ele nunca escreve nele. Quem
+  // escreve sao os aparelhos, por rota propria e com chave de dispositivo.
+
+  async function listarEventosIot(origem, limite = 50) {
+    if (!(await estaOnline())) return null;
+    const q = new URLSearchParams({ limite: String(limite) });
+    if (origem) q.set('origem', origem);
+    const res = await protegido(() =>
+      fetch(`${BASE}/iot/eventos?${q}`, { headers: authHeaders() }));
+    return res.ok ? res.json() : null;
+  }
+
+  async function resumoIot() {
+    if (!(await estaOnline())) return null;
+    const res = await protegido(() => fetch(`${BASE}/iot/resumo`, { headers: authHeaders() }));
+    return res.ok ? res.json() : null;
+  }
+
+  // .. Focos de reincidencia (Fase 6, Parte 4) ..................
+  // Leitura sensivel: saber que varios relatos anonimos descrevem a mesma
+  // situacao e informacao sobre um lugar e sobre quem vive nele. A rota e
+  // auditada no servidor, e aqui nao ha plano B em localStorage: sem API,
+  // a tela diz que nao ha analise, em vez de inventar agrupamento.
+
+  async function listarFocos(dias = 90) {
+    if (!(await estaOnline())) return null;
+    const res = await protegido(() =>
+      fetch(`${BASE}/reincidencia/focos?dias=${encodeURIComponent(dias)}`,
+            { headers: authHeaders() }));
+    return res.ok ? res.json() : null;
+  }
+
+  async function parametrosReincidencia() {
+    if (!(await estaOnline())) return null;
+    const res = await protegido(() =>
+      fetch(`${BASE}/reincidencia/parametros`, { headers: authHeaders() }));
+    return res.ok ? res.json() : null;
+  }
+
   return {
     BASE, estaOnline, reavaliarConexao,
     login, logout, perfilAtual,
@@ -461,6 +501,8 @@ const Backend = (() => {
     consultarAuditoria, verificarIntegridade, acoesAuditadas,
     estatisticas, relatorioAnalitico, perguntarVigia, reanalisar, statusIa,
     anexarEvidencia, listarEvidencias, baixarEvidencia, removerEvidencia, exportarCsv,
+    listarEventosIot, resumoIot,
+    listarFocos, parametrosReincidencia,
   };
 })();
 

@@ -1,0 +1,238 @@
+/* =====================================================================
+   tema-escuro.css  .  Tokens e ajustes do modo escuro do Protege+
+
+   Este bloco vivia dentro de uma tag <style> no index.html. Foi extraido
+   quando o simulador de dispositivos precisou do mesmo tema: manter duas
+   copias das mesmas cores em dois arquivos garante que uma delas fique
+   para tras, e a que fica para tras e sempre a que ninguem esta olhando.
+
+   A troca de tema continua em main.js, em toggleDarkMode(), que apenas
+   liga e desliga o atributo data-theme no elemento raiz.
+   ===================================================================== */
+
+/* ── DARK MODE ── */
+[data-theme="dark"] {
+  --blue-dark: #60a5fa;
+  --blue-main: #3b82f6;
+  --blue-light: #93c5fd;
+  --gray-50: #1e293b;
+  --gray-100: #1e293b;
+  --gray-200: #334155;
+  --gray-300: #475569;
+  --gray-400: #64748b;
+  --gray-500: #94a3b8;
+  --gray-600: #cbd5e1;
+  --gray-700: #e2e8f0;
+  --gray-800: #f1f5f9;
+  --shadow: 0 4px 20px rgba(0,0,0,.4);
+}
+[data-theme="dark"] body { background: #0f172a; color: #e2e8f0; }
+[data-theme="dark"] .navbar { background: #1e293b; border-bottom: 1px solid #334155; }
+[data-theme="dark"] .form-container,
+[data-theme="dark"] .chart-card,
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .faq-item,
+[data-theme="dark"] .feature-card,
+[data-theme="dark"] .tipo-card,
+[data-theme="dark"] .denuncia-card,
+[data-theme="dark"] .login-box,
+[data-theme="dark"] .modal,
+[data-theme="dark"] .status-search-box { background: #1e293b !important; border-color: #334155 !important; color: #e2e8f0; }
+[data-theme="dark"] .sidebar { background: #1e293b; border-right: 1px solid #334155; }
+[data-theme="dark"] .dashboard-main { background: #0f172a; }
+[data-theme="dark"] input,
+[data-theme="dark"] select,
+[data-theme="dark"] textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+[data-theme="dark"] .kpi-card { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] table thead { background: #1e293b; }
+[data-theme="dark"] table tbody tr:hover { background: #334155; }
+[data-theme="dark"] .upload-area { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] footer { background: #1e293b; border-top: 1px solid #334155; }
+[data-theme="dark"] .faq-answer { background: #0f172a; }
+[data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
+[data-theme="dark"] h4, [data-theme="dark"] label, [data-theme="dark"] p { color: #e2e8f0; }
+[data-theme="dark"] .section-title { color: #e2e8f0; }
+[data-theme="dark"] .detail-section { background: #1e293b; border-color: #334155; }
+[data-theme="dark"] .notification-item { background: #0f172a; }
+[data-theme="dark"] .hero { background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%); }
+[data-theme="dark"] .tipos-section, [data-theme="dark"] .how-section { background: #0f172a; }
+[data-theme="dark"] .step,
+[data-theme="dark"] .step-inner { background: #0f172a !important; border-color: #334155 !important; }
+[data-theme="dark"] .step h4 { color: #e2e8f0 !important; }
+[data-theme="dark"] .step p { color: #94a3b8 !important; }
+[data-theme="dark"] .step-arrow { color: #475569 !important; }
+[data-theme="dark"] .steps-container { background: #0f172a !important; }
+/* Denúncia card — contraste suavizado */
+[data-theme="dark"] .denuncia-card { background: #1e293b !important; }
+[data-theme="dark"] .denuncia-header { background: #0f172a !important; border-color: #334155 !important; }
+[data-theme="dark"] .denuncia-meta { background: #0f172a !important; border-color: #334155 !important; }
+[data-theme="dark"] .protocol-id { color: #60a5fa !important; }
+[data-theme="dark"] .detail-row { border-color: #334155 !important; }
+[data-theme="dark"] .detail-row strong { color: #93c5fd !important; }
+[data-theme="dark"] .detail-row span { color: #cbd5e1 !important; }
+[data-theme="dark"] .notification-item { background: #0f172a !important; border-color: #334155 !important; }
+[data-theme="dark"] .status-step { color: #94a3b8 !important; }
+[data-theme="dark"] .status-step.active .status-step-label { color: #60a5fa !important; }
+[data-theme="dark"] .status-step.done .status-step-label { color: #4ade80 !important; }
+[data-theme="dark"] .features-section { background: #1e293b; }
+[data-theme="dark"] .emergency-section { background: #0f172a; }
+.idioma-btn.active { background: var(--blue-dark) !important; color: white !important; border-color: var(--blue-dark) !important; }
+[data-theme="dark"] .idioma-btn { color: #e2e8f0; border-color: #334155; }
+    /* Status steps dark mode */
+[data-theme="dark"] .status-step-icon { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
+[data-theme="dark"] .status-step.done .status-step-icon { background: #2563eb !important; border-color: #2563eb !important; }
+[data-theme="dark"] .status-step.active .status-step-icon { background: #d97706 !important; border-color: #d97706 !important; }
+[data-theme="dark"] .status-step-label { color: #94a3b8 !important; }
+[data-theme="dark"] .status-step.done .status-step-label { color: #60a5fa !important; }
+[data-theme="dark"] .status-step.active .status-step-label { color: #fbbf24 !important; }
+[data-theme="dark"] .status-step-date { color: #64748b !important; }
+[data-theme="dark"] .status-tracker { border-color: #334155 !important; }
+[data-theme="dark"] .status-step:not(:last-child)::after { background: #334155 !important; }
+[data-theme="dark"] .status-step.done:not(:last-child)::after { background: #2563eb !important; }
+/* Chatbot dark mode — texto legível */
+[data-theme="dark"] .chat-msg.bot .msg-bubble { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+[data-theme="dark"] .chat-menu-btn { background: #0f172a !important; border-color: #334155 !important; color: #e2e8f0 !important; }
+[data-theme="dark"] .chat-menu-btn:hover { background: #1e3a8a !important; border-color: #2563eb !important; color: #93c5fd !important; }
+[data-theme="dark"] .chat-opt-btn { background: #1e293b !important; color: #93c5fd !important; border-color: #2563eb !important; }
+[data-theme="dark"] .chat-opt-btn:hover { background: #2563eb !important; color: white !important; }
+[data-theme="dark"] .msg-bubble strong,
+[data-theme="dark"] .msg-bubble a { color: #93c5fd !important; }
+    /* Páginas de política e ética */
+[data-theme="dark"] .policy-content { background: #0f172a !important; color: #e2e8f0 !important; }
+[data-theme="dark"] .policy-content h1 { color: #e2e8f0 !important; }
+[data-theme="dark"] .policy-intro { color: #cbd5e1 !important; }
+[data-theme="dark"] .policy-card { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .policy-section h2 { color: #60a5fa !important; }
+[data-theme="dark"] .policy-section p,
+[data-theme="dark"] .policy-section li { color: #cbd5e1 !important; }
+[data-theme="dark"] .policy-date { color: #64748b !important; }
+[data-theme="dark"] .policy-section ul { color: #cbd5e1 !important; }
+/* Footer */
+[data-theme="dark"] .footer-copy { color: #64748b !important; }
+[data-theme="dark"] .footer-link { color: #93c5fd !important; }
+[data-theme="dark"] .footer-link:hover { color: #60a5fa !important; }
+/* Botão idioma */
+[data-theme="dark"] .lang-toggle { border-color: #334155 !important; }
+[data-theme="dark"] .lang-toggle:hover { border-color: #60a5fa !important; }
+    [data-theme="dark"] .safe-mode-overlay { background: #0f172a; }
+/* Formulário */
+[data-theme="dark"] .form-section { background: #0f172a !important; }
+[data-theme="dark"] .form-section .section-title { color: #e2e8f0 !important; }
+[data-theme="dark"] .form-section .section-title span { color: #60a5fa !important; }
+/* Chatbot */
+[data-theme="dark"] .chatbot-window { background: #1e293b !important; border-color: #334155 !important; }
+[data-theme="dark"] .chatbot-messages { background: #0f172a !important; }
+[data-theme="dark"] .chat-msg .msg-bubble { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+[data-theme="dark"] .chat-msg.bot .msg-bubble { background: #1e293b !important; color: #e2e8f0 !important; }
+[data-theme="dark"] .chat-msg.user .msg-bubble { background: #2563eb !important; color: white !important; }
+[data-theme="dark"] .chatbot-input { background: #1e293b !important; border-top-color: #334155 !important; }
+[data-theme="dark"] .chatbot-input input { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
+[data-theme="dark"] .chat-options .option-btn { background: #1e293b !important; border-color: #334155 !important; color: #93c5fd !important; }
+[data-theme="dark"] .chat-options .option-btn:hover { background: #2563eb !important; color: white !important; }
+[data-theme="dark"] .typing-dots { background: #1e293b !important; border-color: #334155 !important; }
+
+/* =====================================================================
+   COMPLEMENTO DO MODO ESCURO
+   Fase 6. Auditoria completa: varreu-se cada folha em busca de regra com
+   fundo claro fixo sem par escuro. As telas do painel construidas na
+   Fase 5 (estatistica, auditoria, fluxo, detalhe, evidencias) nunca
+   tinham recebido o tema, e ficavam brancas dentro de um sistema escuro.
+
+   Tres causas foram encontradas, e cada uma exigiu um tratamento:
+     1. cor fixa em CSS sem par escuro  .......  regra escura correspondente
+     2. estilo inline no HTML ................  virou classe (prefixo ui-)
+     3. cor decidida em JavaScript ...........  passou a ler o tema (charts)
+   ===================================================================== */
+
+/* ---------- caixas genericas extraidas de estilo inline ---------- */
+.ui-caixa          { background:#f8faff; border:1.5px solid #e2e8f0; }
+.ui-caixa-tracejada{ background:#EFF6FF; border:1.5px dashed #93C5FD; }
+.ui-caixa-aviso    { background:#FFFBEB; border:1px solid #FDE68A; color:#92400E; }
+.ui-pilula-azul    { background:#f0f7ff; color:#1A4DA0; border:1.5px solid #1A4DA0; }
+.ui-btn-neutro     { background:#f1f5f9; color:#475569; border:1.5px solid #e2e8f0; }
+
+[data-theme="dark"] .ui-caixa          { background:#16213a; border-color:#334155; }
+[data-theme="dark"] .ui-caixa-tracejada{ background:#132038; border-color:#3b82f6; }
+[data-theme="dark"] .ui-caixa-aviso    { background:#2a2008; border-color:#78500a; color:#fcd34d; }
+[data-theme="dark"] .ui-pilula-azul    { background:#16213a; color:#93c5fd; border-color:#3b82f6; }
+[data-theme="dark"] .ui-btn-neutro     { background:#1e293b; color:#cbd5e1; border-color:#334155; }
+[data-theme="dark"] .ui-btn-neutro:hover{ background:#334155; }
+
+/* ---------- relatorio estatistico ---------- */
+[data-theme="dark"] .est-card,
+[data-theme="dark"] .est-cartao      { background:#1e293b; border-color:#334155; }
+[data-theme="dark"] .est-card.destaque{ background:#231d13; border-color:#78500a; }
+[data-theme="dark"] .est-card h4     { color:#e2e8f0; }
+[data-theme="dark"] .est-cartao-vlr  { color:#60a5fa; }
+[data-theme="dark"] .est-cartao-rot  { color:#cbd5e1; }
+[data-theme="dark"] .est-cartao-nota { color:#64748b; }
+[data-theme="dark"] .est-aviso       { background:#0f172a; border-color:#334155; color:#cbd5e1; }
+[data-theme="dark"] .est-aviso.erro  { background:#2a1214; border-color:#7f1d1d; color:#fca5a5; }
+[data-theme="dark"] .est-referencia  { color:#94a3b8; border-left-color:#334155; }
+[data-theme="dark"] .est-leitura     { color:#cbd5e1; border-top-color:#334155; }
+[data-theme="dark"] .est-leitura b   { color:#e2e8f0; }
+[data-theme="dark"] .est-alerta      { background:#231d13; border-color:#78500a; color:#fcd34d; }
+
+/* ---------- trilha de auditoria ---------- */
+[data-theme="dark"] .aud-barra,
+[data-theme="dark"] .aud-tabela-wrap,
+[data-theme="dark"] .aud-integridade { background:#1e293b; border-color:#334155; }
+[data-theme="dark"] .aud-campo input,
+[data-theme="dark"] .aud-campo select{ background:#0f172a; border-color:#334155; color:#e2e8f0; }
+[data-theme="dark"] #aud-table th    { background:#0f172a; color:#94a3b8; border-bottom-color:#334155; }
+[data-theme="dark"] #aud-table td    { color:#cbd5e1; border-bottom-color:#273549; }
+
+/* ---------- fila, pilha e detalhe do caso ---------- */
+[data-theme="dark"] .fluxo-card,
+[data-theme="dark"] .fluxo-estrutura,
+[data-theme="dark"] .det-box,
+[data-theme="dark"] .evid-box,
+[data-theme="dark"] .evid-item       { background:#1e293b; border-color:#334155; }
+[data-theme="dark"] .fluxo-btn.secundario,
+[data-theme="dark"] .det-fechar      { background:#0f172a; color:#cbd5e1; border-color:#334155; }
+[data-theme="dark"] .fluxo-btn.secundario:hover,
+[data-theme="dark"] .det-fechar:hover{ background:#334155; }
+[data-theme="dark"] .det-bloco.ia    { background:#0f172a; border-color:#334155; color:#cbd5e1; }
+[data-theme="dark"] .det-origem,
+[data-theme="dark"] .det-tag         { background:#0f172a; color:#cbd5e1; border-color:#334155; }
+
+/* ---------- kanban, equipe e VigIA ---------- */
+[data-theme="dark"] .kanban-card,
+[data-theme="dark"] .equipe-wrap,
+[data-theme="dark"] .vigia-painel    { background:#1e293b; border-color:#334155; }
+
+/* ---------- canal anonimo ---------- */
+[data-theme="dark"] .anon-card,
+[data-theme="dark"] .elo-gestor-box,
+[data-theme="dark"] .elo-input-row,
+[data-theme="dark"] .consulta-tab,
+[data-theme="dark"] .cs-btn          { background:#1e293b; border-color:#334155; color:#e2e8f0; }
+
+/* ---------- emergencia e mapa ---------- */
+[data-theme="dark"] .emerg-modal,
+[data-theme="dark"] .status-confirm-box,
+[data-theme="dark"] .mapa-gestor-wrap{ background:#1e293b; border-color:#334155; }
+[data-theme="dark"] .btn-confirm-nao { background:#0f172a; color:#cbd5e1; border-color:#334155; }
+/* O mapa fica claro de proposito: o Leaflet desenha ladrilhos reais, e
+   escurecer o container so criaria uma moldura escura em volta deles. */
+
+/* ---------- controles gerais ---------- */
+[data-theme="dark"] .btn-secondary   { background:transparent; color:#93c5fd; border-color:#3b82f6; }
+[data-theme="dark"] .btn-secondary:hover{ background:#2563eb; color:#fff; border-color:#2563eb; }
+[data-theme="dark"] input:focus,
+[data-theme="dark"] select:focus,
+[data-theme="dark"] textarea:focus   { background:#0f172a !important; border-color:#3b82f6 !important;
+                                       box-shadow:0 0 0 3px rgba(59,130,246,.25); }
+[data-theme="dark"] tr:hover td      { background:#16223a; }
+[data-theme="dark"] .badge-gray      { background:#334155; color:#cbd5e1; }
+[data-theme="dark"] .filter-btn      { background:#1e293b; border-color:#334155; color:#cbd5e1; }
+[data-theme="dark"] .filter-btn.active{ background:#2563eb; border-color:#2563eb; color:#fff; }
+[data-theme="dark"] .safe-suggestions{ background:#1e293b; border-color:#334155; color:#e2e8f0; }
+[data-theme="dark"] .table-card      { background:#1e293b; border-color:#334155; }
+
+/* Sombra clara sobre fundo escuro vira nevoa. No escuro a separacao vem
+   da borda, e a sombra apenas aprofunda. */
+[data-theme="dark"] .est-card,
+[data-theme="dark"] .est-cartao,
+[data-theme="dark"] .table-card,
+[data-theme="dark"] .fluxo-card      { box-shadow:0 2px 10px rgba(0,0,0,.35); }

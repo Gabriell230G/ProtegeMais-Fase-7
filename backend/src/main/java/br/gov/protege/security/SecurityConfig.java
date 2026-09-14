@@ -65,6 +65,13 @@ public class SecurityConfig {
                 // verificado pela assinatura e limite por origem.
                 .requestMatchers(HttpMethod.POST, "/api/denuncias/protocolo/*/evidencias").permitAll()
 
+                // Dispositivos fisicos (Fase 6) nao tem usuario para autenticar.
+                // Eles entram por chave compartilhada no cabecalho X-Device-Key,
+                // conferida no EventoIotService. A rota fica fora do JWT, mas so
+                // permite CRIAR evento: ler, alterar e apagar continuam exigindo
+                // token e perfil, como todo o resto da API.
+                .requestMatchers(HttpMethod.POST, "/api/iot/**").permitAll()
+
                 // ---- Documentacao e console do banco de demonstracao ----
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html",
                                  "/v3/api-docs/**", "/h2-console/**").permitAll()
@@ -147,7 +154,12 @@ public class SecurityConfig {
                 .filter(s -> !s.isEmpty())
                 .toList());
         c.setAllowedMethods(List.of("GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"));
-        c.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept"));
+        // X-Device-Key precisa estar declarado aqui, e nao apenas aceito pelo
+        // controller. Um cabecalho personalizado torna a requisicao do
+        // navegador nao simples, e o preflight OPTIONS e recusado antes de o
+        // POST existir. O resultado, sem esta linha, e um erro de CORS que
+        // parece falha de rede e nao aponta para o cabecalho.
+        c.setAllowedHeaders(List.of("Authorization", "Content-Type", "Accept", "X-Device-Key"));
         // Sem expor Content-Disposition, o JavaScript nao consegue ler o nome
         // que o servidor sugeriu para o arquivo baixado - o navegador recebe
         // o cabecalho, mas a origem cruzada o esconde do script.

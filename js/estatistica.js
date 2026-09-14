@@ -39,6 +39,12 @@ const Estatistica = (() => {
     { minimumFractionDigits: casas === undefined ? 2 : casas,
       maximumFractionDigits: casas === undefined ? 2 : casas });
 
+  function _cor() {
+    return (typeof coresDoGrafico === 'function')
+      ? coresDoGrafico()
+      : { grade: '#EEF2F7', texto: '#64748b', borda: '#e2e8f0' };
+  }
+
   function desenhar(id, tipo, data, extra) {
     const canvas = document.getElementById(id);
     if (!canvas || typeof Chart === 'undefined') return;
@@ -46,13 +52,18 @@ const Estatistica = (() => {
     graficos[id] = new Chart(canvas, {
       type: tipo,
       data,
+      // A cor vem do tema, e nao do codigo: o canvas nao herda CSS, entao
+      // grade e rotulos precisam ser perguntados a quem sabe se a pagina
+      // esta clara ou escura. Ver coresDoGrafico() em main.js.
       options: Object.assign({
         responsive: true,
         maintainAspectRatio: false,
-        plugins: { legend: { display: false } },
+        plugins: { legend: { display: false, labels: { color: _cor().texto } } },
         scales: {
-          y: { beginAtZero: true, grid: { color: '#EEF2F7' } },
-          x: { grid: { display: false } },
+          y: { beginAtZero: true, ticks: { color: _cor().texto },
+               grid: { color: _cor().grade }, border: { color: _cor().borda } },
+          x: { ticks: { color: _cor().texto }, grid: { display: false },
+               border: { color: _cor().borda } },
         },
       }, extra || {}),
     });
@@ -275,7 +286,7 @@ const Estatistica = (() => {
     if (painel && painel.style.display !== 'none' && dados) carregar();
   });
 
-  return { carregar, dados: () => dados };
+  return { carregar, abrir: carregar, dados: () => dados };
 })();
 
 window.Estatistica = Estatistica;

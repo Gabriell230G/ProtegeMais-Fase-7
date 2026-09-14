@@ -20,128 +20,9 @@
   <link rel="stylesheet" href="./css/panico.css">
   <link rel="stylesheet" href="./css/lgpd.css">
   <link rel="stylesheet" href="./css/painel-api.css">
-  <style>
-    /* ── DARK MODE ── */
-    [data-theme="dark"] {
-      --blue-dark: #60a5fa;
-      --blue-main: #3b82f6;
-      --blue-light: #93c5fd;
-      --gray-50: #1e293b;
-      --gray-100: #1e293b;
-      --gray-200: #334155;
-      --gray-300: #475569;
-      --gray-400: #64748b;
-      --gray-500: #94a3b8;
-      --gray-600: #cbd5e1;
-      --gray-700: #e2e8f0;
-      --gray-800: #f1f5f9;
-      --shadow: 0 4px 20px rgba(0,0,0,.4);
-    }
-    [data-theme="dark"] body { background: #0f172a; color: #e2e8f0; }
-    [data-theme="dark"] .navbar { background: #1e293b; border-bottom: 1px solid #334155; }
-    [data-theme="dark"] .form-container,
-    [data-theme="dark"] .chart-card,
-    [data-theme="dark"] .table-card,
-    [data-theme="dark"] .faq-item,
-    [data-theme="dark"] .feature-card,
-    [data-theme="dark"] .tipo-card,
-    [data-theme="dark"] .denuncia-card,
-    [data-theme="dark"] .login-box,
-    [data-theme="dark"] .modal,
-    [data-theme="dark"] .status-search-box { background: #1e293b !important; border-color: #334155 !important; color: #e2e8f0; }
-    [data-theme="dark"] .sidebar { background: #1e293b; border-right: 1px solid #334155; }
-    [data-theme="dark"] .dashboard-main { background: #0f172a; }
-    [data-theme="dark"] input,
-    [data-theme="dark"] select,
-    [data-theme="dark"] textarea { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-    [data-theme="dark"] .kpi-card { background: #1e293b; border-color: #334155; }
-    [data-theme="dark"] table thead { background: #1e293b; }
-    [data-theme="dark"] table tbody tr:hover { background: #334155; }
-    [data-theme="dark"] .upload-area { background: #1e293b; border-color: #334155; }
-    [data-theme="dark"] footer { background: #1e293b; border-top: 1px solid #334155; }
-    [data-theme="dark"] .faq-answer { background: #0f172a; }
-    [data-theme="dark"] h1, [data-theme="dark"] h2, [data-theme="dark"] h3,
-    [data-theme="dark"] h4, [data-theme="dark"] label, [data-theme="dark"] p { color: #e2e8f0; }
-    [data-theme="dark"] .section-title { color: #e2e8f0; }
-    [data-theme="dark"] .detail-section { background: #1e293b; border-color: #334155; }
-    [data-theme="dark"] .notification-item { background: #0f172a; }
-    [data-theme="dark"] .hero { background: linear-gradient(135deg, #1e3a8a 0%, #1e293b 100%); }
-    [data-theme="dark"] .tipos-section, [data-theme="dark"] .how-section { background: #0f172a; }
-    [data-theme="dark"] .step,
-    [data-theme="dark"] .step-inner { background: #0f172a !important; border-color: #334155 !important; }
-    [data-theme="dark"] .step h4 { color: #e2e8f0 !important; }
-    [data-theme="dark"] .step p { color: #94a3b8 !important; }
-    [data-theme="dark"] .step-arrow { color: #475569 !important; }
-    [data-theme="dark"] .steps-container { background: #0f172a !important; }
-    /* Denúncia card — contraste suavizado */
-    [data-theme="dark"] .denuncia-card { background: #1e293b !important; }
-    [data-theme="dark"] .denuncia-header { background: #0f172a !important; border-color: #334155 !important; }
-    [data-theme="dark"] .denuncia-meta { background: #0f172a !important; border-color: #334155 !important; }
-    [data-theme="dark"] .protocol-id { color: #60a5fa !important; }
-    [data-theme="dark"] .detail-row { border-color: #334155 !important; }
-    [data-theme="dark"] .detail-row strong { color: #93c5fd !important; }
-    [data-theme="dark"] .detail-row span { color: #cbd5e1 !important; }
-    [data-theme="dark"] .notification-item { background: #0f172a !important; border-color: #334155 !important; }
-    [data-theme="dark"] .status-step { color: #94a3b8 !important; }
-    [data-theme="dark"] .status-step.active .status-step-label { color: #60a5fa !important; }
-    [data-theme="dark"] .status-step.done .status-step-label { color: #4ade80 !important; }
-    [data-theme="dark"] .features-section { background: #1e293b; }
-    [data-theme="dark"] .emergency-section { background: #0f172a; }
-    .idioma-btn.active { background: var(--blue-dark) !important; color: white !important; border-color: var(--blue-dark) !important; }
-    [data-theme="dark"] .idioma-btn { color: #e2e8f0; border-color: #334155; }
-        /* Status steps dark mode */
-    [data-theme="dark"] .status-step-icon { background: #334155 !important; border-color: #475569 !important; color: #e2e8f0 !important; }
-    [data-theme="dark"] .status-step.done .status-step-icon { background: #2563eb !important; border-color: #2563eb !important; }
-    [data-theme="dark"] .status-step.active .status-step-icon { background: #d97706 !important; border-color: #d97706 !important; }
-    [data-theme="dark"] .status-step-label { color: #94a3b8 !important; }
-    [data-theme="dark"] .status-step.done .status-step-label { color: #60a5fa !important; }
-    [data-theme="dark"] .status-step.active .status-step-label { color: #fbbf24 !important; }
-    [data-theme="dark"] .status-step-date { color: #64748b !important; }
-    [data-theme="dark"] .status-tracker { border-color: #334155 !important; }
-    [data-theme="dark"] .status-step:not(:last-child)::after { background: #334155 !important; }
-    [data-theme="dark"] .status-step.done:not(:last-child)::after { background: #2563eb !important; }
-    /* Chatbot dark mode — texto legível */
-    [data-theme="dark"] .chat-msg.bot .msg-bubble { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-    [data-theme="dark"] .chat-menu-btn { background: #0f172a !important; border-color: #334155 !important; color: #e2e8f0 !important; }
-    [data-theme="dark"] .chat-menu-btn:hover { background: #1e3a8a !important; border-color: #2563eb !important; color: #93c5fd !important; }
-    [data-theme="dark"] .chat-opt-btn { background: #1e293b !important; color: #93c5fd !important; border-color: #2563eb !important; }
-    [data-theme="dark"] .chat-opt-btn:hover { background: #2563eb !important; color: white !important; }
-    [data-theme="dark"] .msg-bubble strong,
-    [data-theme="dark"] .msg-bubble a { color: #93c5fd !important; }
-        /* Páginas de política e ética */
-    [data-theme="dark"] .policy-content { background: #0f172a !important; color: #e2e8f0 !important; }
-    [data-theme="dark"] .policy-content h1 { color: #e2e8f0 !important; }
-    [data-theme="dark"] .policy-intro { color: #cbd5e1 !important; }
-    [data-theme="dark"] .policy-card { background: #1e293b !important; border-color: #334155 !important; }
-    [data-theme="dark"] .policy-section h2 { color: #60a5fa !important; }
-    [data-theme="dark"] .policy-section p,
-    [data-theme="dark"] .policy-section li { color: #cbd5e1 !important; }
-    [data-theme="dark"] .policy-date { color: #64748b !important; }
-    [data-theme="dark"] .policy-section ul { color: #cbd5e1 !important; }
-    /* Footer */
-    [data-theme="dark"] .footer-copy { color: #64748b !important; }
-    [data-theme="dark"] .footer-link { color: #93c5fd !important; }
-    [data-theme="dark"] .footer-link:hover { color: #60a5fa !important; }
-    /* Botão idioma */
-    [data-theme="dark"] .lang-toggle { border-color: #334155 !important; }
-    [data-theme="dark"] .lang-toggle:hover { border-color: #60a5fa !important; }
-        [data-theme="dark"] .safe-mode-overlay { background: #0f172a; }
-    /* Formulário */
-    [data-theme="dark"] .form-section { background: #0f172a !important; }
-    [data-theme="dark"] .form-section .section-title { color: #e2e8f0 !important; }
-    [data-theme="dark"] .form-section .section-title span { color: #60a5fa !important; }
-    /* Chatbot */
-    [data-theme="dark"] .chatbot-window { background: #1e293b !important; border-color: #334155 !important; }
-    [data-theme="dark"] .chatbot-messages { background: #0f172a !important; }
-    [data-theme="dark"] .chat-msg .msg-bubble { background: #1e293b !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-    [data-theme="dark"] .chat-msg.bot .msg-bubble { background: #1e293b !important; color: #e2e8f0 !important; }
-    [data-theme="dark"] .chat-msg.user .msg-bubble { background: #2563eb !important; color: white !important; }
-    [data-theme="dark"] .chatbot-input { background: #1e293b !important; border-top-color: #334155 !important; }
-    [data-theme="dark"] .chatbot-input input { background: #0f172a !important; color: #e2e8f0 !important; border-color: #334155 !important; }
-    [data-theme="dark"] .chat-options .option-btn { background: #1e293b !important; border-color: #334155 !important; color: #93c5fd !important; }
-    [data-theme="dark"] .chat-options .option-btn:hover { background: #2563eb !important; color: white !important; }
-    [data-theme="dark"] .typing-dots { background: #1e293b !important; border-color: #334155 !important; }
-  </style>
+  <link rel="stylesheet" href="./css/dispositivos.css">
+  <link rel="stylesheet" href="./css/reincidencia.css">
+  <link rel="stylesheet" href="./css/tema-escuro.css">
 </head>
 <body>
 
@@ -311,7 +192,7 @@
       <!-- GEOLOCALIZAÇÃO -->
       <div style="margin-bottom:16px;">
         <button type="button" id="btn-geolocalizacao" onclick="usarGeolocalizacao()"
-          style="display:flex;align-items:center;gap:8px;padding:10px 20px;background:#f0f7ff;color:#1A4DA0;border:1.5px solid #1A4DA0;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;"
+          class="ui-pilula-azul" style="display:flex;align-items:center;gap:8px;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;transition:all .2s;"
           onmouseover="this.style.background='#1A4DA0';this.style.color='white'"
           onmouseout="this.style.background='#f0f7ff';this.style.color='#1A4DA0'">
           <i class="fa-solid fa-location-dot"></i> Usar minha localização
@@ -366,7 +247,7 @@
       </div>
 
       <!-- UPLOAD DE ÁUDIO -->
-      <div style="background:#f8faff;border:1.5px solid #e2e8f0;border-radius:12px;padding:18px;margin-bottom:16px;">
+      <div class="ui-caixa" style="border-radius:12px;padding:18px;margin-bottom:16px;">
         <p style="font-size:14px;font-weight:600;color:#1e293b;margin-bottom:12px;" data-i18n="form.audio">🎙️ Relato em Áudio</p><p style="font-size:11px;font-weight:400;color:#94a3b8;" data-i18n="form.audio_opt">(opcional)</p>
         <p style="font-size:12px;color:#64748b;margin-bottom:12px;" data-i18n="form.audio.sub">Prefere falar? Grave um áudio descrevendo o ocorrido.</p>
         <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
@@ -393,6 +274,19 @@
         Útil para comparar as duas abordagens de front-end.</div>
       </div>
       <a class="btn btn-secondary btn-sm" href="./formulario-react.html" data-i18n="react.abrir">Abrir</a>
+    </div>
+
+    <!-- Atalho de avaliacao, irmao do cartao do React acima: os dois levam a
+         paginas que existem para demonstrar como o sistema foi construido,
+         e nenhum dos dois faz parte do fluxo de quem denuncia. -->
+    <div class="react-link" style="margin-top:12px">
+      <span class="react-link-ic">🛰️</span>
+      <div>
+        <b data-i18n="iot.titulo">Simulador de dispositivos de campo (Fase 6)</b>
+        <div data-i18n="iot.sub">Botão de pânico, tornozeleira com perímetro e totem público
+        conversando com a mesma API. Instrumento de teste: ocupa o lugar do hardware.</div>
+      </div>
+      <a class="btn btn-secondary btn-sm" href="./simulador-iot.html" data-i18n="iot.abrir">Abrir</a>
     </div>
   </section>
 
@@ -446,14 +340,14 @@
 
     <!-- CÓDIGO DE ACOMPANHAMENTO (nível 2/3) -->
     <div id="modal-codigo-bloco" style="display:none;margin:16px 0;">
-      <div style="background:#EFF6FF;border:1.5px dashed #93C5FD;border-radius:12px;padding:16px;">
+      <div class="ui-caixa-tracejada" style="border-radius:12px;padding:16px;">
         <div style="font-size:12px;color:#1D4ED8;font-weight:700;margin-bottom:6px;">🔐 SEU CÓDIGO SECRETO DE ACOMPANHAMENTO</div>
         <div id="modal-codigo-valor" style="font-family:'Space Mono',monospace;font-size:22px;font-weight:700;letter-spacing:2px;color:#1D4ED8;user-select:all;margin-bottom:10px;"></div>
         <div style="display:flex;gap:8px;justify-content:center;flex-wrap:wrap;">
           <button class="cs-btn" onclick="copiarCodigo()">📋 Copiar</button>
           <button class="cs-btn" onclick="baixarCodigo()">💾 Baixar</button>
         </div>
-        <div style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:8px;padding:10px;margin-top:12px;font-size:11px;color:#92400E;line-height:1.5;text-align:left;">
+        <div class="ui-caixa-aviso" style="border-radius:8px;padding:10px;margin-top:12px;font-size:11px;line-height:1.5;text-align:left;">
           ⚠️ <strong>Guarde este código.</strong> Ele é a única forma de voltar e conversar com a autoridade sobre sua denúncia, sem se identificar. Por segurança, não temos como recuperá-lo se for perdido.
         </div>
       </div>
@@ -630,6 +524,12 @@
         <div class="sidebar-item" onclick="showDashTab('mapa', this)">
           <span class="item-icon">🗺️</span> <span data-i18n="mapa.nav">Mapa de Denúncias</span>
         </div>
+        <div class="sidebar-item" id="nav-dispositivos" onclick="showDashTab('dispositivos', this)">
+          <span class="item-icon">📡</span> <span data-i18n="nav.dispositivos">Dispositivos de campo</span>
+        </div>
+        <div class="sidebar-item" id="nav-reincidencia" onclick="showDashTab('reincidencia', this)">
+          <span class="item-icon">🕸️</span> <span data-i18n="nav.reincidencia">Focos de reincidência</span>
+        </div>
         <div class="sidebar-item" id="nav-estatistica" onclick="showDashTab('estatistica', this)">
           <span class="item-icon">📈</span> <span data-i18n="nav.estatistica">Relatório estatístico</span>
         </div>
@@ -754,7 +654,7 @@
           </div>
 
           <!-- FILTROS AVANÇADOS -->
-          <div style="background:#f8faff;border:1.5px solid #e2e8f0;border-radius:12px;padding:16px;margin-bottom:16px;">
+          <div class="ui-caixa" style="border-radius:12px;padding:16px;margin-bottom:16px;">
             <p style="font-size:13px;font-weight:700;color:#1e293b;margin-bottom:12px;">🔍 Filtros Avançados</p>
             <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:10px;">
               <div>
@@ -808,7 +708,7 @@
                 🔍 Aplicar Filtros
               </button>
               <button onclick="limparFiltros()"
-                style="padding:9px 16px;background:#f1f5f9;color:#475569;border:1.5px solid #e2e8f0;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
+                class="ui-btn-neutro" style="padding:9px 16px;border-radius:8px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;">
                 ✕ Limpar
               </button>
               <span id="backlog-contador" style="font-size:12px;color:#64748b;margin-left:auto;"></span>
@@ -1058,6 +958,145 @@
         </div>
       </div>
 
+      <!-- TAB FOCOS DE REINCIDENCIA (Fase 6, Parte 4) -->
+      <div class="dashboard-content" id="tab-reincidencia" style="display:none">
+
+        <div class="rei-topo">
+          <div class="rei-kpis">
+            <div class="rei-kpi">
+              <div class="rei-kpi-num" id="rei-kpi-focos">.</div>
+              <div class="rei-kpi-rot">focos detectados</div>
+            </div>
+            <div class="rei-kpi">
+              <div class="rei-kpi-num" id="rei-kpi-denuncias">.</div>
+              <div class="rei-kpi-rot">denúncias agrupadas</div>
+            </div>
+            <div class="rei-kpi">
+              <div class="rei-kpi-num" id="rei-kpi-maior">.</div>
+              <div class="rei-kpi-rot">maior foco</div>
+            </div>
+          </div>
+
+          <div class="rei-janelas">
+            <button class="rei-janela" onclick="Reincidencia.mudarJanela(30, this)">30 dias</button>
+            <button class="rei-janela active" onclick="Reincidencia.mudarJanela(90, this)">90 dias</button>
+            <button class="rei-janela" onclick="Reincidencia.mudarJanela(180, this)">180 dias</button>
+            <button class="rei-janela" onclick="Reincidencia.mudarJanela(365, this)">1 ano</button>
+          </div>
+        </div>
+
+        <div class="rei-criterio" id="rei-criterio"></div>
+
+        <div class="rei-grade" id="rei-lista"></div>
+
+        <details class="rei-metodo">
+          <summary><i class="fa-solid fa-chevron-right"></i> Como isto é calculado</summary>
+          <div class="rei-metodo-corpo">
+            <p><strong>Por que não um GROUP BY.</strong>
+               Agrupar por município e tipo juntaria tudo que compartilha a chave, do
+               primeiro registro ao último: duas denúncias separadas por oito meses
+               cairiam no mesmo balde. Um foco não é um balde, é uma <strong>cadeia no
+               tempo</strong>. A liga em B, B liga em C, e então A e C são o mesmo foco
+               ainda que distantes entre si. Quando a cadeia se interrompe, o foco
+               terminou. Isso é a definição de componente conexo de um grafo, e não há
+               cláusula de SQL que a expresse.</p>
+
+            <p><strong>As quatro estruturas.</strong>
+               Uma árvore balanceada indexa as denúncias por data e recorta a janela sem
+               varrer a base. A ordenação por grupo e data deixa vizinhos no tempo
+               vizinhos no vetor, o que torna a montagem do grafo linear. A busca binária
+               localiza o bloco de um grupo para a pergunta pontual "este caso novo entra
+               em algum foco?". E o grafo com busca em largura encontra os componentes.</p>
+
+            <p><strong>O detalhe que muda o custo.</strong>
+               As arestas ligam apenas denúncias <em>consecutivas</em> do mesmo grupo.
+               Ligar todos os pares próximos custaria O(k²), e num grupo de 200 relatos
+               seriam quase vinte mil arestas para descrever um único foco. Ligar
+               consecutivas basta, porque a conectividade se encarrega da transitividade.
+               O grafo fica com no máximo k−1 arestas.</p>
+
+            <table>
+              <thead><tr><th>Etapa</th><th>Complexidade</th><th>Por quê</th></tr></thead>
+              <tbody>
+                <tr><td>Indexar por data (TreeMap)</td><td>O(n log n)</td>
+                    <td>n inserções em árvore rubro-negra</td></tr>
+                <tr><td>Recortar a janela (subMap)</td><td>O(log n + k)</td>
+                    <td>localiza a borda e percorre só o recorte</td></tr>
+                <tr><td>Ordenar a janela</td><td>O(k log k)</td>
+                    <td>ordenação por (grupo, data)</td></tr>
+                <tr><td>Localizar um grupo</td><td>O(log k)</td>
+                    <td>busca binária no vetor ordenado</td></tr>
+                <tr><td>Montar o grafo</td><td>O(k)</td>
+                    <td>uma comparação por par consecutivo</td></tr>
+                <tr><td>Componentes conexos (BFS)</td><td>O(V + E) = O(k)</td>
+                    <td>E ≤ k−1 pela construção acima</td></tr>
+                <tr><td><strong>Total por consulta</strong></td><td><strong>O(k log k)</strong></td>
+                    <td>a ordenação domina</td></tr>
+              </tbody>
+            </table>
+
+            <p><strong>Foco não é o mesmo que volume.</strong>
+               Um foco é algo que <em>se destaca</em> do normal. Quando uma única cadeia
+               reúne quase tudo o que aquele município produziu naquele tipo dentro da
+               janela, ela não destaca nada: ela é o volume daquele lugar. Tratá-la como
+               foco levaria a equipe a montar uma operação contra a operação inteira do
+               município. Por isso a tela separa as duas coisas e as nomeia:
+               <strong>foco</strong>, um surto que começa e termina, e
+               <strong>fluxo contínuo</strong>, uma cadeia que nunca se interrompe porque
+               a demanda ali é constante. As duas informações são úteis, e as duas ações
+               são diferentes: a primeira pede operação pontual, a segunda pede equipe
+               permanente. O corte é uma fração (70% do grupo), e não um número absoluto,
+               porque um limite fixo erraria nas duas pontas.</p>
+
+            <p style="margin-top:12px"><strong>Busca em largura, e não em profundidade.</strong>
+               Um foco longo é uma corrente de centenas de nós, e a recursão da busca em
+               profundidade cresce junto com ela: uma cadeia de dez mil relatos estouraria
+               a pilha. A busca em largura usa uma fila e não tem esse teto. Há um teste
+               automatizado que percorre exatamente essa cadeia de dez mil.</p>
+          </div>
+        </details>
+      </div>
+
+      <!-- TAB DISPOSITIVOS DE CAMPO (Fase 6) -->
+      <div class="dashboard-content" id="tab-dispositivos" style="display:none">
+
+        <div class="disp-topo">
+          <div class="disp-kpis">
+            <div class="disp-kpi" data-org="sos">
+              <div class="disp-kpi-num" id="disp-kpi-sos">.</div>
+              <div class="disp-kpi-rot">🆘 Botão de pânico</div>
+            </div>
+            <div class="disp-kpi" data-org="geofence">
+              <div class="disp-kpi-num" id="disp-kpi-geofence">.</div>
+              <div class="disp-kpi-rot">📍 Tornozeleira</div>
+            </div>
+            <div class="disp-kpi" data-org="totem">
+              <div class="disp-kpi-num" id="disp-kpi-totem">.</div>
+              <div class="disp-kpi-rot">🏛️ Totem público</div>
+            </div>
+          </div>
+
+          <div class="disp-filtros">
+            <button class="disp-filtro active" onclick="Dispositivos.filtrar('', this)">Todas as origens</button>
+            <button class="disp-filtro" onclick="Dispositivos.filtrar('SOS', this)">Pânico</button>
+            <button class="disp-filtro" onclick="Dispositivos.filtrar('GEOFENCE', this)">Tornozeleira</button>
+            <button class="disp-filtro" onclick="Dispositivos.filtrar('TOTEM', this)">Totem</button>
+          </div>
+        </div>
+
+        <div class="disp-scroll" id="disp-lista"></div>
+
+        <div class="disp-nota">
+          <strong>Como ler esta tela.</strong>
+          Cada linha é um evento que um aparelho enviou, e a última coluna é o que o
+          servidor decidiu fazer com ele. <em>Aceito</em> abriu um caso;
+          <em>Duplicado</em> foi reconhecido como repique do mesmo aparelho e ficou
+          ligado ao caso anterior; <em>Descartado</em> não passou na validação.
+          O aparelho nunca cria a denúncia e nunca declara urgência: ele relata,
+          e a classificação sai do VigIA lendo o texto, como em qualquer outro caso.
+        </div>
+      </div>
+
       <!-- TAB PRIVACIDADE & LGPD movida para a landing page (seção pública de confiança) -->
 
     </main>
@@ -1194,6 +1233,8 @@
   <script src="./js/evidencias.js"></script>
   <script src="./js/detalhe.js"></script>
   <script src="./js/demo-offline.js"></script>
+  <script src="./js/dispositivos.js"></script>
+  <script src="./js/reincidencia.js"></script>
 <script src="./js/main.js"></script>
 
 <script>

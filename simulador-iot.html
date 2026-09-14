@@ -1,0 +1,691 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Simulador de dispositivos de campo . Protege+</title>
+<link rel="icon" href="./images/Logo Protege+ Gov.png">
+
+<!-- A identidade visual vem da folha do proprio sistema. Um instrumento de
+     teste que inventa o proprio tema vira um corpo estranho dentro do
+     projeto, e a primeira coisa que a banca percebe e a inconsistencia. -->
+<link rel="stylesheet" href="./css/style.css">
+<link rel="stylesheet" href="./css/tema-escuro.css">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
+<style>
+/* Somente o que nao existe em style.css. Nada e redefinido aqui. */
+.sim-wrap{max-width:1180px;margin:0 auto;padding:28px 24px 48px}
+
+.sim-head{margin-bottom:22px}
+.sim-head h1{font-size:26px;color:var(--blue-dark);display:flex;align-items:center;gap:10px}
+.sim-head p{color:var(--gray-500);font-size:14px;margin-top:6px;max-width:760px}
+
+.sim-conf{
+  background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:18px 20px;box-shadow:var(--shadow);margin-bottom:20px;
+  display:flex;gap:16px;flex-wrap:wrap;align-items:flex-end;
+}
+.sim-conf .form-group{margin-bottom:0;flex:1;min-width:190px}
+.sim-conf .form-group.fixo{flex:0 0 auto;min-width:0}
+
+.sim-status{
+  display:inline-flex;align-items:center;gap:8px;font-size:13px;font-weight:600;
+  padding:9px 14px;border-radius:999px;background:var(--gray-100);color:var(--gray-700);
+  white-space:nowrap;
+}
+.sim-dot{width:9px;height:9px;border-radius:50%;background:var(--gray-300);flex-shrink:0}
+.sim-dot.on{background:var(--green)} .sim-dot.off{background:var(--red)}
+
+.sim-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:20px}
+
+.sim-card{
+  background:var(--white);border:1px solid var(--gray-200);border-radius:var(--radius-lg);
+  padding:22px;box-shadow:var(--shadow);display:flex;flex-direction:column;
+  border-top:4px solid var(--gray-300);
+}
+.sim-card[data-org="sos"]     {border-top-color:var(--red)}
+.sim-card[data-org="geofence"]{border-top-color:var(--yellow)}
+.sim-card[data-org="totem"]   {border-top-color:var(--blue-light)}
+
+.sim-card h2{
+  font-size:17px;color:var(--gray-900);display:flex;align-items:center;gap:9px;margin-bottom:8px;
+}
+.sim-card h2 i{font-size:15px}
+.sim-card[data-org="sos"]      h2 i{color:var(--red)}
+.sim-card[data-org="geofence"] h2 i{color:var(--yellow-dark)}
+.sim-card[data-org="totem"]    h2 i{color:var(--blue-light)}
+
+.sim-card .sim-nota{font-size:13px;color:var(--gray-500);line-height:1.6;margin-bottom:16px}
+.sim-card .sim-nota strong{color:var(--gray-700)}
+
+.sim-duo{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.sim-grupo-rot{
+  font-size:11px;font-weight:700;color:var(--gray-500);text-transform:uppercase;
+  letter-spacing:.06em;margin:4px 0 8px;
+}
+.sim-btns{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.sim-btns .btn{flex:1;justify-content:center;min-width:78px}
+/* O rodape do cartao e empurrado para baixo, e nao so o botao. Assim a
+   linha "Como funciona" e o botao de acao ficam na mesma altura nos tres
+   cartoes, mesmo que o conteudo acima tenha tamanhos diferentes. */
+.sim-rodape{margin-top:auto;padding-top:14px}
+.sim-acao{width:100%;justify-content:center;margin-top:10px}
+
+/* Grades fixas: com flex-wrap, o quarto botao de rumo caia sozinho para a
+   linha de baixo e quebrava a simetria da coluna. */
+.sim-btns{display:grid;gap:8px;margin-bottom:12px}
+.sim-btns.tres  {grid-template-columns:repeat(3,1fr)}
+.sim-btns.quatro{grid-template-columns:repeat(4,1fr)}
+.sim-btns .btn{justify-content:center;padding:7px 4px;font-size:12px;white-space:nowrap}
+
+/* ---- confirmacao ---- */
+.sim-modal-bg{
+  position:fixed;inset:0;background:rgba(15,23,42,.55);z-index:900;
+  display:none;align-items:center;justify-content:center;padding:20px;
+}
+.sim-modal-bg.on{display:flex}
+.sim-modal{
+  background:var(--white);border-radius:var(--radius-lg);box-shadow:var(--shadow-xl);
+  max-width:420px;width:100%;padding:26px;border:1px solid var(--gray-200);
+}
+.sim-modal h3{font-size:18px;color:var(--gray-900);margin-bottom:10px;display:flex;align-items:center;gap:9px}
+.sim-modal h3 i{color:var(--yellow-dark)}
+.sim-modal p{font-size:13.5px;color:var(--gray-500);line-height:1.6;margin-bottom:20px}
+.sim-modal-acoes{display:flex;gap:10px;justify-content:flex-end}
+[data-theme="dark"] .sim-modal{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .sim-modal h3{color:#e2e8f0}
+
+/* ---- log ---- */
+.sim-log{
+  margin-top:24px;background:var(--white);border:1px solid var(--gray-200);
+  border-radius:var(--radius-lg);box-shadow:var(--shadow);overflow:hidden;
+}
+.sim-log-head{
+  padding:14px 20px;border-bottom:1px solid var(--gray-200);background:var(--gray-50);
+  display:flex;align-items:center;justify-content:space-between;gap:12px;
+}
+.sim-log-head h3{font-size:13px;color:var(--gray-700);text-transform:uppercase;letter-spacing:.06em}
+#log{max-height:330px;overflow:auto;padding:6px 0}
+.l{
+  display:flex;gap:14px;padding:9px 20px;font-size:13px;line-height:1.5;
+  border-bottom:1px solid var(--gray-100);
+}
+.l:last-child{border-bottom:none}
+.l .t{color:var(--gray-300);font-variant-numeric:tabular-nums;white-space:nowrap;font-weight:500}
+.l .m{color:var(--gray-700)}
+.ok   .m{color:var(--green);font-weight:500}
+.dup  .m{color:var(--yellow-dark);font-weight:500}
+.err  .m{color:var(--red);font-weight:500}
+
+/* ---- avisos ---- */
+.sim-aviso{
+  margin-top:20px;background:var(--white);border:1px solid var(--gray-200);
+  border-left:4px solid var(--blue-light);border-radius:var(--radius);
+  padding:16px 20px;font-size:13.5px;color:var(--gray-500);line-height:1.65;box-shadow:var(--shadow);
+}
+.sim-aviso.atencao{border-left-color:var(--yellow)}
+.sim-aviso strong{color:var(--gray-900)}
+.sim-aviso code{
+  background:var(--gray-100);padding:2px 7px;border-radius:5px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12.5px;color:var(--gray-900);
+}
+.sim-aviso a{color:var(--blue-light);font-weight:600}
+
+@media (max-width:640px){
+  .sim-wrap{padding:20px 16px 40px}
+  .sim-duo{grid-template-columns:1fr}
+}
+/* ---- explicacao recolhida ---- */
+.sim-porque{margin-top:10px}
+.sim-porque summary{
+  list-style:none;cursor:pointer;display:inline-flex;align-items:center;gap:7px;
+  font-size:12.5px;font-weight:600;color:var(--blue-light);
+  padding:5px 0;user-select:none;
+}
+.sim-porque summary::-webkit-details-marker{display:none}
+.sim-porque summary i{font-size:10px;transition:transform .2s}
+.sim-porque[open] summary i{transform:rotate(90deg)}
+.sim-porque .corpo{
+  font-size:12.5px;color:var(--gray-500);line-height:1.65;
+  padding:10px 13px;margin-top:6px;border-radius:var(--radius);
+  background:var(--gray-50);border-left:3px solid var(--gray-200);
+}
+.sim-porque .corpo strong{color:var(--gray-700)}
+.sim-porque .corpo code{
+  background:var(--gray-100);padding:1px 6px;border-radius:4px;
+  font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:12px;
+}
+.sim-porque .corpo a{color:var(--blue-light);font-weight:600}
+.sim-porque .corpo p+p{margin-top:9px}
+
+/* O modo escuro do sistema mexe nos tokens; estas tres regras cobrem o que
+   e proprio desta pagina e nao existe no tema compartilhado. */
+[data-theme="dark"] .sim-conf,
+[data-theme="dark"] .sim-card,
+[data-theme="dark"] .sim-log,
+[data-theme="dark"] .sim-aviso{background:#1e293b;border-color:#334155}
+[data-theme="dark"] .sim-log-head{background:#0f172a;border-bottom-color:#334155}
+[data-theme="dark"] .sim-card h2,
+[data-theme="dark"] .sim-aviso strong,
+[data-theme="dark"] .sim-head h1{color:#e2e8f0}
+[data-theme="dark"] .l{border-bottom-color:#273549}
+[data-theme="dark"] .l .t{color:#475569}
+[data-theme="dark"] .l .m{color:#cbd5e1}
+[data-theme="dark"] .ok .m{color:#4ade80}
+[data-theme="dark"] .dup .m{color:#fbbf24}
+[data-theme="dark"] .err .m{color:#f87171}
+[data-theme="dark"] .sim-status{background:#0f172a;color:#cbd5e1}
+[data-theme="dark"] .sim-porque .corpo{background:#0f172a;border-left-color:#334155}
+/* =====================================================================
+   Estados de interacao
+   Um botao que nao responde ao toque deixa a pessoa em duvida se clicou,
+   e a duvida vira segundo clique. Num simulador isso e so irritante; num
+   formulario de denuncia seria um caso duplicado. Por isso cada botao
+   daqui tem as quatro respostas: repouso, passagem do mouse, pressao e
+   foco de teclado.
+   ===================================================================== */
+.sim-wrap .btn, .sim-modal .btn, .navbar .btn{
+  transition:background .16s ease, color .16s ease, border-color .16s ease,
+             transform .09s ease, box-shadow .16s ease;
+  will-change:transform;
+}
+
+/* Passagem do mouse: sobe um pouco e ganha sombra da propria cor. */
+.sim-wrap .btn:hover, .sim-modal .btn:hover{transform:translateY(-2px)}
+
+.sim-wrap .btn-secondary:hover, .sim-modal .btn-secondary:hover{
+  background:var(--blue-light);color:#fff;border-color:var(--blue-light);
+  box-shadow:0 6px 16px rgba(37,99,235,.28);
+}
+.sim-wrap .btn-danger:hover, .sim-modal .btn-danger:hover{
+  background:#b91c1c;box-shadow:0 6px 18px rgba(220,38,38,.35);
+}
+.sim-wrap .btn-yellow:hover{box-shadow:0 6px 18px rgba(245,166,35,.4)}
+.sim-wrap .btn-ghost:hover, .navbar .btn-ghost:hover{
+  background:var(--gray-100);color:var(--blue-main);
+}
+
+/* Pressao: afunda. E o unico estado que confirma o clique em si, e nao a
+   intencao de clicar. */
+.sim-wrap .btn:active, .sim-modal .btn:active, .navbar .btn:active{
+  transform:translateY(1px) scale(.985);box-shadow:none;
+}
+
+/* Foco de teclado: anel visivel. Sem isto, navegar por Tab e navegar as
+   cegas, e a pagina fica inutilizavel para quem nao usa mouse. */
+.sim-wrap .btn:focus-visible, .sim-modal .btn:focus-visible, .navbar .btn:focus-visible{
+  outline:3px solid rgba(37,99,235,.45);outline-offset:2px;
+}
+
+/* Confirmacao do disparo: um pulso curto no botao que foi acionado.
+   O hover diz "da para clicar"; isto diz "foi". */
+@keyframes sim-pulso{
+  0%  {box-shadow:0 0 0 0 rgba(37,99,235,.45)}
+  70% {box-shadow:0 0 0 12px rgba(37,99,235,0)}
+  100%{box-shadow:0 0 0 0 rgba(37,99,235,0)}
+}
+.btn.pulsou{animation:sim-pulso .45s ease-out}
+.btn-danger.pulsou{animation:sim-pulso-vermelho .45s ease-out}
+@keyframes sim-pulso-vermelho{
+  0%  {box-shadow:0 0 0 0 rgba(220,38,38,.5)}
+  70% {box-shadow:0 0 0 12px rgba(220,38,38,0)}
+  100%{box-shadow:0 0 0 0 rgba(220,38,38,0)}
+}
+
+/* Espera: o botao continua clicavel, porque o segundo clique rapido no
+   botao de panico e justamente o que demonstra a regra de repique. */
+.btn .sim-girando{animation:sim-gira .8s linear infinite;display:inline-block}
+@keyframes sim-gira{to{transform:rotate(360deg)}}
+
+/* Linha nova no log: pisca uma vez, para o olho achar sozinho. */
+@keyframes sim-entrou{from{background:rgba(37,99,235,.10)}to{background:transparent}}
+.l.nova{animation:sim-entrou 1.1s ease-out}
+
+/* ---- estados no tema escuro ---- */
+[data-theme="dark"] .sim-wrap .btn-secondary{
+  background:transparent;color:#93c5fd;border-color:#3b82f6;
+}
+[data-theme="dark"] .sim-wrap .btn-secondary:hover,
+[data-theme="dark"] .sim-modal .btn-secondary:hover{
+  background:#2563eb;color:#fff;border-color:#2563eb;
+  box-shadow:0 6px 18px rgba(37,99,235,.45);
+}
+[data-theme="dark"] .sim-wrap .btn-ghost:hover,
+[data-theme="dark"] .navbar .btn-ghost:hover{background:#334155;color:#93c5fd}
+[data-theme="dark"] .sim-wrap .btn-primary:hover{box-shadow:0 6px 18px rgba(59,130,246,.5)}
+[data-theme="dark"] .sim-wrap .btn:focus-visible,
+[data-theme="dark"] .navbar .btn:focus-visible{outline-color:rgba(147,197,253,.6)}
+[data-theme="dark"] .l.nova{animation:sim-entrou-escuro 1.1s ease-out}
+@keyframes sim-entrou-escuro{from{background:rgba(59,130,246,.18)}to{background:transparent}}
+[data-theme="dark"] .sim-porque summary{color:#93c5fd}
+.sim-porque summary:hover{text-decoration:underline}
+
+/* Quem pediu menos movimento no sistema operacional recebe menos movimento. */
+@media (prefers-reduced-motion: reduce){
+  .sim-wrap .btn, .sim-modal .btn, .navbar .btn{transition:background .16s ease, color .16s ease}
+  .sim-wrap .btn:hover, .sim-modal .btn:hover{transform:none}
+  .sim-wrap .btn:active{transform:none}
+  .btn.pulsou, .btn-danger.pulsou, .l.nova, .btn .sim-girando{animation:none}
+}
+</style>
+</head>
+<body style="background:var(--gray-50)">
+
+<nav class="navbar">
+  <a class="navbar-brand" href="./index.html">
+    <div class="brand-logo"><img src="./images/Logo Protege+ Gov.png" alt="Protege+" onerror="this.style.display='none';this.parentNode.innerHTML='🛡'"></div>
+    <span class="brand-text">PROTEGE<span>+</span></span>
+  </a>
+  <div class="navbar-links">
+    <span class="badge badge-yellow">Instrumento de teste</span>
+  </div>
+  <div class="navbar-actions">
+    <button class="btn btn-ghost btn-sm btn-dark-toggle" onclick="alternarTema()" title="Modo Escuro"><i class="fa-solid fa-moon"></i></button>
+    <a class="btn btn-secondary btn-sm" href="./index.html"><i class="fa-solid fa-arrow-left"></i> Voltar ao sistema</a>
+  </div>
+</nav>
+
+<div class="sim-wrap">
+
+  <div class="sim-head">
+    <h1><i class="fa-solid fa-satellite-dish" style="color:var(--blue-light)"></i> Simulador de dispositivos de campo</h1>
+    <p>Fase 6 . Três aparelhos, uma API. Deixe o painel aberto em
+       <strong>Dispositivos de campo</strong> ao lado.</p>
+  </div>
+
+  <div class="sim-conf">
+    <div class="form-group">
+      <label for="api">Endereço da API</label>
+      <input id="api" value="http://localhost:8080/api">
+    </div>
+    <div class="form-group" style="max-width:240px">
+      <label for="chave">Chave do dispositivo (X-Device-Key)</label>
+      <input id="chave" value="protege-iot-2026">
+    </div>
+    <div class="form-group fixo">
+      <button class="btn btn-secondary" onclick="comRetorno(testar)"><i class="fa-solid fa-plug"></i> Testar conexão</button>
+    </div>
+    <div class="form-group fixo">
+      <span class="sim-status"><span class="sim-dot" id="dot"></span><span id="st">não testado</span></span>
+    </div>
+  </div>
+
+  <div class="sim-cards">
+
+    <!-- ORIGEM A -->
+    <div class="sim-card" data-org="sos">
+      <h2><i class="fa-solid fa-triangle-exclamation"></i> Botão de pânico</h2>
+      <p class="sim-nota">Aperte duas vezes seguidas: a segunda vira
+         <strong>duplicado</strong>, não um caso novo.</p>
+      <div class="sim-duo">
+        <div class="form-group"><label for="sos-disp">Dispositivo</label>
+          <input id="sos-disp" value="SOS-8812"></div>
+        <div class="form-group"><label for="sos-bat">Bateria %</label>
+          <input id="sos-bat" type="number" min="0" max="100" value="37"></div>
+      </div>
+      <div class="sim-duo">
+        <div class="form-group"><label for="sos-lat">Latitude</label>
+          <input id="sos-lat" value="-23.5108"></div>
+        <div class="form-group"><label for="sos-lng">Longitude</label>
+          <input id="sos-lng" value="-46.8760"></div>
+      </div>
+      <div class="sim-rodape">
+        <details class="sim-porque">
+          <summary><i class="fa-solid fa-chevron-right"></i> Como funciona</summary>
+          <div class="corpo"><p>Um botão apertado não escreve nada. Ele diz onde está e que precisa de ajuda agora, e o servidor monta o relato e abre o caso.</p><p>O aparelho <strong>não cria a denúncia e não declara urgência</strong>. Se pudesse dizer "isto é crítico", a fila de prioridade passaria a ser definida por quem tem o aparelho, e não pela gravidade do caso. A classificação sai do VigIA lendo o texto.</p><p>Dois toques em menos de 120 s são repique. Um botão apertado três vezes em dez segundos é uma pessoa com medo, não três ocorrências.</p></div>
+        </details>
+        <button class="btn btn-danger sim-acao" onclick="comRetorno(acionarSos)">
+          <i class="fa-solid fa-bell"></i> Acionar botão de pânico</button>
+      </div>
+    </div>
+
+    <!-- ORIGEM B -->
+    <div class="sim-card" data-org="geofence">
+      <h2><i class="fa-solid fa-location-crosshairs"></i> Tornozeleira com perímetro</h2>
+      <p class="sim-nota"><strong>Perto, fora</strong> e envie. Depois
+         <strong>Sul</strong> duas vezes, enviando a cada passo.</p>
+      <div class="form-group"><label for="tz-id">Tornozeleira</label>
+        <input id="tz-id" value="TZ-4471"></div>
+      <div class="sim-duo">
+        <div class="form-group"><label for="tz-lat">Latitude</label>
+          <input id="tz-lat" value="-23.504100"></div>
+        <div class="form-group"><label for="tz-lng">Longitude</label>
+          <input id="tz-lng" value="-46.876000"></div>
+      </div>
+
+      <div class="sim-grupo-rot">Levar o aparelho para</div>
+      <div class="sim-btns tres">
+        <button class="btn btn-secondary btn-sm" onclick="pulsar(this); irPara('longe')">3 km</button>
+        <button class="btn btn-secondary btn-sm" onclick="pulsar(this); irPara('perto')">750 m</button>
+        <button class="btn btn-yellow btn-sm" onclick="pulsar(this); irPara('dentro')">Em frente</button>
+      </div>
+
+      <div class="sim-grupo-rot">Andar 150 m</div>
+      <div class="sim-btns quatro">
+        <button class="btn btn-secondary btn-sm" onclick="pulsar(this); andar('N')">N</button>
+        <button class="btn btn-secondary btn-sm" onclick="pulsar(this); andar('S')">S</button>
+        <button class="btn btn-secondary btn-sm" onclick="pulsar(this); andar('L')">L</button>
+        <button class="btn btn-secondary btn-sm" onclick="pulsar(this); andar('O')">O</button>
+      </div>
+
+      <div class="sim-rodape">
+        <details class="sim-porque">
+          <summary><i class="fa-solid fa-chevron-right"></i> Como funciona</summary>
+          <div class="corpo"><p>A tornozeleira só informa onde está. <strong>O perímetro pertence ao servidor</strong>, e a resposta nunca devolve a distância nem o raio: um aparelho que soubesse o número poderia localizar a pessoa protegida andando e vendo o valor cair.</p><p>A distância sai da fórmula de Haversine, e não de Pitágoras sobre as coordenadas, que trataria a Terra como um plano.</p><p>Os pontos marcados existem porque quem opera isto é uma <strong>pessoa</strong>, não o aparelho. Quem carrega uma tornozeleira sabe onde a outra mora: é por isso que a medida foi expedida. Os botões movem o aparelho, não consultam nada.</p><p>Violando o perímetro, o servidor abre o caso sozinho. Leituras seguintes ficam caladas por 600 s: sem isso, um ping a cada 30 s viraria 120 denúncias do mesmo fato.</p></div>
+        </details>
+        <button class="btn btn-primary sim-acao" onclick="comRetorno(enviarTelemetria)">
+          <i class="fa-solid fa-paper-plane"></i> Enviar telemetria</button>
+      </div>
+    </div>
+
+    <!-- ORIGEM C -->
+    <div class="sim-card" data-org="totem">
+      <h2><i class="fa-solid fa-landmark"></i> Totem público</h2>
+      <p class="sim-nota"><strong>TT-003</strong> está desativado e
+         <strong>TT-999</strong> não existe: os dois são recusados.</p>
+      <div class="sim-duo">
+        <div class="form-group"><label for="tt-id">Totem</label>
+          <select id="tt-id">
+            <option value="TT-001">TT-001 . UBS Central</option>
+            <option value="TT-002">TT-002 . Terminal Rodoviário</option>
+            <option value="TT-004">TT-004 . CRAS Vila Boa Vista</option>
+            <option value="TT-003">TT-003 . CRAS (em manutenção)</option>
+            <option value="TT-999">TT-999 . não cadastrado</option>
+          </select></div>
+        <div class="form-group"><label for="tt-tipo">Tipo</label>
+          <select id="tt-tipo">
+            <option>violencia</option><option>abuso</option>
+            <option>assedio</option><option>discriminacao</option><option>outros</option>
+          </select></div>
+      </div>
+      <div class="form-group"><label for="tt-txt">Relato digitado na tela</label>
+        <textarea id="tt-txt">ele apareceu de novo na porta do trabalho e ficou esperando na saida</textarea></div>
+      <div class="sim-rodape">
+        <details class="sim-porque">
+          <summary><i class="fa-solid fa-chevron-right"></i> Como funciona</summary>
+          <div class="corpo"><p>O totem <strong>não diz onde está</strong>: o lugar vem do cadastro da instalação. Um aparelho parafusado numa parede que pudesse declarar a própria coordenada permitiria que alguém com uma chave de fenda fizesse denúncias aparecerem em qualquer endereço.</p><p>O registro é sempre anônimo. Quem usa um totem está de pé num saguão, com a fila atrás; pedir nome ali seria pedir que a pessoa se identifique diante de quem espera a vez.</p><p>A janela de repique aqui é de 20 s, e não de 120 s como no botão de pânico. O totem tem fila: duas pessoas diferentes em dois minutos é o esperado, não a anomalia. Uma janela longa apagaria a denúncia de quem chegou depois.</p><p>Texto curto demais é recusado; texto longo demais é cortado, porque recusar seria pedir que a pessoa reescreva de pé.</p></div>
+        </details>
+        <button class="btn btn-primary sim-acao" onclick="comRetorno(enviarTotem)">
+          <i class="fa-solid fa-paper-plane"></i> Enviar registro</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="sim-log">
+    <div class="sim-log-head">
+      <h3>Respostas da API</h3>
+      <button class="btn btn-ghost btn-sm" onclick="limparLog()"><i class="fa-solid fa-eraser"></i> Limpar</button>
+    </div>
+    <div id="log"><div class="l"><span class="t">--:--:--</span><span class="m">Pronto. Suba o backend e acione um aparelho.</span></div></div>
+  </div>
+
+  <details class="sim-porque" style="margin-top:22px">
+    <summary><i class="fa-solid fa-chevron-right"></i> Por que este simulador existe, e por que ele não fica dentro do site</summary>
+    <div class="corpo">
+      <p>A Fase 6 pede dispositivos em campo, e não há tornozeleira nem totem para instalar num
+         trabalho de faculdade. A saída honesta não é fingir hardware: é construir o lado do
+         servidor inteiro e de verdade e trocar o aparelho por uma página que fala o mesmo
+         protocolo, com a mesma rota, a mesma chave e o mesmo corpo JSON. Substituir esta
+         página por um equipamento real não muda uma linha do backend.</p>
+      <p>O acesso a esta página fica junto ao atalho da versão em React, no fim do formulário:
+         os dois são atalhos de avaliação, não fazem parte do fluxo de quem denuncia. O que ela
+         nunca teve, e não deve ter, é um botão de "acionar pânico" solto dentro do canal real,
+         que seria um alarme falso pendurado num sistema de emergência.</p>
+      <p><strong>Abra por HTTP, não por duplo clique.</strong> Um arquivo lido do disco chega à
+         API com origem <code>null</code>, e a lista de origens permitidas recusa. Não é defeito
+         a contornar: liberar origem nula numa API com credenciais abriria a porta para qualquer
+         arquivo local disparar requisições autenticadas. Use o Live Server do VS Code ou
+         <code>python -m http.server 5500</code>.</p>
+      <p>Rotas documentadas em
+         <a href="http://localhost:8080/swagger-ui.html" target="_blank" rel="noopener">Swagger UI</a>.</p>
+    </div>
+  </details>
+</div>
+
+<div class="sim-modal-bg" id="confirm-bg" onclick="if(event.target===this) fecharConfirm()">
+  <div class="sim-modal" role="dialog" aria-modal="true" aria-labelledby="confirm-tit">
+    <h3 id="confirm-tit"><i class="fa-solid fa-triangle-exclamation"></i> Limpar o histórico?</h3>
+    <p>As respostas da API registradas nesta tela serão apagadas. Elas existem apenas aqui,
+       no navegador, e não podem ser recuperadas depois. Os eventos em si continuam no
+       servidor e seguem visíveis no painel do gestor.</p>
+    <div class="sim-modal-acoes">
+      <button class="btn btn-secondary btn-sm" onclick="fecharConfirm()">Cancelar</button>
+      <button class="btn btn-danger btn-sm" onclick="confirmarLimpeza()">
+        <i class="fa-solid fa-eraser"></i> Limpar mesmo assim</button>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <div class="navbar-brand">
+    <div class="brand-logo"><img src="./images/Logo Protege+ Gov.png" alt="Protege+" onerror="this.style.display='none';this.parentNode.innerHTML='🛡'"></div>
+    <span class="brand-text">PROTEGE<span>+</span></span>
+  </div>
+  <div class="footer-copy">Simulador de dispositivos . Fase 6 . Instrumento de teste, não faz parte do produto</div>
+</footer>
+
+<script>
+
+const $ = id => document.getElementById(id);
+const api   = () => $('api').value.replace(/\/+$/,'');
+const chave = () => $('chave').value;
+
+function log(msg, cls='info'){
+  const l = document.createElement('div');
+  l.className = 'l ' + cls;
+  const t = new Date().toLocaleTimeString('pt-BR');
+  l.innerHTML = `<span class="t">${t}</span><span class="m"></span>`;
+  l.querySelector('.m').textContent = msg;
+  l.classList.add('nova');
+  const box = $('log');
+  box.insertBefore(l, box.firstChild);
+}
+
+async function testar(){
+  try{
+    const r = await fetch(`${api()}/vigia/status`);
+    $('dot').className = 'sim-dot ' + (r.ok ? 'on' : 'off');
+    $('st').textContent = r.ok ? 'API no ar' : 'API respondeu ' + r.status;
+    log(r.ok ? 'Conexao com a API confirmada.' : 'API respondeu ' + r.status, r.ok ? 'ok' : 'err');
+  }catch(e){
+    $('dot').className = 'sim-dot off';
+    $('st').textContent = 'sem conexao';
+    log('Sem conexao com ' + api() + '. O backend esta rodando?', 'err');
+  }
+}
+
+async function enviar(rota, corpo){
+  try{
+    const r = await fetch(`${api()}/iot/${rota}`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', 'X-Device-Key': chave() },
+      body: JSON.stringify(corpo),
+    });
+    let dados = null;
+    try { dados = await r.json(); } catch(_) {}
+    return { status: r.status, dados };
+  }catch(e){
+    log('Falha de rede: ' + e.message, 'err');
+    return null;
+  }
+}
+
+async function acionarSos(){
+  const r = await enviar('acionamento', {
+    dispositivo: $('sos-disp').value,
+    lat: parseFloat($('sos-lat').value),
+    lng: parseFloat($('sos-lng').value),
+    bateria: parseInt($('sos-bat').value, 10),
+  });
+  if (!r) return;
+  if (r.status === 401) return log('401: chave de dispositivo recusada.', 'err');
+  const d = r.dados || {};
+  if (d.situacao === 'DUPLICADO')
+    log(`Repique reconhecido. Vinculado ao caso ${d.protocoloGerado}. Nenhum caso novo foi aberto.`, 'dup');
+  else if (d.protocoloGerado)
+    log(`Acionamento aceito. Caso ${d.protocoloGerado} aberto pelo servidor.`, 'ok');
+  else
+    log(`Resposta ${r.status}: ${JSON.stringify(d)}`, 'err');
+}
+
+// Pontos por onde o aparelho pode passar.
+//
+// Eles existem porque quem opera o simulador e uma PESSOA, e nao o aparelho.
+// Quem carrega uma tornozeleira sabe muito bem onde mora a pessoa protegida:
+// e exatamente por isso que a medida protetiva foi expedida. O que o aparelho
+// nao pode saber e o raio e a distancia, e a resposta da API continua sem
+// devolver nenhum dos dois. Estes botoes movem o aparelho; eles nao consultam
+// nada e nao calculam nada.
+const PONTOS = {
+  longe:  { lat: -23.4838, lng: -46.8760, nome: 'longe, a cerca de 3 km' },
+  perto:  { lat: -23.5041, lng: -46.8760, nome: 'perto, a cerca de 750 m' },
+  dentro: { lat: -23.5097, lng: -46.8760, nome: 'em frente ao endereco protegido' },
+};
+
+// Um grau de latitude vale cerca de 111.195 m em qualquer lugar. Um grau de
+// longitude encolhe conforme se afasta do equador, e nesta latitude vale
+// cerca de 101.971 m. Usar o mesmo passo nos dois eixos faria o deslocamento
+// para o lado ser 9% maior do que o anunciado no botao.
+const PASSO_LAT = 150 / 111195;
+const PASSO_LNG = 150 / 101971;
+
+function irPara(chave){
+  const p = PONTOS[chave];
+  if (!p) return;
+  $('tz-lat').value = p.lat.toFixed(6);
+  $('tz-lng').value = p.lng.toFixed(6);
+  log(`Tornozeleira posicionada ${p.nome}. Envie a telemetria.`, 'info');
+}
+
+function andar(rumo){
+  let lat = parseFloat($('tz-lat').value);
+  let lng = parseFloat($('tz-lng').value);
+  if (rumo === 'N') lat += PASSO_LAT;
+  if (rumo === 'S') lat -= PASSO_LAT;
+  if (rumo === 'L') lng += PASSO_LNG;
+  if (rumo === 'O') lng -= PASSO_LNG;
+  $('tz-lat').value = lat.toFixed(6);
+  $('tz-lng').value = lng.toFixed(6);
+  log(`Tornozeleira andou 150 m para ${rumo}. Agora em ${lat.toFixed(6)}, ${lng.toFixed(6)}.`, 'info');
+}
+
+async function enviarTelemetria(){
+  const r = await enviar('telemetria', {
+    tornozeleira: $('tz-id').value,
+    lat: parseFloat($('tz-lat').value),
+    lng: parseFloat($('tz-lng').value),
+    bateria: 64,
+  });
+  if (!r) return;
+  if (r.status === 401) return log('401: chave de dispositivo recusada.', 'err');
+  const d = r.dados || {};
+  if (d.alertaAberto)
+    log(`Violacao de perimetro. Caso ${d.protocoloGerado} aberto. Repare que a resposta nao traz distancia nem raio.`, 'ok');
+  else
+    log('Leitura aceita, sem alerta. Fora do perimetro, dentro do cooldown ou sem medida ativa.', 'info');
+}
+
+async function enviarTotem(){
+  const r = await enviar('totem', {
+    dispositivo: $('tt-id').value,
+    tipo: $('tt-tipo').value,
+    relato: $('tt-txt').value,
+  });
+  if (!r) return;
+  if (r.status === 401) return log('401: chave de dispositivo recusada.', 'err');
+  if (r.status === 422) return log('Recusado: ' + ((r.dados && r.dados.erro) || 'conteudo invalido'), 'err');
+  const d = r.dados || {};
+  if (d.duplicado)
+    log(`Reenvio do mesmo registro. Protocolo ${d.protocolo}, sem caso novo.`, 'dup');
+  else
+    log(`Registro aceito. Protocolo ${d.protocolo}, apagado da tela em ${d.segundosParaLimpar}s.`, 'ok');
+}
+
+testar();
+
+// ------------------------------------------------------------------
+//  Retorno visual do clique
+// ------------------------------------------------------------------
+// O navegador ja diz "da para clicar" pelo hover. O que falta e dizer
+// "foi", e dizer "estou esperando a resposta". Sao duas informacoes
+// diferentes e cada uma tem o seu sinal: um pulso curto no disparo, e o
+// icone girando enquanto a requisicao esta no ar.
+
+function pulsar(btn){
+  if (!btn) return;
+  btn.classList.remove('pulsou');
+  void btn.offsetWidth;          // reinicia a animacao se o clique for repetido
+  btn.classList.add('pulsou');
+  setTimeout(() => btn.classList.remove('pulsou'), 500);
+}
+
+/**
+ * Executa a acao de um botao mostrando que ela esta em andamento.
+ *
+ * O botao NAO e desabilitado de proposito: apertar duas vezes seguidas o
+ * botao de panico e exatamente o que demonstra a regra de repique, e um
+ * simulador que impedisse o segundo clique esconderia a regra que ele
+ * existe para mostrar.
+ */
+async function comRetorno(fn){
+  const btn = (typeof event !== 'undefined' && event) ? event.currentTarget : null;
+  pulsar(btn);
+  const html = btn ? btn.innerHTML : null;
+  if (btn) btn.innerHTML = '<i class="fa-solid fa-circle-notch sim-girando"></i> enviando';
+  try {
+    await fn();
+  } finally {
+    if (btn) btn.innerHTML = html;
+  }
+}
+
+// ------------------------------------------------------------------
+//  Tema
+// ------------------------------------------------------------------
+// Mesma mecanica do sistema: liga e desliga data-theme no elemento raiz
+// e guarda a escolha na mesma chave que o index.html usa, para quem
+// alterna aqui nao encontrar o site claro de novo ao voltar.
+function alternarTema(){
+  const escuro = document.documentElement.getAttribute('data-theme') === 'dark';
+  if (escuro) document.documentElement.removeAttribute('data-theme');
+  else        document.documentElement.setAttribute('data-theme', 'dark');
+  try { localStorage.setItem('darkMode', String(!escuro)); } catch(_) {}
+  pintarBotaoTema(!escuro);
+}
+
+function pintarBotaoTema(escuro){
+  document.querySelectorAll('.btn-dark-toggle').forEach(b => {
+    b.innerHTML = escuro ? '<i class="fa-solid fa-sun"></i>' : '<i class="fa-solid fa-moon"></i>';
+    b.title = escuro ? 'Modo Claro' : 'Modo Escuro';
+  });
+}
+
+(function restaurarTema(){
+  let escuro = false;
+  try { escuro = localStorage.getItem('darkMode') === 'true'; } catch(_) {}
+  if (escuro) document.documentElement.setAttribute('data-theme', 'dark');
+  pintarBotaoTema(escuro);
+})();
+
+// ------------------------------------------------------------------
+//  Limpeza do historico, com confirmacao
+// ------------------------------------------------------------------
+// Apagar e uma acao sem volta, e uma acao sem volta nao deve acontecer
+// por um clique distraido. A confirmacao tambem diz o que NAO se perde,
+// porque a duvida de quem hesita e essa.
+function limparLog(){ $('confirm-bg').classList.add('on'); }
+function fecharConfirm(){ $('confirm-bg').classList.remove('on'); }
+
+function confirmarLimpeza(){
+  $('log').innerHTML = '<div class="l"><span class="t">--:--:--</span>'
+                     + '<span class="m">Histórico limpo.</span></div>';
+  fecharConfirm();
+}
+
+document.addEventListener('keydown', e => {
+  if (e.key === 'Escape') fecharConfirm();
+});
+</script>
+</body>
+</html>
