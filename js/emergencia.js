@@ -83,7 +83,10 @@ const Emergencia = (() => {
         if (statusEl) {
           statusEl.className = 'emerg-loc-status ok';
           const txt = [enderecoGPS, cidadeGPS, ufGPS].filter(Boolean).join(', ');
-          statusEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> ${_t('emerg.loc_ok', 'Localização capturada')}${txt ? ': ' + txt : ' (GPS)'}`;
+          // O endereço vem de um serviço externo (Nominatim): entra como texto.
+          statusEl.innerHTML = `<i class="fa-solid fa-location-dot"></i> <span></span>`;
+          statusEl.querySelector('span').textContent =
+            _t('emerg.loc_ok', 'Localização capturada') + (txt ? ': ' + txt : ' (GPS)');
         }
         _atualizarBotaoEnviar();
       },
@@ -184,8 +187,14 @@ const Emergencia = (() => {
     }
 
     // Salva reaproveitando o array global do main.js
+    // Fase 7: grava pelo mesmo caminho do formulário normal
+    // (persistirDenuncias), que aplica a cifragem dos campos sensíveis. Antes
+    // a emergência gravava o relato em texto claro no mesmo armazenamento.
     try {
-      if (typeof denuncias !== 'undefined') {
+      if (typeof denuncias !== 'undefined' && typeof persistirDenuncias === 'function') {
+        denuncias.push(denuncia);
+        persistirDenuncias();
+      } else if (typeof denuncias !== 'undefined') {
         denuncias.push(denuncia);
         localStorage.setItem('denuncias', JSON.stringify(denuncias));
       } else {

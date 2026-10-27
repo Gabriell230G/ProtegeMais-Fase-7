@@ -295,15 +295,26 @@
     return params.get('q') || sessionStorage.getItem('safeSearchQuery') || 'pesquisa';
   }
 
-  const query = getQuery();
-  const qCap  = query.charAt(0).toUpperCase() + query.slice(1);
+  // Fase 7 | O termo vem da URL (?q=), ou seja, de quem montou o link.
+  // queryBruta so vai para lugares que tratam texto puro (campo de busca,
+  // titulo da aba, redirecionamento com encodeURIComponent). Em todo HTML
+  // montado por template entra a versao escapada, para que um link como
+  // search.html?q=<img onerror=...> nao execute nada.
+  function escHtml(t) {
+    return String(t == null ? '' : t)
+      .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')
+      .replace(/"/g, '&quot;').replace(/'/g, '&#39;');
+  }
+  const queryBruta = getQuery();
+  const query = escHtml(queryBruta);
+  const qCap  = escHtml(queryBruta.charAt(0).toUpperCase() + queryBruta.slice(1));
 
-  document.getElementById('result-search-input').value = query;
-  document.title = query + ' - Search';
+  document.getElementById('result-search-input').value = queryBruta;
+  document.title = queryBruta + ' - Search';
 
   // Redireciona para o Google após breve delay
   setTimeout(() => {
-    window.location.replace('https://www.google.com/search?q=' + encodeURIComponent(query));
+    window.location.replace('https://www.google.com/search?q=' + encodeURIComponent(queryBruta));
   }, 900);
 
   // ── Sites e templates fake ───────────────────────────────────
@@ -381,23 +392,28 @@
   function buildRelated() {
     const related = document.getElementById('related-section');
     const searches = [
-      `${query} o que é`,
-      `${query} como funciona`,
-      `${query} exemplos`,
-      `${query} definição`,
-      `${query} atualidades`,
-      `${query} para iniciantes`,
-      `${query} história`,
-      `melhor ${query}`,
+      `${queryBruta} o que é`,
+      `${queryBruta} como funciona`,
+      `${queryBruta} exemplos`,
+      `${queryBruta} definição`,
+      `${queryBruta} atualidades`,
+      `${queryBruta} para iniciantes`,
+      `${queryBruta} história`,
+      `melhor ${queryBruta}`,
     ];
 
-    const items = searches.map(s => `
-      <div class="related-item" onclick="goSearch('${s.replace(/'/g,"\\'")}')">
-        <div class="related-icon"><i class="fa-solid fa-magnifying-glass"></i></div>
-        <span>${s}</span>
-      </div>`).join('');
-
-    related.innerHTML = `<h3>Pesquisas relacionadas</h3><div class="related-grid">${items}</div>`;
+    // Fase 7 | Montado com elementos e textContent: o termo nunca vira HTML
+    // nem codigo de onclick, mesmo com aspas ou sinais de menor e maior.
+    related.innerHTML = '<h3>Pesquisas relacionadas</h3><div class="related-grid"></div>';
+    const grade = related.querySelector('.related-grid');
+    searches.forEach(s => {
+      const item = document.createElement('div');
+      item.className = 'related-item';
+      item.innerHTML = '<div class="related-icon"><i class="fa-solid fa-magnifying-glass"></i></div><span></span>';
+      item.querySelector('span').textContent = s;
+      item.addEventListener('click', () => goSearch(s));
+      grade.appendChild(item);
+    });
   }
 
   function reSearch() {

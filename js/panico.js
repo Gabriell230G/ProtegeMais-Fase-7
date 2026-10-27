@@ -46,8 +46,16 @@ const Panico = (() => {
 
     // Atalho do GOV.UK: SHIFT 3x em até 5 s. Fica ao lado do ESC porque o
     // ESC sozinho também fecha o Modo Seguro e outros diálogos.
+    //
+    // Duas travas para não expulsar quem está escrevendo a denúncia: (1) o
+    // atalho não vale com o foco num campo de texto, e (2) as três teclas
+    // precisam ser SHIFT seguidos; qualquer outra tecla zera a contagem.
+    // Sem isso, digitar "Meu marido João me bateu em Osasco. Tenho medo."
+    // (três maiúsculas) levava a pessoa para fora do site e apagava o rascunho.
     document.addEventListener('keydown', (e) => {
-      if (e.key !== 'Shift' || e.repeat) return;
+      if (e.key !== 'Shift') { shiftCount = 0; return; }
+      if (e.repeat) return;
+      if (_editavel(e.target)) { shiftCount = 0; return; }
       shiftCount++;
       if (shiftCount === 1) {
         clearTimeout(shiftTimer);
@@ -55,6 +63,13 @@ const Panico = (() => {
       }
       if (shiftCount >= 3) { shiftCount = 0; sair(); }
     });
+  }
+
+  /** Campo onde a pessoa está digitando: o atalho de SHIFT não vale ali. */
+  function _editavel(el) {
+    if (!el) return false;
+    const tag = (el.tagName || '').toLowerCase();
+    return tag === 'input' || tag === 'textarea' || tag === 'select' || !!el.isContentEditable;
   }
 
   function _injetarBarra() {
