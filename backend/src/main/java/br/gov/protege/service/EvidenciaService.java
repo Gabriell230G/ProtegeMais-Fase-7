@@ -180,17 +180,36 @@ public class EvidenciaService {
     @Transactional
     public int removerTodasDa(Long denunciaId, String motivo) {
         int removidas = 0;
+        java.util.List<Path> arquivos = new java.util.ArrayList<>();
         for (Evidencia ev : repo.findByDenunciaIdAndRemovidaFalseOrderByEnviadoEmAsc(denunciaId)) {
-            try {
-                Files.deleteIfExists(resolverDentroDoDiretorio(ev.getNomeArmazenado()));
-            } catch (IOException e) {
-                log.warn("Nao foi possivel apagar o arquivo da evidencia {}", ev.getId(), e);
-            }
+            arquivos.add(resolverDentroDoDiretorio(ev.getNomeArmazenado()));
             ev.setRemovida(true);
             ev.setRemovidaEm(LocalDateTime.now());
             ev.setMotivoRemocao(motivo == null || motivo.length() <= 300 ? motivo : motivo.substring(0, 300));
             repo.save(ev);
             removidas++;
+        }
+        // Fase 7 | Os arquivos so saem do disco DEPOIS que a exclusao for
+        // gravada no banco. Se a transacao falhar, a denuncia continua ativa
+        // e os anexos dela continuam existindo. Fora de transacao (testes
+        // unitarios), apaga na hora.
+        Runnable apagar = () -> arquivos.forEach(arquivo -> {
+            try {
+                Files.deleteIfExists(arquivo);
+            } catch (IOException e) {
+                log.warn("Nao foi possivel apagar o arquivo de evidencia {}", arquivo.getFileName(), e);
+            }
+        });
+        if (org.springframework.transaction.support.TransactionSynchronizationManager.isSynchronizationActive()) {
+            org.springframework.transaction.support.TransactionSynchronizationManager.registerSynchronization(
+                new org.springframework.transaction.support.TransactionSynchronization() {
+                    @Override
+                    public void afterCommit() {
+                        apagar.run();
+                    }
+                });
+        } else {
+            apagar.run();
         }
         return removidas;
     }

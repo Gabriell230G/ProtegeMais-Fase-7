@@ -19,7 +19,7 @@ public final class LogSeguro {
         StringBuilder sb = null;
         for (int i = 0; i < s.length(); i++) {
             char c = s.charAt(i);
-            if (Character.isISOControl(c) || c == ' ' || c == ' ') {
+            if (Character.isISOControl(c) || c == '\u2028' || c == '\u2029') {
                 if (sb == null) sb = new StringBuilder(s.length()).append(s, 0, i);
                 sb.append('_');
             } else if (sb != null) {
