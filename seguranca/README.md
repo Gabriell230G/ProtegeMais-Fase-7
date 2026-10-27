@@ -47,7 +47,7 @@ py seguranca\simular_ataques.py
 
 O roteiro lê a chave IoT da execução em `backend\data\iot-chave.txt` e grava o relatório em `seguranca\resultados\`. Rode logo depois de subir a API: o próprio teste de força bruta bloqueia novos logins da sua máquina por um minuto.
 
-**Exercícios A e B** (Git Bash, que vem com o Git para Windows; a API pode estar no ar, o roteiro para e sobe sozinho):
+**Exercícios A e B** (Git Bash, que vem com o Git para Windows). Antes, **pare a API do Terminal 1 com Ctrl+C**: o roteiro sobe e derruba a própria instância, porque precisa abrir o arquivo do banco com o servidor parado.
 
 ```bash
 cd backend
