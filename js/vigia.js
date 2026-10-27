@@ -25,7 +25,10 @@ const VigIA = (() => {
     const mapa = new Map();
     const add = (arr) => (arr || []).forEach(d => { if (d && d.id) mapa.set(d.id, d); });
     if (typeof getAllDenuncias === 'function') { try { add(getAllDenuncias()); } catch (_) {} }
-    try { add(JSON.parse(localStorage.getItem('denuncias') || '[]')); } catch (_) {}
+    // Fase 7: localStorage so com a API fora do ar (ver dadosLocaisPermitidos).
+    if (typeof dadosLocaisPermitidos !== 'function' || dadosLocaisPermitidos()) {
+      try { add(JSON.parse(localStorage.getItem('denuncias') || '[]')); } catch (_) {}
+    }
     return Array.from(mapa.values());
   }
 
@@ -180,6 +183,9 @@ const VigIA = (() => {
   function analisar() {
     const body = document.getElementById('vigia-body');
     if (!body) return;
+    // Lista de casos recusada pela API: o painel fica oculto (ajustarResumoAoAcesso)
+    // e nao ha o que analisar, nem com dados locais.
+    if (typeof bloqueioDosCasos === 'function' && bloqueioDosCasos()) { body.innerHTML = ''; return; }
     const lista = _denuncias();
 
     const leituras = _leituras(lista);

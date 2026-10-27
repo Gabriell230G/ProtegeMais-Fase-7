@@ -64,7 +64,7 @@ const Dispositivos = (() => {
     const corpo = document.getElementById('disp-lista');
     if (!corpo) return;
 
-    let eventos = null, resumo = null;
+    let eventos = null, resumo = null, falha = null;
     try {
       [eventos, resumo] = await Promise.all([
         Backend.listarEventosIot(filtro, 60),
@@ -72,9 +72,24 @@ const Dispositivos = (() => {
       ]);
     } catch (e) {
       console.warn('[Dispositivos] falha ao consultar o barramento:', e);
+      falha = e;
     }
 
     _pintarResumo(resumo);
+
+    // Fase 7: recusa (401/403) ou erro da API no ar nao e "sem conexao".
+    if (falha && (falha.acessoNegado || falha.status)) {
+      const titulo = falha.status === 401 ? 'Faça login novamente'
+                   : falha.status === 403 ? 'Seu perfil não tem acesso a este conteúdo'
+                   : falha.message;
+      corpo.innerHTML = `
+        <div class="disp-vazio">
+          <div class="disp-vazio-ic">${falha.status === 401 ? '🔑' : falha.status === 403 ? '🚫' : '❌'}</div>
+          <p><strong>${_esc(titulo)}</strong></p>
+          <p class="disp-vazio-dica">O servidor recusou a consulta ao barramento de eventos.</p>
+        </div>`;
+      return;
+    }
 
     if (eventos === null) {
       corpo.innerHTML = `
@@ -103,7 +118,7 @@ const Dispositivos = (() => {
       <table class="disp-tabela">
         <thead>
           <tr>
-            <th>Recebido</th><th>Origem</th><th>Dispositivo</th>
+            <th>Recebido</th><th>Origem</th><th>Dispositivo</th><th>Coordenadas</th>
             <th>Situacao</th><th>Protocolo</th><th>O que o servidor decidiu</th>
           </tr>
         </thead>
@@ -119,10 +134,28 @@ const Dispositivos = (() => {
         <td class="disp-hora">${_hora(e.recebidoEm)}</td>
         <td><span class="disp-org" style="--c:${_esc(o.cor)}">${_esc(o.icone)} ${_esc(o.rotulo)}</span></td>
         <td class="disp-mono">${_esc(e.dispositivo)}</td>
+        <td class="disp-mono">${_coordenadas(e)}</td>
         <td><span class="disp-sit ${_esc(s.classe)}">${_esc(s.rotulo)}</span></td>
         <td class="disp-mono">${e.protocoloGerado ? _esc(e.protocoloGerado) : '<span class="disp-nulo">nao gerou caso</span>'}</td>
         <td class="disp-det">${_esc(e.detalhe)}</td>
       </tr>`;
+  }
+
+  /**
+   * Fase 7: para o ATENDENTE o servidor arredonda lat/lng a 3 casas (cerca
+   * de 100 m). A tela diz isso, para ninguem tomar a regiao por um endereco.
+   */
+  function _coordenadas(e) {
+    const lat = Number(e.latitude), lng = Number(e.longitude);
+    if (e.latitude == null || e.longitude == null || !isFinite(lat) || !isFinite(lng)) {
+      return '<span class="disp-nulo">sem coordenada</span>';
+    }
+    const aprox = typeof Acesso !== 'undefined' && Acesso.papel() === 'analista';
+    const casas = aprox ? 3 : 5;
+    const txt = _esc(lat.toFixed(casas) + ', ' + lng.toFixed(casas));
+    return aprox
+      ? `${txt}<br><span class="disp-nulo" title="O servidor arredonda a coordenada para o seu perfil">aproximadas (±100 m)</span>`
+      : txt;
   }
 
   function _pintarResumo(resumo) {

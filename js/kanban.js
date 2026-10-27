@@ -26,6 +26,21 @@ const Kanban = (() => {
 
   let arrastandoId = null;
 
+  function T(chave, padrao) {
+    return (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(chave) : padrao;
+  }
+
+  /** Fase 7: ATENDENTE so avanca; voltar etapa e reabrir e do GESTOR/ADMIN. */
+  function _podeRetroceder() {
+    return typeof Acesso === 'undefined' || Acesso.pode('retroceder');
+  }
+  function _podeAtribuir() {
+    return typeof Acesso === 'undefined' || Acesso.pode('atribuir');
+  }
+  function _posicao(status) {
+    return COLUNAS.findIndex(c => c.key === status);
+  }
+
   function _denuncias() {
     const mapa = new Map();
     const add = (arr) => (arr || []).forEach(d => {
@@ -34,13 +49,24 @@ const Kanban = (() => {
     if (typeof getAllDenuncias === 'function') {
       try { add(getAllDenuncias()); } catch (_) {}
     }
-    try { add(JSON.parse(localStorage.getItem('denuncias') || '[]')); } catch (_) {}
+    // Fase 7: o localStorage so entra com a API fora do ar. Com a API no ar
+    // e a lista recusada (AUDITOR), ele traria casos que o servidor negou.
+    if (typeof dadosLocaisPermitidos !== 'function' || dadosLocaisPermitidos()) {
+      try { add(JSON.parse(localStorage.getItem('denuncias') || '[]')); } catch (_) {}
+    }
     return Array.from(mapa.values());
   }
 
   function render() {
     const board = document.getElementById('kanban-board');
     if (!board) return;
+
+    const falha = (typeof bloqueioDosCasos === 'function') ? bloqueioDosCasos() : null;
+    if (falha) {
+      board.innerHTML = `<div style="grid-column:1/-1">${
+        typeof avisoAcessoHtml === 'function' ? avisoAcessoHtml(falha) : _esc(falha.message)}</div>`;
+      return;
+    }
 
     const todas = _denuncias();
 
@@ -74,9 +100,13 @@ const Kanban = (() => {
       nivel = `<span class="kc-nivel" style="color:${r.cor}">${r.icon} ${r.nome}</span>`;
     }
 
-    // Responsável (select da equipe + confirmação)
+    // Responsável (select da equipe + confirmação). Fase 7: atribuir é do
+    // GESTOR/ADMIN; os demais veem só o nome de quem responde pelo caso.
     let atribuicao = '';
-    if (typeof Equipe !== 'undefined') {
+    if (typeof Equipe !== 'undefined' && !_podeAtribuir()) {
+      const resp = d.responsavelId && Equipe.buscarPorId(d.responsavelId);
+      if (resp) atribuicao = `<div class="kc-atrib"><div class="kc-resp-atual">👤 ${escHtml(resp.nome)}</div></div>`;
+    } else if (typeof Equipe !== 'undefined') {
       const resp = d.responsavelId && Equipe.buscarPorId(d.responsavelId);
       const atualLabel = resp ? `👤 ${escHtml(resp.nome)}` : '';
       atribuicao = `
@@ -138,6 +168,16 @@ const Kanban = (() => {
     if (!d) return;
     if (d.status === novoStatus) return;   // soltou na mesma coluna
 
+    // Fase 7: a mesma regra do servidor, aplicada antes do pedido. O card
+    // nem chega a sair da coluna (o servidor responderia 409).
+    if (_posicao(novoStatus) < _posicao(d.status) && !_podeRetroceder()) {
+      if (typeof showToast === 'function') {
+        showToast('🚫 ' + T('kanban.retorno_negado', 'Só Gestor ou Administrador podem voltar etapas'));
+      }
+      render();
+      return;
+    }
+
     // Confirmação antes de mudar
     _confirmarMudanca(id, d.status, novoStatus);
   }
@@ -185,6 +225,8 @@ const Kanban = (() => {
    */
   async function _aplicar(id, novoStatus) {
     if (typeof Sincronia !== 'undefined' && Sincronia.ativa()) {
+      // Recusa (409/403/erro): o card volta para a coluna de origem e o
+      // toast mostra a mensagem do servidor (Sincronia.mudarStatus).
       const ok = await Sincronia.mudarStatus(id, novoStatus);
       if (ok && typeof showToast === 'function') showToast('✅ Status atualizado.');
       if (!ok) render();
@@ -261,6 +303,7 @@ const Kanban = (() => {
   async function confirmarResp(id) {
     const membroId = _pendentesResp[id];
     delete _pendentesResp[id];
+    if (!_podeAtribuir()) { render(); return; }
 
     // Com a API no ar, a atribuicao e gravada no servidor e registrada na
     // trilha de auditoria. Definir quem responde por um caso e uma decisao

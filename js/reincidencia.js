@@ -54,9 +54,9 @@ const Reincidencia = (() => {
     alvo.innerHTML = '<div class="rei-vazio"><div class="rei-vazio-ic">⏳</div>'
                    + '<p>Analisando a janela...</p></div>';
 
-    let focos = null;
+    let focos = null, falha = null;
     try { focos = await Backend.listarFocos(janela); }
-    catch (e) { console.warn('[Reincidencia] falha ao consultar:', e); }
+    catch (e) { console.warn('[Reincidencia] falha ao consultar:', e); falha = e; }
 
     const criterio = document.getElementById('rei-criterio');
     if (criterio) {
@@ -66,6 +66,21 @@ const Reincidencia = (() => {
         Quando uma cadeia reúne quase tudo o que aquele município produziu naquele tipo, ela
         deixa de ser um <b>foco</b> e passa a ser marcada como <b>fluxo contínuo</b>: não é um
         surto que se destaca, é a demanda normal do lugar.`;
+    }
+
+    // Fase 7: recusa (401/403) ou erro da API no ar nao e "sem conexao".
+    if (falha && (falha.acessoNegado || falha.status)) {
+      const titulo = falha.status === 401 ? 'Faça login novamente'
+                   : falha.status === 403 ? 'Seu perfil não tem acesso a este conteúdo'
+                   : falha.message;
+      alvo.innerHTML = `
+        <div class="rei-vazio">
+          <div class="rei-vazio-ic">${falha.status === 401 ? '🔑' : falha.status === 403 ? '🚫' : '❌'}</div>
+          <p><strong>${_esc(titulo)}</strong></p>
+          <p>O servidor recusou a análise de focos para esta sessão.</p>
+        </div>`;
+      _kpis(null);
+      return;
     }
 
     if (focos === null) {

@@ -128,11 +128,54 @@ function verificarProtocoloURL() {
   }
 }
 
-function getAllDenuncias() {
+/**
+ * Fase 7 | Dados locais (localStorage e exemplos embutidos) so aparecem no
+ * painel com a API FORA DO AR. Com a API no ar, a tela mostra o que o
+ * servidor entregou para o perfil logado, ou nada: um 401/403 nao pode
+ * virar "entao mostro o que tem neste navegador".
+ */
+function dadosLocaisPermitidos() {
+  return typeof Backend === 'undefined' || typeof Backend.modoLocal !== 'function'
+      || Backend.modoLocal();
+}
+
+/** Recusa da API ao carregar os casos (401/403/erro), ou null. */
+function bloqueioDosCasos() {
+  return (typeof Sincronia !== 'undefined' && Sincronia.bloqueio) ? Sincronia.bloqueio() : null;
+}
+
+/**
+ * Fase 7 | Troca de quem esta logado (login, troca de perfil, saida): esvazia
+ * as telas montadas com dados do perfil anterior. Abas escondidas guardavam
+ * a fila, os focos e os eventos de dispositivo carregados antes, e o DOM do
+ * AUDITOR seguinte continuava com protocolos que o servidor lhe nega.
+ */
+function limparPainelAnterior() {
+  ['fila-conteudo', 'fila-meta', 'pilha-conteudo', 'pilha-meta', 'disp-lista', 'rei-lista',
+   'vigia-body', 'vigia-resposta', 'aud-tbody', 'equipe-lista', 'evid-lista', 'det-box']
+    .forEach(id => { const el = document.getElementById(id); if (el) el.innerHTML = ''; });
+  if (typeof Detalhe !== 'undefined' && Detalhe.fechar) Detalhe.fechar();
+  if (typeof Evidencias !== 'undefined' && Evidencias.fechar) Evidencias.fechar();
+}
+
+/** Estado vazio com o motivo da recusa (texto sempre escapado). */
+function avisoAcessoHtml(falha, contexto) {
+  if (typeof Acesso !== 'undefined' && Acesso.avisoHtml) return Acesso.avisoHtml(falha, contexto);
+  return `<div class="est-aviso erro">${escHtml(falha && falha.message)}</div>`;
+}
+
+/**
+ * @param {boolean} consultaPublica a consulta do cidadao por protocolo
+ *        mantem o comportamento anterior (procura tambem no navegador).
+ */
+function getAllDenuncias(consultaPublica) {
   // Com o banco no ar, os exemplos embutidos saem de cena. Misturar dado
   // real com mock e o caminho mais curto para um numero de painel que
   // ninguem consegue explicar de onde veio.
   const daApi = typeof Sincronia !== 'undefined' && Sincronia.ativa();
+  // API no ar sem carga autorizada (recusa, sessao vencida ou carga ainda em
+  // curso): nada de dado local no painel.
+  if (!daApi && !consultaPublica && !dadosLocaisPermitidos()) return [];
   // Fora da API, os exemplos embutidos completam a lista, mas so os que
   // ainda nao estao nela. Sem esse filtro, um exemplo ja gravado no
   // navegador apareceria duas vezes e o total do painel mentiria.
@@ -201,7 +244,9 @@ function navigate(page) {
     // que ja existe e se redesenham quando os dados chegam, em vez de
     // ficarem em branco esperando a rede.
     if (typeof Sincronia !== 'undefined') {
-      Sincronia.hidratar(true).then(ok => { if (ok) Sincronia.redesenhar(); });
+      // Redesenha tambem na falha: e quando a tela aprende que houve recusa
+      // (401/403) e troca a lista vazia pelo motivo.
+      Sincronia.hidratar(true).then(() => Sincronia.redesenhar());
     }
     ['backlog', 'status-d'].forEach(t => {
       const el = document.getElementById('tab-' + t);
@@ -869,7 +914,7 @@ async function buscarProtocolo() {
     } catch (_) { /* API fora do ar: cai para o armazenamento local */ }
   }
   if (!found) {
-    found = getAllDenuncias().find(d => d.id && normalizar(d.id) === normalizar(input));
+    found = getAllDenuncias(true).find(d => d.id && normalizar(d.id) === normalizar(input));
   }
 
   if (!found) {
@@ -1161,6 +1206,10 @@ function fazerLogout() {
   // Descarta o token: sair da tela sem soltar a credencial deixaria a sessao
   // aberta para a proxima pessoa que usar o mesmo navegador.
   if (typeof Backend !== 'undefined') Backend.logout();
+  // E esquece os casos carregados: o proximo login (talvez de outro perfil)
+  // nao pode herdar a lista do anterior.
+  if (typeof Sincronia !== 'undefined' && Sincronia.limpar) Sincronia.limpar();
+  limparPainelAnterior();
   navigate('landing');
   if (document.getElementById('login-user')) document.getElementById('login-user').value = '';
   if (document.getElementById('login-pass')) document.getElementById('login-pass').value = '';
@@ -1242,7 +1291,11 @@ async function updateKPIs(listaFiltrada) {
                (st.recebida || 0) + (st.analise || 0));
         return;
       }
-    } catch (_) { /* cai para a contagem local */ }
+    } catch (_) {
+      // Fase 7: API no ar recusou os agregados. Contar o que esta neste
+      // navegador seria apresentar numero local como se fosse do canal.
+      if (!dadosLocaisPermitidos()) { pintar('-', '-', '-'); return; }
+    }
   }
 
   const all = listaFiltrada || getAllDenuncias();
@@ -1293,7 +1346,34 @@ function limparFiltrosDash() {
   aplicarFiltrosDash();
 }
 
+/**
+ * Fase 7 | Resumo de quem nao pode ver casos (AUDITOR) ou teve a lista
+ * recusada: ficam so os indicadores agregados (GET /api/stats). VigIA,
+ * filtros e graficos sao calculados sobre a lista de casos, e por isso
+ * saem da tela com um aviso, em vez de desenhar dado local ou zeros.
+ */
+function ajustarResumoAoAcesso() {
+  const aba = document.getElementById('tab-resumo');
+  if (!aba) return null;
+  const falha = bloqueioDosCasos();
+  const partes = [document.getElementById('vigia-painel'), document.getElementById('dash-filtros'),
+                  ...aba.querySelectorAll('.charts-grid')];
+  partes.forEach(el => { if (el) el.style.display = falha ? 'none' : ''; });
+
+  let aviso = document.getElementById('resumo-aviso-acesso');
+  if (!falha) { if (aviso) aviso.remove(); return null; }
+  if (!aviso) {
+    aviso = document.createElement('div');
+    aviso.id = 'resumo-aviso-acesso';
+    const kpis = aba.querySelector('.kpi-grid');
+    aba.insertBefore(aviso, kpis ? kpis.nextSibling : aba.firstChild);
+  }
+  aviso.innerHTML = avisoAcessoHtml(falha, 'resumo');
+  return falha;
+}
+
 function initCharts(listaFiltrada) {
+  if (ajustarResumoAoAcesso()) return;
   if (typeof Chart === 'undefined') return;
   const all = listaFiltrada || getAllDenuncias();
 
@@ -1554,6 +1634,14 @@ function renderBacklog(filter = 'all', filtrosAvancados = null) {
   const tbody = document.getElementById('backlog-tbody');
   if (!tbody) return;
 
+  const falha = bloqueioDosCasos();
+  if (falha) {
+    const contadorF = document.getElementById('backlog-contador');
+    if (contadorF) contadorF.textContent = '';
+    tbody.innerHTML = `<tr><td colspan="7">${avisoAcessoHtml(falha)}</td></tr>`;
+    return;
+  }
+
   let valid = all.filter(d => d && d.id && d.status && d.tipo);
 
   // Filtro simples (botões)
@@ -1649,6 +1737,15 @@ function renderStatusTable() {
   const tbody = document.getElementById('status-tbody');
   if (!tbody) return;
 
+  const falha = bloqueioDosCasos();
+  if (falha) {
+    tbody.innerHTML = `<tr><td colspan="5">${avisoAcessoHtml(falha)}</td></tr>`;
+    return;
+  }
+  // Fase 7: voltar etapa e reabrir caso concluido sao do GESTOR/ADMIN. Para
+  // o ATENDENTE as etapas anteriores aparecem, mas desabilitadas.
+  const podeVoltar = typeof Acesso === 'undefined' || Acesso.pode('retroceder');
+
   tbody.innerHTML = all.filter(d => d.id && d.status && d.tipo).map(dRaw => {
     const d = (typeof Acesso !== 'undefined') ? Acesso.mascarar(dRaw) : dRaw;
     const key   = d.id.replace(/[^a-zA-Z0-9]/g, '');
@@ -1684,7 +1781,7 @@ function renderStatusTable() {
       <td><span style="color:${color};font-weight:600">${escHtml(OPT_LABELS[d.status] || d.status)}</span></td>
       <td>
         <select id="ns-${key}" style="padding:6px 10px;font-size:12px;border-radius:6px;border:1.5px solid var(--gray-200);font-family:'DM Sans',sans-serif;cursor:pointer">
-          ${OPTS.map(s => `<option value="${s}" ${s === d.status ? 'selected' : ''}>${OPT_LABELS[s]}</option>`).join('')}
+          ${OPTS.map(s => `<option value="${s}" ${s === d.status ? 'selected' : ''}${!podeVoltar && OPTS.indexOf(s) < OPTS.indexOf(d.status) ? ' disabled' : ''}>${OPT_LABELS[s]}</option>`).join('')}
         </select>
       </td>
       <td>
@@ -1695,12 +1792,34 @@ function renderStatusTable() {
   }).join('');
 }
 
-function atualizarStatus(id, key) {
+async function atualizarStatus(id, key) {
   const sel = document.getElementById('ns-' + key);
   if (!sel) { showToast('Erro ao localizar campo'); return; }
   const newStatus = sel.value;
   const OPT_LABELS    = { recebida: 'Recebida', analise: 'Em Análise', encaminhada: 'Encaminhada', concluida: 'Concluída' };
   const STATUS_COLORS = { recebida: '#2563EB', analise: '#D97706', encaminhada: '#7C3AED', concluida: '#16A34A' };
+
+  // Fase 7: mesma regra do servidor (FluxoStatus). Avancar e livre; voltar
+  // etapa ou reabrir caso concluido so GESTOR/ADMIN.
+  const ORDEM = ['recebida', 'analise', 'encaminhada', 'concluida'];
+  const atual = (getAllDenuncias().find(d => d.id === id) || {}).status;
+  if (atual && ORDEM.indexOf(newStatus) < ORDEM.indexOf(atual)
+      && typeof Acesso !== 'undefined' && !Acesso.pode('retroceder')) {
+    showToast('🚫 ' + (typeof I18n !== 'undefined' ? I18n.t('kanban.retorno_negado')
+                                                   : 'Só Gestor ou Administrador podem voltar etapas'));
+    renderStatusTable();
+    return;
+  }
+
+  // Com a API no ar, quem muda o status e o servidor (valida a transicao,
+  // grava o historico e a trilha). Antes esta aba so mexia no navegador, e a
+  // proxima carga desfazia a mudanca sem aviso.
+  if (typeof Sincronia !== 'undefined' && Sincronia.ativa()) {
+    const ok = await Sincronia.mudarStatus(id, newStatus);
+    if (ok) showToast('✅ Status de ' + id + ' → ' + OPT_LABELS[newStatus]);
+    else renderStatusTable();
+    return;
+  }
 
   const agora = new Date();
   const entrada = {

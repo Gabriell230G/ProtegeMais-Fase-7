@@ -16,6 +16,7 @@ const Equipe = (() => {
 
   const CHAVE_LOCAL = 'protege_equipe';   // usado apenas quando a API está fora
   let cache = [];
+  let falha = null;   // Fase 7: recusa da API no ar (401/403), sem plano B local
 
   // ── Persistência local (plano B) ─────────────────────────────
   function _lerLocal() {
@@ -37,13 +38,21 @@ const Equipe = (() => {
 
   // ── Sincronização com a API ──────────────────────────────────
   async function sincronizar() {
+    falha = null;
     try {
       if (await Backend.estaOnline()) {
         const lista = await Backend.listarEquipe();
         cache = (lista || []).map(_normalizar);
         return cache;
       }
-    } catch (_) { /* cai para o local */ }
+    } catch (e) {
+      // Fase 7: com a API no ar, recusa nao vira equipe local.
+      if (!(typeof Backend.modoLocal === 'function' && Backend.modoLocal())) {
+        falha = e;
+        cache = [];
+        return cache;
+      }
+    }
     cache = _lerLocal().map(_normalizar);
     return cache;
   }
@@ -112,6 +121,13 @@ const Equipe = (() => {
     await sincronizar();
     const cont = document.getElementById('equipe-lista');
     if (!cont) return;
+
+    if (falha) {
+      cont.innerHTML = `<div style="grid-column:1/-1">${
+        (typeof Acesso !== 'undefined' && Acesso.avisoHtml) ? Acesso.avisoHtml(falha)
+                                                            : '<div class="equipe-vazio">' + _esc(falha.message) + '</div>'}</div>`;
+      return;
+    }
 
     if (cache.length === 0) {
       cont.innerHTML = '<div class="equipe-vazio">Nenhum membro cadastrado ainda.<br>' +

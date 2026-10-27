@@ -203,8 +203,10 @@ const Detalhe = (() => {
           ${Object.entries(TIPOS).map(([v, r]) =>
             `<option value="${esc(v)}" ${v === caso.tipo ? 'selected' : ''}>${esc(r)}</option>`).join('')}
         </select>
-        <label class="det-rot">${esc(T('det.relato','Relato'))}</label>
-        <textarea id="det-descricao" rows="5">${esc(caso.descricao || '')}</textarea>
+        <label class="det-rot" for="det-descricao">${esc(T('det.relato','Relato'))}</label>
+        <textarea id="det-descricao" rows="5" readonly aria-readonly="true" aria-describedby="det-relato-nota"
+                  style="cursor:not-allowed;opacity:.8">${esc(caso.descricao || '')}</textarea>
+        <div class="det-nota" id="det-relato-nota">🔒 ${esc(T('det.relato_fixo','O relato é do denunciante e não pode ser alterado'))}</div>
         <label class="det-rot">${esc(T('det.endereco','Endereço'))}</label>
         <input type="text" id="det-endereco" value="${esc(String(caso.endereco || '').includes('protegido') ? '' : (caso.endereco || ''))}">
         <div class="det-nota">${esc(T('det.editar_nota','A alteração é gravada pelo servidor e registrada na trilha como ALTERACAO_DADOS.'))}</div>
@@ -215,9 +217,12 @@ const Detalhe = (() => {
   function cancelarEdicao() { editando = false; render(); }
 
   async function salvar() {
+    // Fase 7: relato e escolha de anonimato sao do denunciante e o servidor
+    // ignora qualquer valor diferente. Vao exatamente como chegaram (o DTO
+    // ainda os exige), nunca o que estiver no campo da tela.
     const corpo = {
       tipo: document.getElementById('det-tipo').value,
-      descricao: document.getElementById('det-descricao').value,
+      descricao: caso.descricao,
       estado: caso.estado,
       cidade: caso.cidade,
       endereco: document.getElementById('det-endereco').value,
@@ -286,8 +291,14 @@ const Detalhe = (() => {
     const alvo = document.getElementById('det-anexos');
     if (!alvo) return;
     let lista = [];
-    try { lista = await Backend.listarEvidencias(caso.id); } catch (_) { lista = []; }
-    if (!lista.length) {
+    try {
+      lista = await Backend.listarEvidencias(caso.id);
+    } catch (e) {
+      // Recusa ou erro nao e "nenhum anexo": a tela diz o motivo.
+      alvo.innerHTML = `<div class="evid-vazio">${e.status === 403 ? '🚫' : e.status === 401 ? '🔑' : '❌'} ${esc(e.message)}</div>`;
+      return;
+    }
+    if (!lista || !lista.length) {
       alvo.innerHTML = `<div class="evid-vazio">${esc(T('evid.vazio', 'Nenhum arquivo anexado a esta denúncia.'))}</div>`;
       return;
     }

@@ -96,7 +96,7 @@ const Evidencias = (() => {
     try {
       lista = await Backend.listarEvidencias(idAtual);
     } catch (e) {
-      alvo.innerHTML = `<div class="evid-vazio">❌ ${esc(e.message)}</div>`;
+      alvo.innerHTML = `<div class="evid-vazio">${e.status === 403 ? '🚫' : e.status === 401 ? '🔑' : '❌'} ${esc(e.message)}</div>`;
       return;
     }
     if (!lista.length) {
@@ -104,6 +104,8 @@ const Evidencias = (() => {
       return;
     }
 
+    // Fase 7: remover anexo e do GESTOR/ADMIN (403 para os demais).
+    const podeRemover = typeof Acesso === 'undefined' || Acesso.pode('excluir');
     alvo.innerHTML = lista.map(e => `
       <div class="evid-item" data-evid-id="${esc(e.id)}">
         <span class="evid-ic">${esc(icone(e.tipoConteudo))}</span>
@@ -115,8 +117,8 @@ const Evidencias = (() => {
         </div>
         <button class="fluxo-btn secundario" onclick="Evidencias.baixar(${jsArg(e.id)})"
                 data-i18n="evid.baixar">⬇ Baixar</button>
-        <button class="fluxo-btn secundario" onclick="Evidencias.remover(${jsArg(e.id)})"
-                data-i18n="evid.remover">🗑 Remover</button>
+        ${podeRemover ? `<button class="fluxo-btn secundario" onclick="Evidencias.remover(${jsArg(e.id)})"
+                data-i18n="evid.remover">🗑 Remover</button>` : ''}
       </div>`).join('');
   }
 

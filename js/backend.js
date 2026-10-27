@@ -139,6 +139,69 @@ const Backend = (() => {
     }
   }
 
+  // ── Leitura protegida: quando o plano B local vale ───────────
+  // Fase 7 | Antes, qualquer resposta diferente de 200 fazia a tela cair
+  // para o localStorage e para os exemplos embutidos. Com a matriz de
+  // perfis no servidor isso virou vazamento: o AUDITOR recebe 403 na lista
+  // de casos e passava a ver os casos guardados neste navegador (inclusive
+  // os que outro perfil carregou antes). Agora so a API FORA DO AR (falha
+  // de rede) libera o plano B. Um 401/403 de uma API no ar vira erro com a
+  // mensagem de acesso, e a tela mostra estado vazio em vez de dado local.
+
+  function T(chave, padrao) {
+    return (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(chave) : padrao;
+  }
+
+  /** Erro de acesso (401/403) com a mensagem que a tela exibe. */
+  function erroAcesso(status) {
+    const e = new Error(status === 401
+      ? T('acesso.relogin', 'Faça login novamente')
+      : T('acesso.negado', 'Seu perfil não tem acesso a este conteúdo'));
+    e.status = status;
+    e.acessoNegado = true;
+    return e;
+  }
+
+  /** True só quando a API foi consultada e não respondeu (modo local). */
+  function modoLocal() { return online === false; }
+
+  /** A rede falhou no meio da sessão: a partir daqui vale o modo local. */
+  function marcarForaDoAr() {
+    if (online === false) return;
+    online = false;
+    console.log('[Backend] API deixou de responder: usando localStorage');
+    if (typeof document !== 'undefined') {
+      document.dispatchEvent(new CustomEvent('protege:conexao', { detail: { online } }));
+    }
+  }
+
+  const FORA_DO_AR = Object.freeze({ foraDoAr: true });
+
+  /**
+   * GET em rota protegida.
+   *   - 2xx: corpo JSON;
+   *   - falha de rede: FORA_DO_AR (quem chamou decide se há plano B local);
+   *   - 401/403: lança erroAcesso (nunca há plano B local);
+   *   - 404 com opcoes.nulo404: null;
+   *   - outro status: lança a mensagem do servidor.
+   */
+  async function lerProtegido(caminho, opcoes = {}) {
+    const init = { headers: authHeaders(opcoes.corpo !== undefined ? { 'Content-Type': 'application/json' } : {}) };
+    if (opcoes.metodo) init.method = opcoes.metodo;
+    if (opcoes.corpo !== undefined) init.body = JSON.stringify(opcoes.corpo);
+    let res;
+    try {
+      res = await protegido(() => fetch(`${BASE}${caminho}`, init));
+    } catch (_) {
+      marcarForaDoAr();
+      return FORA_DO_AR;
+    }
+    if (res.ok) return res.json();
+    if (res.status === 401 || res.status === 403) throw erroAcesso(res.status);
+    if (res.status === 404 && opcoes.nulo404) return null;
+    throw Object.assign(new Error(await erroDa(res)), { status: res.status });
+  }
+
   // ── localStorage (fallback) ──────────────────────────────────
   function lsGet() {
     try { return JSON.parse(localStorage.getItem('denuncias') || '[]'); }
@@ -171,26 +234,28 @@ const Backend = (() => {
     return nova;
   }
 
+  /**
+   * Página de casos. Plano B local só com a API fora do ar; o envelope
+   * local vem marcado com `local: true` para quem precisa distinguir.
+   * 401/403 lançam erro de acesso (ver lerProtegido).
+   */
   async function listarPagina(filtros = {}) {
     if (await estaOnline()) {
       const qs = new URLSearchParams(
         Object.fromEntries(Object.entries(filtros).filter(([, v]) => v !== '' && v != null))
       ).toString();
-      const res = await protegido(() =>
-        fetch(`${BASE}/denuncias${qs ? '?' + qs : ''}`, { headers: authHeaders() }));
-      if (res.ok) return res.json();
+      const r = await lerProtegido(`/denuncias${qs ? '?' + qs : ''}`);
+      if (r !== FORA_DO_AR) return r;
     }
     const lista = lsGet();
-    return { conteudo: lista, pagina: 0, tamanho: lista.length, totalItens: lista.length, totalPaginas: 1, temProxima: false };
+    return { conteudo: lista, pagina: 0, tamanho: lista.length, totalItens: lista.length, totalPaginas: 1, temProxima: false, local: true };
   }
 
   /** Detalhe do caso — traz o relato. Leitura registrada em auditoria. */
   async function detalharDenuncia(id) {
     if (await estaOnline()) {
-      const res = await protegido(() =>
-        fetch(`${BASE}/denuncias/${id}`, { headers: authHeaders() }));
-      if (res.ok) return res.json();
-      if (res.status === 404) return null;
+      const r = await lerProtegido(`/denuncias/${id}`, { nulo404: true });
+      if (r !== FORA_DO_AR) return r;
     }
     return lsGet().find(d => d.id === id) || null;
   }
@@ -212,7 +277,7 @@ const Backend = (() => {
         body: JSON.stringify(dados),
       }));
       if (res.ok) return res.json();
-      throw new Error(await erroDa(res));
+      throw Object.assign(new Error(await erroDa(res)), { status: res.status });
     }
     const lista = lsGet();
     const d = lista.find(x => x.id === id);
@@ -244,7 +309,7 @@ const Backend = (() => {
         body: JSON.stringify({ status, observacao: observacao || null }),
       }));
       if (res.ok) return res.json();
-      throw new Error(await erroDa(res));
+      throw Object.assign(new Error(await erroDa(res)), { status: res.status });
     }
     const lista = lsGet();
     const d = lista.find(x => x.id === id || x.protocolo === id);
@@ -260,7 +325,7 @@ const Backend = (() => {
         body: JSON.stringify({ responsavelId }),
       }));
       if (res.ok) return res.json();
-      throw new Error(await erroDa(res));
+      throw Object.assign(new Error(await erroDa(res)), { status: res.status });
     }
     const lista = lsGet();
     const d = lista.find(x => x.id === id);
@@ -271,8 +336,8 @@ const Backend = (() => {
   // ── Equipe ───────────────────────────────────────────────────
   async function listarEquipe() {
     if (await estaOnline()) {
-      const res = await protegido(() => fetch(`${BASE}/equipe`, { headers: authHeaders() }));
-      if (res.ok) return res.json();
+      const r = await lerProtegido('/equipe');
+      if (r !== FORA_DO_AR) return r;
     }
     try { return JSON.parse(localStorage.getItem('protege_equipe') || '[]'); }
     catch (_) { return []; }
@@ -288,7 +353,7 @@ const Backend = (() => {
           body: JSON.stringify({ nome: membro.nome, cargo: membro.cargo, email: membro.email }),
         }));
       if (res.ok) return res.json();
-      throw new Error(await erroDa(res));
+      throw Object.assign(new Error(await erroDa(res)), { status: res.status });
     }
     return membro;
   }
@@ -306,8 +371,8 @@ const Backend = (() => {
   // ── Estatísticas (dashboard) ─────────────────────────────────
   async function estatisticas() {
     if (await estaOnline()) {
-      const res = await protegido(() => fetch(`${BASE}/stats`, { headers: authHeaders() }));
-      if (res.ok) return res.json();
+      const r = await lerProtegido('/stats');
+      if (r !== FORA_DO_AR) return r;
     }
     const lista = lsGet();
     return { total: lista.length, porStatus: {}, porTipo: {}, offline: true };
@@ -323,9 +388,8 @@ const Backend = (() => {
    */
   async function relatorioAnalitico() {
     if (!(await estaOnline())) return null;
-    const res = await protegido(() => fetch(`${BASE}/stats/analitico`, { headers: authHeaders() }));
-    if (res.ok) return res.json();
-    throw Object.assign(new Error(await erroDa(res)), { status: res.status });
+    const r = await lerProtegido('/stats/analitico');
+    return r === FORA_DO_AR ? null : r;
   }
 
   // ── Evidencias (arquivos anexados) ───────────────────────────
@@ -351,11 +415,11 @@ const Backend = (() => {
     throw Object.assign(new Error(await erroDa(res)), { status: res.status });
   }
 
+  /** Lista de anexos. 401/403 e erro do servidor lançam (a tela mostra o motivo). */
   async function listarEvidencias(idDenuncia) {
     if (!(await estaOnline())) return [];
-    const res = await protegido(() =>
-      fetch(`${BASE}/denuncias/${idDenuncia}/evidencias`, { headers: authHeaders() }));
-    return res.ok ? res.json() : [];
+    const r = await lerProtegido(`/denuncias/${idDenuncia}/evidencias`);
+    return r === FORA_DO_AR ? [] : r;
   }
 
   /** Baixa o arquivo. Cada leitura gera registro de auditoria no servidor. */
@@ -401,23 +465,20 @@ const Backend = (() => {
   }
 
   // ── VigIA (IA) ───────────────────────────────────────────────
+  // Fase 7: recusa do servidor (401/403 ou erro) agora chega a quem chamou.
+  // Antes, um AUDITOR recebia a resposta local inventada como se fosse da IA.
   async function perguntarVigia(pergunta) {
     if (await estaOnline()) {
-      const res = await protegido(() => fetch(`${BASE}/vigia/perguntar`, {
-        method: 'POST',
-        headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ pergunta }),
-      }));
-      if (res.ok) return (await res.json()).resposta;
+      const r = await lerProtegido('/vigia/perguntar', { metodo: 'POST', corpo: { pergunta } });
+      if (r !== FORA_DO_AR) return r.resposta;
     }
     return 'VigIA em modo local: priorize denúncias de violência e abuso e as paradas há mais tempo.';
   }
 
   async function reanalisar(id) {
     if (await estaOnline()) {
-      const res = await protegido(() =>
-        fetch(`${BASE}/vigia/analisar/${id}`, { method: 'POST', headers: authHeaders() }));
-      if (res.ok) return res.json();
+      const r = await lerProtegido(`/vigia/analisar/${id}`, { metodo: 'POST' });
+      if (r !== FORA_DO_AR) return r;
     }
     return null;
   }
@@ -433,10 +494,8 @@ const Backend = (() => {
   // ── Fluxo de atendimento: fila de prioridade e pilha de ações ──
   async function consultarFila(limite = 10) {
     if (await estaOnline()) {
-      const res = await protegido(() =>
-        fetch(`${BASE}/fluxo/fila?limite=${limite}`, { headers: authHeaders() }));
-      if (res.ok) return res.json();
-      throw new Error(await erroDa(res));
+      const r = await lerProtegido(`/fluxo/fila?limite=${encodeURIComponent(limite)}`);
+      if (r !== FORA_DO_AR) return r;
     }
     return null;
   }
@@ -450,8 +509,8 @@ const Backend = (() => {
 
   async function consultarPilha() {
     if (await estaOnline()) {
-      const res = await protegido(() => fetch(`${BASE}/fluxo/pilha`, { headers: authHeaders() }));
-      if (res.ok) return res.json();
+      const r = await lerProtegido('/fluxo/pilha');
+      if (r !== FORA_DO_AR) return r;
     }
     return null;
   }
@@ -473,8 +532,10 @@ const Backend = (() => {
     if (res.status === 403) {
       const e = new Error('Seu perfil não tem permissão para consultar a trilha de auditoria.');
       e.status = 403;
+      e.acessoNegado = true;
       throw e;
     }
+    if (res.status === 401) throw erroAcesso(401);
     if (res.ok) return res.json();
     throw new Error(await erroDa(res));
   }
@@ -495,19 +556,20 @@ const Backend = (() => {
   // O painel le o barramento de eventos; ele nunca escreve nele. Quem
   // escreve sao os aparelhos, por rota propria e com chave de dispositivo.
 
+  // Fase 7: null continua significando "sem API"; recusa (401/403) e erro do
+  // servidor lançam, para a tela não dizer "sem conexão" quando houve recusa.
   async function listarEventosIot(origem, limite = 50) {
     if (!(await estaOnline())) return null;
     const q = new URLSearchParams({ limite: String(limite) });
     if (origem) q.set('origem', origem);
-    const res = await protegido(() =>
-      fetch(`${BASE}/iot/eventos?${q}`, { headers: authHeaders() }));
-    return res.ok ? res.json() : null;
+    const r = await lerProtegido(`/iot/eventos?${q}`);
+    return r === FORA_DO_AR ? null : r;
   }
 
   async function resumoIot() {
     if (!(await estaOnline())) return null;
-    const res = await protegido(() => fetch(`${BASE}/iot/resumo`, { headers: authHeaders() }));
-    return res.ok ? res.json() : null;
+    const r = await lerProtegido('/iot/resumo');
+    return r === FORA_DO_AR ? null : r;
   }
 
   // .. Focos de reincidencia (Fase 6, Parte 4) ..................
@@ -518,21 +580,23 @@ const Backend = (() => {
 
   async function listarFocos(dias = 90) {
     if (!(await estaOnline())) return null;
-    const res = await protegido(() =>
-      fetch(`${BASE}/reincidencia/focos?dias=${encodeURIComponent(dias)}`,
-            { headers: authHeaders() }));
-    return res.ok ? res.json() : null;
+    const r = await lerProtegido(`/reincidencia/focos?dias=${encodeURIComponent(dias)}`);
+    return r === FORA_DO_AR ? null : r;
   }
 
+  /** Parâmetros de exibição: na falha a tela usa os padrões, sem erro. */
   async function parametrosReincidencia() {
     if (!(await estaOnline())) return null;
-    const res = await protegido(() =>
-      fetch(`${BASE}/reincidencia/parametros`, { headers: authHeaders() }));
-    return res.ok ? res.json() : null;
+    try {
+      const r = await lerProtegido('/reincidencia/parametros');
+      return r === FORA_DO_AR ? null : r;
+    } catch (_) {
+      return null;
+    }
   }
 
   return {
-    BASE, estaOnline, reavaliarConexao,
+    BASE, estaOnline, reavaliarConexao, modoLocal,
     login, logout, perfilAtual, trocarPerfil, podeTrocarPerfil,
     criarDenuncia, listarPagina, detalharDenuncia, buscarProtocolo,
     atualizarDenuncia, excluirDenuncia, mudarStatus, atribuirResponsavel,

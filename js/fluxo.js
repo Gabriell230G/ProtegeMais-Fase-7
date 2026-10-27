@@ -44,6 +44,28 @@ const Fluxo = (() => {
   // textContent/innerHTML, não escapava aspas e deixava atributos vulneráveis.
   function esc(t) { return escHtml(t); }
 
+  // ── Perfil (Fase 7) ─────────────────────────────────────────
+  // Pilha e Desfazer são de coordenação (GESTOR/ADMIN): o servidor responde
+  // 403 ao ATENDENTE e ao AUDITOR. Para eles o painel some, em vez de
+  // oferecer um botão que sempre falha.
+  function podePilha() {
+    return typeof Acesso === 'undefined' || Acesso.pode('pilha');
+  }
+
+  function aplicarPerfil() {
+    const ver = podePilha();
+    const conteudo = document.getElementById('pilha-conteudo');
+    const card = conteudo ? conteudo.closest('.fluxo-card') : null;
+    if (card) {
+      card.style.display = ver ? '' : 'none';
+      // A fila ocupa a largura toda em vez de deixar meia grade vazia.
+      if (card.parentElement) card.parentElement.style.gridTemplateColumns = ver ? '' : '1fr';
+    }
+    const btn = document.getElementById('btn-desfazer');
+    if (btn) btn.hidden = !ver;
+    return ver;
+  }
+
   // ── FILA ────────────────────────────────────────────────────
   async function carregarFila() {
     const alvo = document.getElementById('fila-conteudo');
@@ -54,7 +76,11 @@ const Fluxo = (() => {
     try {
       dados = await Backend.consultarFila(8);
     } catch (e) {
-      alvo.innerHTML = `<div class="fluxo-vazio erro">${esc(T('fluxo.fila.erro', 'Não foi possível consultar a fila.'))} ${esc(e.message)}</div>`;
+      const btnA = document.getElementById('btn-atender');
+      if (btnA) btnA.disabled = true;
+      alvo.innerHTML = e.acessoNegado
+        ? `<div class="fluxo-vazio erro">${e.status === 401 ? '🔑' : '🚫'} ${esc(e.message)}</div>`
+        : `<div class="fluxo-vazio erro">${esc(T('fluxo.fila.erro', 'Não foi possível consultar a fila.'))} ${esc(e.message)}</div>`;
       return;
     }
     if (!dados) {
@@ -119,6 +145,7 @@ const Fluxo = (() => {
   async function carregarPilha() {
     const alvo = document.getElementById('pilha-conteudo');
     if (!alvo) return;
+    if (!aplicarPerfil()) return;   // nem consulta: seria 403
 
     let dados;
     try {
@@ -150,6 +177,10 @@ const Fluxo = (() => {
   }
 
   async function desfazer() {
+    if (!podePilha()) {
+      aviso('🚫 ' + T('fluxo.pilha.so_gestor', 'Desfazer é atribuição do Gestor ou do Administrador.'));
+      return;
+    }
     const btn = document.getElementById('btn-desfazer');
     if (btn) { btn.disabled = true; btn.textContent = T('fluxo.pilha.desfazendo', 'Desfazendo…'); }
     try {
@@ -166,6 +197,7 @@ const Fluxo = (() => {
   }
 
   async function atualizar() {
+    aplicarPerfil();
     await Promise.all([carregarFila(), carregarPilha()]);
   }
 
@@ -176,7 +208,7 @@ const Fluxo = (() => {
     if (painel && painel.style.display !== 'none') atualizar();
   });
 
-  return { atualizar, carregarFila, carregarPilha, atenderProximo, desfazer };
+  return { atualizar, carregarFila, carregarPilha, atenderProximo, desfazer, aplicarPerfil };
 })();
 
 window.Fluxo = Fluxo;

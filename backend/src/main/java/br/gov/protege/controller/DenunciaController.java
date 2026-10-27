@@ -56,7 +56,9 @@ public class DenunciaController {
         @ApiResponse(responseCode = "429", description = "Limite de envios por origem excedido", content = @io.swagger.v3.oas.annotations.media.Content)
     })
     @PostMapping
-    public ResponseEntity<DenunciaPublicaResponse> registrar(@Valid @RequestBody DenunciaRequest req) {
+    public ResponseEntity<DenunciaPublicaResponse> registrar(
+            @Validated({jakarta.validation.groups.Default.class, DenunciaRequest.NoRegistro.class})
+            @RequestBody DenunciaRequest req) {
         Denuncia criada = service.registrar(req);
         URI local = ServletUriComponentsBuilder
                 .fromCurrentRequest()

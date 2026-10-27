@@ -15,6 +15,14 @@ import jakarta.validation.constraints.Size;
 @Schema(description = "Dados para registro de uma nova denuncia")
 public class DenunciaRequest {
 
+    /**
+     * Fase 7 | Grupo de validacao do REGISTRO pelo cidadao. O relato e
+     * obrigatorio so ao registrar: na edicao pela equipe (PUT) ele e
+     * ignorado, porque o relato e do denunciante e nao pode ser reescrito.
+     * Exigi-lo ali impedia editar casos antigos com relato vazio.
+     */
+    public interface NoRegistro { }
+
     @NotBlank(message = "O tipo da denuncia e obrigatorio")
     @Pattern(regexp = "violencia|assedio|abuso|discriminacao|outros",
              message = "Tipo deve ser: violencia, assedio, abuso, discriminacao ou outros")
@@ -22,8 +30,10 @@ public class DenunciaRequest {
             allowableValues = {"violencia", "assedio", "abuso", "discriminacao", "outros"})
     private String tipo;
 
-    @NotBlank(message = "A descricao e obrigatoria")
-    @Size(min = 10, max = 4000, message = "Descreva melhor o ocorrido (entre 10 e 4000 caracteres)")
+    @NotBlank(message = "A descricao e obrigatoria", groups = NoRegistro.class)
+    @Size(min = 10, max = 4000, message = "Descreva melhor o ocorrido (entre 10 e 4000 caracteres)",
+          groups = NoRegistro.class)
+    @Size(max = 4000, message = "O relato tem no maximo 4000 caracteres")
     @Schema(example = "Relato de violencia domestica recorrente no bairro, com ameacas.")
     private String descricao;
 

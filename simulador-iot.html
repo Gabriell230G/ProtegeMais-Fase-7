@@ -608,7 +608,7 @@ async function enviarTotem(){
   });
   if (!r) return;
   if (r.status === 401) return log('401: chave recusada. Copie a chave desta execução em backend/data/iot-chave.txt.', 'err');
-  if (r.status === 422) return log('Recusado: ' + ((r.dados && r.dados.erro) || 'conteudo invalido'), 'err');
+  if (r.status === 422) return log('Recusado: ' + ((r.dados && (r.dados.mensagem || r.dados.erro)) || 'conteudo invalido'), 'err');
   const d = r.dados || {};
   if (d.duplicado)
     log(`Reenvio do mesmo registro. Protocolo ${d.protocolo}, sem caso novo.`, 'dup');

@@ -26,10 +26,18 @@ const Acesso = (() => {
 
   let papelAtual = 'master';
 
+  // Fase 7 | Regras que o SERVIDOR aplica (SecurityConfig + FluxoStatus),
+  // refletidas aqui para a tela nao oferecer o que vai ser recusado:
+  //   retroceder  voltar etapa / reabrir caso concluido (senao 409)
+  //   atribuir    PATCH /denuncias/{id}/responsavel   (senao 403)
+  //   pilha       GET /fluxo/pilha e POST /fluxo/desfazer (senao 403)
+  //   excluir     DELETE de denuncia e de anexo        (senao 403)
+  // Esconder botao nao e controle de acesso: quem decide continua sendo a API.
   const PERMISSOES = {
     master: {
       label: 'Administrador',
       verIdentidade: true,
+      retroceder: true, atribuir: true, pilha: true, excluir: true,
       abas: ['resumo','backlog','status-d','kanban','equipe','mapa','dispositivos','reincidencia','estatistica','auditoria'],
       role: 'ADMIN', email: 'admin@protege.gov.br',
       aviso: '🛡️ Perfil Administrador — acesso pleno, integralmente auditado.',
@@ -37,6 +45,7 @@ const Acesso = (() => {
     gestor: {
       label: 'Gestor',
       verIdentidade: true,
+      retroceder: true, atribuir: true, pilha: true, excluir: true,
       abas: ['resumo','backlog','status-d','kanban','equipe','mapa','dispositivos','reincidencia','estatistica','auditoria'],
       role: 'GESTOR', email: 'gestor@protege.gov.br',
       aviso: '👔 Perfil Gestor — vê identificação, mas a trilha de auditoria é negada pela API.',
@@ -44,6 +53,7 @@ const Acesso = (() => {
     analista: {
       label: 'Atendente',
       verIdentidade: false,
+      retroceder: false, atribuir: false, pilha: false, excluir: false,
       abas: ['resumo','backlog','status-d','kanban','mapa','dispositivos','reincidencia','estatistica','auditoria'],
       role: 'ATENDENTE', email: 'atendente@protege.gov.br',
       aviso: '👁️ Perfil Atendente — identidade e endereço protegidos pelo servidor.',
@@ -51,13 +61,42 @@ const Acesso = (() => {
     auditor: {
       label: 'Auditor',
       verIdentidade: false,
+      retroceder: false, atribuir: false, pilha: false, excluir: false,
       abas: ['resumo','auditoria'],
       role: 'AUDITOR', email: 'auditor@protege.gov.br',
       aviso: '🔎 Perfil Auditor — fiscaliza o uso do sistema, sem ver o relato das denúncias.',
     },
   };
 
+  function T(chave, padrao) {
+    return (typeof I18n !== 'undefined' && I18n.t) ? I18n.t(chave) : padrao;
+  }
+
   function papel() { return papelAtual; }
+
+  /**
+   * Estado vazio para uma recusa da API (401/403/erro). Nunca ha dado local
+   * no lugar: a mensagem diz por que a tela esta vazia.
+   * @param falha {status, message}
+   */
+  function avisoHtml(falha, contexto) {
+    const st = falha && falha.status;
+    let icone = '❌', titulo = (falha && falha.message) || T('acesso.erro', 'Não foi possível carregar os dados do servidor.');
+    let nota = T('acesso.nota_erro', 'Os dados locais deste navegador não são exibidos no lugar dos do servidor.');
+    if (st === 401) {
+      icone = '🔑';
+      titulo = T('acesso.relogin', 'Faça login novamente');
+      nota = T('acesso.nota_401', 'Sua sessão terminou ou não há login ativo. Entre de novo pela Área do Servidor.');
+    } else if (st === 403) {
+      icone = '🚫';
+      titulo = T('acesso.negado', 'Seu perfil não tem acesso a este conteúdo');
+      nota = contexto === 'resumo'
+        ? T('acesso.nota_resumo', 'Para o seu perfil o resumo mostra apenas os indicadores agregados do canal.')
+        : T('acesso.nota_403', 'O servidor recusou esta consulta para o seu perfil.');
+    }
+    return `<div class="est-aviso erro acesso-aviso" data-acesso="${escAttr(st || 0)}" style="margin:0">`
+         + `${icone} <b>${escHtml(titulo)}</b><br><span>${escHtml(nota)}</span></div>`;
+  }
   function pode(acao) { return !!(PERMISSOES[papelAtual] && PERMISSOES[papelAtual][acao]); }
   function podeVerAba(aba) {
     return !!(PERMISSOES[papelAtual] && PERMISSOES[papelAtual].abas.indexOf(aba) >= 0);
@@ -80,6 +119,9 @@ const Acesso = (() => {
       if (Backend.podeTrocarPerfil()) {
         const dados = await Backend.trocarPerfil(cfg.role);
         perfilReal = dados ? dados.role : null;
+        // Token novo, perfil novo: a lista carregada com o token anterior
+        // (ex.: a do ADMIN) nao pode continuar na tela do AUDITOR.
+        if (perfilReal) await recarregarDados();
       } else {
         semPermissao = true;
       }
@@ -129,6 +171,24 @@ const Acesso = (() => {
     if (typeof renderStatusTable === 'function') renderStatusTable();
     if (typeof renderBacklog === 'function') renderBacklog();
     if (typeof Kanban !== 'undefined') Kanban.render();
+    if (typeof Fluxo !== 'undefined' && Fluxo.aplicarPerfil) Fluxo.aplicarPerfil();
+    if (typeof ajustarResumoAoAcesso === 'function') ajustarResumoAoAcesso();
+  }
+
+  /** Perfis que veem o Kanban ou a aba Equipe (os que leem /api/equipe). */
+  function usaEquipe() { return podeVerAba('kanban') || podeVerAba('equipe'); }
+
+  /** Recarrega casos e equipe com o token atual (depois de troca de perfil). */
+  async function recarregarDados() {
+    if (typeof limparPainelAnterior === 'function') limparPainelAnterior();
+    if (typeof Sincronia !== 'undefined' && Sincronia.limpar) {
+      Sincronia.limpar();
+      try { await Sincronia.hidratar(true); } catch (_) { /* a recusa fica registrada */ }
+    }
+    if (typeof Equipe !== 'undefined' && Equipe.sincronizar && usaEquipe()) {
+      try { await Equipe.sincronizar(); } catch (_) { /* cache vazio */ }
+    }
+    if (typeof Sincronia !== 'undefined' && Sincronia.redesenhar) Sincronia.redesenhar();
   }
 
   /**
@@ -163,6 +223,9 @@ const Acesso = (() => {
    */
   function aplicarAutenticado(role, email) {
     papelAtual = POR_ROLE[String(role).toUpperCase()] || 'analista';
+    // Quem entrou agora nao herda a lista de quem estava antes.
+    if (typeof Sincronia !== 'undefined' && Sincronia.limpar) Sincronia.limpar();
+    if (typeof limparPainelAnterior === 'function') limparPainelAnterior();
     const cfg = PERMISSOES[papelAtual];
 
     document.querySelectorAll('.papel-opt').forEach(b => b.classList.remove('active'));
@@ -175,13 +238,19 @@ const Acesso = (() => {
     if (nome && email) nome.textContent = email;
 
     aplicar();
+    // A equipe (nomes dos responsaveis no Kanban) e lida com o token novo.
+    // O AUDITOR nao usa a equipe: pedir seria so uma recusa (403) na trilha.
+    if (typeof Equipe !== 'undefined' && Equipe.sincronizar && usaEquipe()) {
+      Equipe.sincronizar().then(() => { if (typeof Kanban !== 'undefined') Kanban.render(); })
+                          .catch(() => {});
+    }
     return papelAtual;
   }
 
   function init() { aplicar(); }
 
   return { papel, pode, podeVerAba, definir, aplicarAutenticado,
-           aplicar, mascarar, init };
+           aplicar, mascarar, init, avisoHtml };
 })();
 
 window.Acesso = Acesso;

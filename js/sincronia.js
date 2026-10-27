@@ -31,8 +31,24 @@ const Sincronia = (() => {
 
   let daApi = false;      // os dados em tela vieram do banco?
   let ultimaCarga = 0;
+  // Fase 7 | Recusa da API no ar (401/403 ou erro do servidor) ao carregar
+  // os casos. Enquanto houver recusa, as telas mostram estado vazio com o
+  // motivo, e nunca o localStorage ou os exemplos embutidos no lugar.
+  let recusa = null;
 
   function ativa() { return daApi; }
+  function bloqueio() { return recusa; }
+
+  /**
+   * Esquece a carga anterior. Chamado quando muda quem está logado (login,
+   * troca de perfil, saída): os casos que o perfil anterior podia ver não
+   * podem continuar na tela do próximo.
+   */
+  function limpar() {
+    daApi = false;
+    recusa = null;
+    ultimaCarga = 0;
+  }
 
   /** low | medium | high a partir da classificacao textual do servidor. */
   function rotuloDoScore(txt, score) {
@@ -98,10 +114,12 @@ const Sincronia = (() => {
     const MAX_PAGINAS = 50;   // teto de seguranca: 5.000 casos
     const bruto = [];
     try {
-      if (!(await Backend.estaOnline())) { daApi = false; return false; }
+      if (!(await Backend.estaOnline())) { daApi = false; recusa = null; return false; }
       let n = 0;
       while (n < MAX_PAGINAS) {
         const pagina = await Backend.listarPagina({ pagina: n, tamanho: TAMANHO });
+        // A rede caiu no meio da carga: o envelope veio do plano B local.
+        if (pagina && pagina.local) { daApi = false; recusa = null; return false; }
         if (!pagina || !Array.isArray(pagina.conteudo)) break;
         bruto.push(...pagina.conteudo);
         if (!pagina.temProxima) break;
@@ -112,12 +130,21 @@ const Sincronia = (() => {
                    + bruto.length + ' casos.');
       }
     } catch (e) {
-      // Sem token ainda (o gestor nao entrou) ou API caiu no meio: mantem a
-      // tela como esta em vez de esvazia-la.
+      // Fase 7 | API no ar recusou (401/403) ou falhou: as telas mostram o
+      // motivo em estado vazio. Antes, aqui a tela continuava com os dados
+      // locais, e o AUDITOR via casos que o servidor acabara de lhe negar.
       daApi = false;
+      recusa = { status: e.status || 0, message: e.message, acessoNegado: !!e.acessoNegado };
       return false;
     }
-    if (!bruto.length) { daApi = false; return false; }
+    recusa = null;
+    if (!bruto.length) {
+      // Banco no ar e sem casos: a tela mostra zero, e nao os exemplos locais.
+      window.denuncias = [];
+      daApi = true;
+      ultimaCarga = Date.now();
+      return true;
+    }
 
     // Alguns campos existem SO no cliente e nao tem coluna na API: o codigo
     // do elo de mao dupla, as mensagens trocadas com a vitima, o nivel de
@@ -145,7 +172,13 @@ const Sincronia = (() => {
     });
 
     window.denuncias = lista;
-    try { localStorage.setItem('denuncias', JSON.stringify(lista)); } catch (_) {}
+    // Fase 7 | Grava pelo mesmo caminho do restante do site
+    // (persistirDenuncias), que cifra os campos sensiveis antes de guardar.
+    if (typeof persistirDenuncias === 'function') {
+      persistirDenuncias();
+    } else {
+      try { localStorage.setItem('denuncias', JSON.stringify(lista)); } catch (_) {}
+    }
 
     daApi = true;
     ultimaCarga = Date.now();
@@ -158,6 +191,15 @@ const Sincronia = (() => {
     if (typeof renderBacklog === 'function') renderBacklog();
     if (typeof updateKPIs === 'function') updateKPIs();
     if (typeof Kanban !== 'undefined' && Kanban.render) Kanban.render();
+    // O resumo (graficos e VigIA) tambem le os casos: com a carga feita
+    // depois do primeiro desenho, ele ficaria com a lista anterior.
+    if (typeof ajustarResumoAoAcesso === 'function') ajustarResumoAoAcesso();
+    const resumo = document.getElementById('tab-resumo');
+    if (resumo && resumo.style.display !== 'none'
+        && document.getElementById('page-dashboard')?.classList.contains('active')) {
+      if (typeof initCharts === 'function') initCharts();
+      if (typeof VigIA !== 'undefined' && VigIA.analisar) VigIA.analisar();
+    }
   }
 
   async function recarregar() {
@@ -187,7 +229,9 @@ const Sincronia = (() => {
       await recarregar();
       return true;
     } catch (e) {
-      if (typeof showToast === 'function') showToast('❌ ' + e.message);
+      // 409 (retorno de etapa sem perfil) e 403 trazem a mensagem do servidor.
+      const recusado = e.status === 409 || e.status === 403;
+      if (typeof showToast === 'function') showToast((recusado ? '🚫 ' : '❌ ') + e.message);
       return false;
     }
   }
@@ -206,7 +250,19 @@ const Sincronia = (() => {
     }
   }
 
-  return { ativa, hidratar, recarregar, redesenhar, mudarStatus, atribuirResponsavel, idApi, paraTela };
+  // Sessao vencida no meio do uso: a tela pede novo login em vez de mostrar
+  // a ultima lista carregada ou os dados locais.
+  if (typeof document !== 'undefined') {
+    document.addEventListener('protege:sessao-expirada', () => {
+      daApi = false;
+      if (typeof limparPainelAnterior === 'function') limparPainelAnterior();
+      recusa = { status: 401, acessoNegado: true,
+                 message: (typeof I18n !== 'undefined' && I18n.t) ? I18n.t('acesso.relogin') : 'Faça login novamente' };
+      redesenhar();
+    });
+  }
+
+  return { ativa, bloqueio, limpar, hidratar, recarregar, redesenhar, mudarStatus, atribuirResponsavel, idApi, paraTela };
 })();
 
 window.Sincronia = Sincronia;
