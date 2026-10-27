@@ -32,6 +32,18 @@ import java.util.concurrent.ConcurrentHashMap;
  * A janela deslizante e mantida em memoria por IP. Numa implantacao real
  * isso viveria num cache distribuido (Redis) para valer entre instancias;
  * aqui a versao em memoria cumpre o papel e mantem a dependencia zero.
+ *
+ * Fase 7 | Tres correcoes:
+ *  1. A origem passou a ser o endereco REAL da conexao (getRemoteAddr). A
+ *     versao anterior confiava no cabecalho X-Forwarded-For, que o proprio
+ *     cliente escreve: bastava trocar o valor a cada pedido para nunca ser
+ *     barrado. O cabecalho so e lido se protege.proxy-confiavel=true, ou
+ *     seja, quando existe de fato um proxy reverso nosso na frente.
+ *  2. Rotas que estavam sem limite ganharam um: a consulta publica por
+ *     protocolo (que era o caminho para adivinhar protocolos por tentativa)
+ *     e a entrada dos dispositivos IoT.
+ *  3. O mapa de contagem e limpo periodicamente. Antes ele so crescia: cada
+ *     IP novo ficava na memoria para sempre.
  */
 public class RateLimitFilter extends OncePerRequestFilter {
 
@@ -52,8 +64,31 @@ public class RateLimitFilter extends OncePerRequestFilter {
     // nenhuma, basta repetir.
     private static final int LIMITE_UPLOAD   = 10;   // por minuto, por IP
 
+    // Fase 7 | Consulta publica por protocolo. Folgada para uso humano (quem
+    // acompanha o proprio caso consulta poucas vezes), apertada para robo:
+    // 30 tentativas por minuto inviabilizam varrer o espaco de protocolos.
+    static final int LIMITE_CONSULTA = 30;   // por minuto, por IP
+
+    // Fase 7 | Dispositivos de campo. Mais alto porque varios aparelhos podem
+    // sair pela mesma rede de operadora; o teto existe para conter inundacao.
+    static final int LIMITE_IOT      = 120;  // por minuto, por IP
+
+    // Limpeza do mapa a cada N requisicoes avaliadas.
+    private static final int LIMPAR_A_CADA = 500;
+
     private final Map<String, Deque<Long>> historico = new ConcurrentHashMap<>();
     private final ObjectMapper mapper = new ObjectMapper();
+    private final boolean confiarEmProxy;
+    private final java.util.concurrent.atomic.AtomicInteger contador =
+            new java.util.concurrent.atomic.AtomicInteger();
+
+    public RateLimitFilter() {
+        this(false);
+    }
+
+    public RateLimitFilter(boolean confiarEmProxy) {
+        this.confiarEmProxy = confiarEmProxy;
+    }
 
     @Override
     protected void doFilterInternal(@NonNull HttpServletRequest req,
@@ -70,24 +105,54 @@ public class RateLimitFilter extends OncePerRequestFilter {
     }
 
     private int limiteDaRota(HttpServletRequest req) {
-        if (!"POST".equalsIgnoreCase(req.getMethod())) return 0;
-        String uri = req.getRequestURI();
+        return limiteDaRota(req.getMethod(), req.getRequestURI());
+    }
+
+    /** Regra pura de qual limite vale para cada rota (testavel sem servidor). */
+    static int limiteDaRota(String metodo, String uri) {
+        if (uri == null) return 0;
+        if ("GET".equalsIgnoreCase(metodo) && uri.startsWith("/api/denuncias/protocolo/")) {
+            return LIMITE_CONSULTA;
+        }
+        if (!"POST".equalsIgnoreCase(metodo)) return 0;
         if ("/api/denuncias".equals(uri)) return LIMITE_DENUNCIA;
         if ("/api/auth/login".equals(uri)) return LIMITE_LOGIN;
         if (uri.startsWith("/api/denuncias/protocolo/") && uri.endsWith("/evidencias")) {
             return LIMITE_UPLOAD;
         }
+        if (uri.startsWith("/api/iot/")) return LIMITE_IOT;
         return 0;
     }
 
     private String chaveDe(HttpServletRequest req) {
-        String fwd = req.getHeader("X-Forwarded-For");
-        String ip = (fwd != null && !fwd.isBlank()) ? fwd.split(",")[0].trim() : req.getRemoteAddr();
-        return req.getRequestURI() + "@" + ip;
+        // A consulta por protocolo conta por origem, e nao por protocolo:
+        // quem tenta adivinhar troca de protocolo a cada pedido.
+        String uri = req.getRequestURI();
+        String grupo = uri.startsWith("/api/denuncias/protocolo/") && "GET".equalsIgnoreCase(req.getMethod())
+                ? "consulta-protocolo"
+                : uri.startsWith("/api/iot/") ? "iot" : uri;
+        return grupo + "@" + origem(req, confiarEmProxy);
     }
 
-    private boolean excedeu(String chave, int limite) {
-        long agora = System.currentTimeMillis();
+    /**
+     * Endereco de quem fez a requisicao. Por padrao, o da conexao TCP, que o
+     * cliente nao consegue falsificar. O X-Forwarded-For so vale quando ha um
+     * proxy reverso confiavel na frente (protege.proxy-confiavel=true).
+     */
+    public static String origem(HttpServletRequest req, boolean confiarEmProxy) {
+        if (confiarEmProxy) {
+            String fwd = req.getHeader("X-Forwarded-For");
+            if (fwd != null && !fwd.isBlank()) return fwd.split(",")[0].trim();
+        }
+        return req.getRemoteAddr();
+    }
+
+    boolean excedeu(String chave, int limite) {
+        return excedeu(chave, limite, System.currentTimeMillis());
+    }
+
+    boolean excedeu(String chave, int limite, long agora) {
+        if (contador.incrementAndGet() % LIMPAR_A_CADA == 0) limpar(agora);
         Deque<Long> janela = historico.computeIfAbsent(chave, k -> new ArrayDeque<>());
         synchronized (janela) {
             while (!janela.isEmpty() && agora - janela.peekFirst() > JANELA_MS) {
@@ -97,6 +162,20 @@ public class RateLimitFilter extends OncePerRequestFilter {
             janela.addLast(agora);
             return false;
         }
+    }
+
+    /** Remove do mapa as origens sem requisicao dentro da janela. */
+    void limpar(long agora) {
+        historico.entrySet().removeIf(e -> {
+            Deque<Long> j = e.getValue();
+            synchronized (j) {
+                return j.isEmpty() || agora - j.peekLast() > JANELA_MS;
+            }
+        });
+    }
+
+    int origensEmMemoria() {
+        return historico.size();
     }
 
     private void responder429(HttpServletResponse res) throws IOException {

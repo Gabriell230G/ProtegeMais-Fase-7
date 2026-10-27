@@ -14,6 +14,7 @@ import org.springframework.boot.autoconfigure.security.servlet.UserDetailsServic
  * feita exclusivamente por JWT contra a tabela de usuarios - uma conta
  * paralela em memoria seria uma porta de entrada nao auditada.
  */
+@org.springframework.scheduling.annotation.EnableScheduling
 @SpringBootApplication(exclude = UserDetailsServiceAutoConfiguration.class)
 public class ProtegeApplication {
 

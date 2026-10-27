@@ -94,12 +94,19 @@ const SafeMode = (() => {
     active ? deactivate() : activate();
   }
 
-  /** Navega para a página de resultados fake interna */
+  /**
+   * Navega para a página de resultados fake interna.
+   *
+   * Fase 7: usa location.replace em vez de location.href. Com href, a página
+   * do Protege+ ficava no histórico e o botão "voltar" do navegador trazia
+   * o canal de denúncia de volta à tela, exatamente a falha mais comum que a
+   * pesquisa de Turk e Hutchings (CHI 2023) encontrou em botões de saída. A
+   * busca vai em sessionStorage, que some ao fechar a aba.
+   */
   function _goToResults(query) {
     const encoded = encodeURIComponent(query);
-    // Usa localStorage para passar o query sem depender de URL hash em ambiente local
-    localStorage.setItem('safeSearchQuery', query);
-    window.location.href = `search.html?q=${encoded}`;
+    try { sessionStorage.setItem('safeSearchQuery', query); } catch (_) {}
+    window.location.replace(`search.html?q=${encoded}`);
   }
 
   function _buildSuggestions(list) {

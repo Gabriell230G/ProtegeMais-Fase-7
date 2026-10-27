@@ -292,7 +292,7 @@
 <script>
   function getQuery() {
     const params = new URLSearchParams(window.location.search);
-    return params.get('q') || localStorage.getItem('safeSearchQuery') || 'pesquisa';
+    return params.get('q') || sessionStorage.getItem('safeSearchQuery') || 'pesquisa';
   }
 
   const query = getQuery();
@@ -303,7 +303,7 @@
 
   // Redireciona para o Google após breve delay
   setTimeout(() => {
-    window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(query);
+    window.location.replace('https://www.google.com/search?q=' + encodeURIComponent(query));
   }, 900);
 
   // ── Sites e templates fake ───────────────────────────────────
@@ -406,8 +406,8 @@
   }
 
   function goSearch(q) {
-    localStorage.setItem('safeSearchQuery', q);
-    window.location.href = 'https://www.google.com/search?q=' + encodeURIComponent(q);
+    try { sessionStorage.setItem('safeSearchQuery', q); } catch (_) {}
+    window.location.replace('https://www.google.com/search?q=' + encodeURIComponent(q));
   }
 
   function voltarSistema() {

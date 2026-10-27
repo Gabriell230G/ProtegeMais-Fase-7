@@ -91,7 +91,7 @@ public class EventoIotService {
                             PontoTotemRepository totens,
                             DenunciaService denuncias,
                             AuditoriaService auditoria,
-                            @Value("${protege.iot.chave:protege-iot-2026}") String chaveEsperada) {
+                            @Value("${protege.iot.chave}") String chaveEsperada) {
         this.repo = repo;
         this.zonas = zonas;
         this.totens = totens;

@@ -2,9 +2,14 @@
  * acesso.js — Controle de acesso por perfil (US24).
  *
  * O seletor de perfil deixou de ser uma simulação de interface: trocar de
- * perfil aqui faz um LOGIN REAL na API com credenciais diferentes, e o token
- * emitido carrega a role correspondente. A partir daí, quem decide o que cada
- * um pode fazer é o servidor — o front apenas reflete a decisão.
+ * perfil aqui pede ao SERVIDOR um token do outro perfil, e o token emitido
+ * carrega a role correspondente. A partir daí, quem decide o que cada um
+ * pode fazer é o servidor — o front apenas reflete a decisão.
+ *
+ * Fase 7: este arquivo não guarda mais nenhuma senha. Na Fase 6 ele trazia
+ * a senha dos quatro perfis em texto, num arquivo público. Agora a troca só
+ * funciona para quem entrou como ADMIN na tela de login, só com o servidor
+ * em modo demonstração, e cada troca fica registrada na trilha de auditoria.
  *
  * Isso importa porque esconder um botão não é controle de acesso. Se a
  * restrição vivesse só aqui, bastaria abrir o console do navegador para
@@ -26,28 +31,28 @@ const Acesso = (() => {
       label: 'Administrador',
       verIdentidade: true,
       abas: ['resumo','backlog','status-d','kanban','equipe','mapa','dispositivos','reincidencia','estatistica','auditoria'],
-      credenciais: { email: 'admin@protege.gov.br', senha: 'admin123' },
+      role: 'ADMIN', email: 'admin@protege.gov.br',
       aviso: '🛡️ Perfil Administrador — acesso pleno, integralmente auditado.',
     },
     gestor: {
       label: 'Gestor',
       verIdentidade: true,
       abas: ['resumo','backlog','status-d','kanban','equipe','mapa','dispositivos','reincidencia','estatistica','auditoria'],
-      credenciais: { email: 'gestor@protege.gov.br', senha: 'gestor123' },
+      role: 'GESTOR', email: 'gestor@protege.gov.br',
       aviso: '👔 Perfil Gestor — vê identificação, mas a trilha de auditoria é negada pela API.',
     },
     analista: {
       label: 'Atendente',
       verIdentidade: false,
       abas: ['resumo','backlog','status-d','kanban','mapa','dispositivos','reincidencia','estatistica','auditoria'],
-      credenciais: { email: 'atendente@protege.gov.br', senha: 'atendente123' },
+      role: 'ATENDENTE', email: 'atendente@protege.gov.br',
       aviso: '👁️ Perfil Atendente — identidade e endereço protegidos pelo servidor.',
     },
     auditor: {
       label: 'Auditor',
       verIdentidade: false,
       abas: ['resumo','auditoria'],
-      credenciais: { email: 'auditor@protege.gov.br', senha: 'auditor123' },
+      role: 'AUDITOR', email: 'auditor@protege.gov.br',
       aviso: '🔎 Perfil Auditor — fiscaliza o uso do sistema, sem ver o relato das denúncias.',
     },
   };
@@ -67,12 +72,17 @@ const Acesso = (() => {
     document.querySelectorAll('.papel-opt').forEach(b => b.classList.remove('active'));
     if (btn) btn.classList.add('active');
 
-    // Login real na API. O perfil efetivo passa a ser o que o token declara.
+    // Troca pedida ao servidor. O perfil efetivo passa a ser o que o token
+    // declara. Sem login de ADMIN, a troca vale só para a tela (modo local).
     let perfilReal = null;
+    let semPermissao = false;
     if (typeof Backend !== 'undefined' && await Backend.estaOnline()) {
-      Backend.logout();
-      const dados = await Backend.login(cfg.credenciais.email, cfg.credenciais.senha);
-      perfilReal = dados ? dados.role : null;
+      if (Backend.podeTrocarPerfil()) {
+        const dados = await Backend.trocarPerfil(cfg.role);
+        perfilReal = dados ? dados.role : null;
+      } else {
+        semPermissao = true;
+      }
     }
 
     const lbl = document.getElementById('user-role-label');
@@ -81,12 +91,15 @@ const Acesso = (() => {
                                    : (cfg.label + ' • modo local');
     }
     const nome = document.querySelector('.user-name');
-    if (nome) nome.textContent = cfg.credenciais.email;
+    if (nome) nome.textContent = cfg.email;
 
     aplicar();
 
     if (typeof showToast === 'function') {
-      showToast(cfg.aviso + (perfilReal ? '' : ' (API fora do ar: restrição apenas local)'));
+      const sufixo = perfilReal ? ''
+        : semPermissao ? ' (entre como Administrador para trocar o perfil no servidor; por ora, restrição apenas local)'
+        : ' (API fora do ar: restrição apenas local)';
+      showToast(cfg.aviso + sufixo);
     }
   }
 

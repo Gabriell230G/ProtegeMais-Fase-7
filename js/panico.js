@@ -8,6 +8,14 @@
  * Atalhos:
  *   • Clique no botão "Sair agora"
  *   • Tecla ESC pressionada 2x rapidamente
+ *   • Tecla SHIFT pressionada 3x em até 5 segundos (Fase 7, padrão do
+ *     componente "Exit this page" do GOV.UK, testado com vítimas de
+ *     violência doméstica)
+ *
+ * Fase 7: antes de sair, apaga o que o site guardou neste navegador
+ * (localStorage e sessionStorage) e descarta o login. Sair rápido não
+ * adianta se o rascunho da denúncia continua no aparelho para quem
+ * pegar o celular depois.
  *
  * Diferença para o Modo Seguro: o Modo Seguro DISFARÇA a tela (vira um
  * buscador). O Pânico SAI de vez, levando para fora do site.
@@ -20,6 +28,8 @@ const Panico = (() => {
 
   let escTimer = null;
   let escCount = 0;
+  let shiftTimer = null;
+  let shiftCount = 0;
 
   function init() {
     // injeta a faixa se ainda não existir
@@ -33,6 +43,18 @@ const Panico = (() => {
       clearTimeout(escTimer);
       escTimer = setTimeout(() => { escCount = 0; }, 600);
     });
+
+    // Atalho do GOV.UK: SHIFT 3x em até 5 s. Fica ao lado do ESC porque o
+    // ESC sozinho também fecha o Modo Seguro e outros diálogos.
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Shift' || e.repeat) return;
+      shiftCount++;
+      if (shiftCount === 1) {
+        clearTimeout(shiftTimer);
+        shiftTimer = setTimeout(() => { shiftCount = 0; }, 5000);
+      }
+      if (shiftCount >= 3) { shiftCount = 0; sair(); }
+    });
   }
 
   function _injetarBarra() {
@@ -43,7 +65,7 @@ const Panico = (() => {
       <button class="panico-btn" onclick="Panico.sair()">
         <span>✕ Sair agora</span>
       </button>
-      <span class="panico-dica">ou aperte ESC duas vezes</span>
+      <span class="panico-dica">ou aperte ESC 2x ou SHIFT 3x</span>
     `;
     document.body.appendChild(bar);
     document.body.classList.add('panico-ativo');   // landing começa visível
@@ -63,7 +85,17 @@ const Panico = (() => {
     document.body.classList.remove('panico-ativo');
   }
 
+  /** Apaga o rastro local: rascunhos, lista offline, preferências e login. */
+  function limparRastro() {
+    try { if (typeof Backend !== 'undefined') Backend.logout(); } catch (_) {}
+    try { localStorage.clear(); } catch (_) {}
+    try { sessionStorage.clear(); } catch (_) {}
+  }
+
   function sair() {
+    // 0) Fase 7: limpa o que o site guardou neste aparelho
+    limparRastro();
+
     // 1) Tenta substituir todo o conteúdo imediatamente (resposta visual instantânea)
     try {
       document.documentElement.innerHTML =
@@ -84,7 +116,7 @@ const Panico = (() => {
     }
   }
 
-  return { init, sair, mostrar, esconder };
+  return { init, sair, mostrar, esconder, limparRastro };
 })();
 
 document.addEventListener('DOMContentLoaded', () => {

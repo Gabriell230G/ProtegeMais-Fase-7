@@ -301,7 +301,7 @@
     </div>
     <div class="form-group" style="max-width:240px">
       <label for="chave">Chave do dispositivo (X-Device-Key)</label>
-      <input id="chave" value="protege-iot-2026">
+      <input id="chave" value="" placeholder="cole de backend/data/iot-chave.txt" autocomplete="off">
     </div>
     <div class="form-group fixo">
       <button class="btn btn-secondary" onclick="comRetorno(testar)"><i class="fa-solid fa-plug"></i> Testar conexão</button>
@@ -469,7 +469,19 @@
 
 const $ = id => document.getElementById(id);
 const api   = () => $('api').value.replace(/\/+$/,'');
-const chave = () => $('chave').value;
+const chave = () => $('chave').value.trim();
+// Fase 7: a chave deixou de vir preenchida. Na Fase 6 ela estava escrita
+// neste arquivo público, e quem a lesse podia mandar eventos falsos de
+// pânico. Agora o servidor sorteia uma chave por execução (modo
+// demonstração) e a grava em backend/data/iot-chave.txt. Ela é lembrada só
+// nesta aba, nunca no disco do navegador.
+try {
+  const lembrada = sessionStorage.getItem('protege_iot_chave');
+  if (lembrada) $('chave').value = lembrada;
+  $('chave').addEventListener('change', () => {
+    try { sessionStorage.setItem('protege_iot_chave', chave()); } catch (_) {}
+  });
+} catch (_) {}
 
 function log(msg, cls='info'){
   const l = document.createElement('div');
@@ -519,7 +531,7 @@ async function acionarSos(){
     bateria: parseInt($('sos-bat').value, 10),
   });
   if (!r) return;
-  if (r.status === 401) return log('401: chave de dispositivo recusada.', 'err');
+  if (r.status === 401) return log('401: chave recusada. Copie a chave desta execução em backend/data/iot-chave.txt.', 'err');
   const d = r.dados || {};
   if (d.situacao === 'DUPLICADO')
     log(`Repique reconhecido. Vinculado ao caso ${d.protocoloGerado}. Nenhum caso novo foi aberto.`, 'dup');
@@ -578,7 +590,7 @@ async function enviarTelemetria(){
     bateria: 64,
   });
   if (!r) return;
-  if (r.status === 401) return log('401: chave de dispositivo recusada.', 'err');
+  if (r.status === 401) return log('401: chave recusada. Copie a chave desta execução em backend/data/iot-chave.txt.', 'err');
   const d = r.dados || {};
   if (d.alertaAberto)
     log(`Violacao de perimetro. Caso ${d.protocoloGerado} aberto. Repare que a resposta nao traz distancia nem raio.`, 'ok');
@@ -593,7 +605,7 @@ async function enviarTotem(){
     relato: $('tt-txt').value,
   });
   if (!r) return;
-  if (r.status === 401) return log('401: chave de dispositivo recusada.', 'err');
+  if (r.status === 401) return log('401: chave recusada. Copie a chave desta execução em backend/data/iot-chave.txt.', 'err');
   if (r.status === 422) return log('Recusado: ' + ((r.dados && r.dados.erro) || 'conteudo invalido'), 'err');
   const d = r.dados || {};
   if (d.duplicado)

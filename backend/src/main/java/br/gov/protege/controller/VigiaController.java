@@ -31,8 +31,11 @@ public class VigiaController {
 
     private final VigiaService vigia;
     private final DenunciaRepository repo;
+    private final boolean demo;
 
-    public VigiaController(VigiaService vigia, DenunciaRepository repo) {
+    public VigiaController(VigiaService vigia, DenunciaRepository repo,
+                           @org.springframework.beans.factory.annotation.Value("${protege.demo:true}") boolean demo) {
+        this.demo = demo;
         this.vigia = vigia;
         this.repo = repo;
     }
@@ -42,8 +45,13 @@ public class VigiaController {
     @ApiResponse(responseCode = "200", description = "Modo atual: Gemini ou Regras")
     @GetMapping("/status")
     public Map<String, Object> status() {
+        // Fase 7: informa tambem se o servidor esta em modo demonstracao (a
+        // tela de login so mostra as contas de teste nesse caso) e se o
+        // relato pode sair para a IA externa (por padrao, nao).
         return Map.of("iaAtiva", vigia.iaAtiva(),
-                      "modo", vigia.iaAtiva() ? "Gemini" : "Regras");
+                      "modo", vigia.iaAtiva() ? "Gemini" : "Regras",
+                      "demo", demo,
+                      "relatoSaiParaIa", vigia.iaAtiva() && vigia.enviaRelato());
     }
 
     @Operation(summary = "Reanalisa uma denuncia sob demanda",

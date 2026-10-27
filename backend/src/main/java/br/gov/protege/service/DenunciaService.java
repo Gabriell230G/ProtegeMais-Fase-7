@@ -16,7 +16,6 @@ import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
-import java.util.concurrent.ThreadLocalRandom;
 
 @Service
 public class DenunciaService {
@@ -70,7 +69,8 @@ public class DenunciaService {
     }
 
     public Denuncia buscarPorProtocolo(String protocolo) {
-        String p = protocolo.startsWith("#") ? protocolo : "#" + protocolo;
+        String limpo = protocolo.trim().toUpperCase();
+        String p = limpo.startsWith("#") ? limpo : "#" + limpo;
         return repo.findByProtocoloAndExcluidaFalse(p)
                 .orElseThrow(() -> new RecursoNaoEncontradoException("Denuncia", p));
     }
@@ -215,12 +215,37 @@ public class DenunciaService {
         return (valor == null || valor.isBlank()) ? null : valor.trim();
     }
 
-    /** Protocolo publico no formato #ANO-NNNNN. */
+    /**
+     * Protocolo publico, no formato #ANO-XXXX-XXXX-XXXX (Fase 7).
+     *
+     * Ate a Fase 6 o protocolo era #ANO-NNNNN: no maximo 99.999 valores por
+     * ano, sorteados com um gerador previsivel. Como o protocolo e a unica
+     * "senha" de quem denunciou anonimamente (consulta o caso e envia
+     * evidencias com ele), adivinha-lo por tentativa era viavel.
+     *
+     * Agora sao 12 simbolos sorteados com SecureRandom num alfabeto de 31
+     * caracteres sem os que se confundem (0/O, 1/I/L): cerca de 59 bits,
+     * mais de 7 x 10^17 combinacoes. Com o limite de 30 consultas por minuto
+     * por origem, varrer 1% do espaco levaria milhares de anos. Cabe nos
+     * mesmos 20 caracteres da coluna, sem migracao de banco. Os protocolos
+     * antigos da carga de demonstracao continuam validos.
+     */
+    static final String ALFABETO_PROTOCOLO = "23456789ABCDEFGHJKMNPQRSTUVWXYZ";
+    private static final java.security.SecureRandom SORTEIO = new java.security.SecureRandom();
+
+    static String novoProtocolo(int ano) {
+        StringBuilder sb = new StringBuilder("#").append(ano);
+        for (int i = 0; i < 12; i++) {
+            if (i % 4 == 0) sb.append('-');
+            sb.append(ALFABETO_PROTOCOLO.charAt(SORTEIO.nextInt(ALFABETO_PROTOCOLO.length())));
+        }
+        return sb.toString();
+    }
+
     private String gerarProtocolo() {
         String proto;
         do {
-            int n = ThreadLocalRandom.current().nextInt(1, 99999);
-            proto = String.format("#%d-%05d", Year.now().getValue(), n);
+            proto = novoProtocolo(Year.now().getValue());
         } while (repo.existsByProtocolo(proto));
         return proto;
     }

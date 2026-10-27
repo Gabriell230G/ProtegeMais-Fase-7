@@ -182,11 +182,12 @@ public class AuditoriaService {
     }
 
     /** Respeita o cabecalho de proxy quando presente, sem confiar cegamente nele. */
+    /**
+     * Fase 7 | A trilha grava o endereco real da conexao. O X-Forwarded-For
+     * e escrito pelo proprio cliente: gravar o valor dele deixaria quem age
+     * de ma-fe escolher o IP que aparece na prova contra ele.
+     */
     private String ipDe(HttpServletRequest req) {
-        String encaminhado = req.getHeader("X-Forwarded-For");
-        if (encaminhado != null && !encaminhado.isBlank()) {
-            return truncar(encaminhado.split(",")[0].trim(), 45);
-        }
         return truncar(req.getRemoteAddr(), 45);
     }
 

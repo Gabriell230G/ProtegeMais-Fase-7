@@ -21,6 +21,9 @@ public interface AuditoriaLogRepository extends JpaRepository<AuditoriaLog, Long
 
     List<AuditoriaLog> findAllByOrderByIdAsc();
 
+    /** Fase 7: registros de uma acao (ex.: BACKUP), para conferir hashes. */
+    List<AuditoriaLog> findByAcaoOrderByIdAsc(String acao);
+
     @Query("""
            SELECT a FROM AuditoriaLog a
            WHERE (:usuario IS NULL OR LOWER(a.usuario) LIKE LOWER(CONCAT('%', :usuario, '%')))

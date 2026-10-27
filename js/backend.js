@@ -3,8 +3,14 @@
  *
  * - Se o backend estiver no ar, usa a API real (PostgreSQL/Supabase ou H2).
  * - Se estiver fora, cai automaticamente para o localStorage (plano B da demo).
- * - Rotas do painel exigem login (JWT), obtido via Backend.login() ou por
- *   auto-login com o gestor padrão durante a demonstração.
+ * - Rotas do painel exigem login (JWT), obtido SOMENTE via Backend.login().
+ *
+ * Fase 7: o auto-login com a conta de administrador foi removido. Na Fase 6
+ *   este arquivo guardava a senha do ADMIN e entrava com ela sempre que uma
+ *   rota protegida era chamada sem token. Como o arquivo é público, qualquer
+ *   visitante operava o painel como administrador sem perceber, anulando a
+ *   separação de perfis. Agora, sem login, a rota protegida simplesmente
+ *   recebe 401 e a tela continua no modo local.
  *
  * Contrato da API a partir da Fase 5:
  *   • POST   /api/denuncias                    → 201 + Location, corpo público
@@ -21,12 +27,13 @@ const Backend = (() => {
     ? String(window.PROTEGE_API_URL).replace(/\/+$/, '')
     : 'http://localhost:8080/api';
 
-  // Credenciais do gestor padrão (apenas para facilitar a demonstração).
-  const DEMO_ADMIN = { email: 'admin@protege.gov.br', senha: 'admin123' };
-
   let online = null;
   let token = null;
   let perfil = null;
+  // Token de quem entrou como ADMIN. Guardado só em memória (some ao fechar
+  // a aba) e usado apenas para pedir ao servidor a troca de perfil da
+  // demonstração. Nenhuma senha fica neste arquivo.
+  let tokenAdmin = null;
 
   // ── Saúde do backend ─────────────────────────────────────────
   async function estaOnline() {
@@ -37,6 +44,15 @@ const Backend = (() => {
       const res = await fetch(`${BASE}/vigia/status`, { signal: ctrl.signal });
       clearTimeout(t);
       online = res.ok;
+      // Fase 7: as contas de teste só aparecem na tela de login quando o
+      // próprio servidor declara que está em modo demonstração.
+      if (online && typeof document !== 'undefined') {
+        try {
+          const st = await res.json();
+          const caixa = document.getElementById('login-demo-contas');
+          if (caixa) caixa.hidden = !st.demo;
+        } catch (_) { /* status sem corpo: mantém escondido */ }
+      }
     } catch (_) {
       online = false;
     }
@@ -61,30 +77,54 @@ const Backend = (() => {
     const data = await res.json();
     token = data.token;
     perfil = data.role;
+    tokenAdmin = data.role === 'ADMIN' ? data.token : null;
     return data;
   }
 
-  function logout() { token = null; perfil = null; }
+  function logout() { token = null; perfil = null; tokenAdmin = null; }
   function perfilAtual() { return perfil; }
+  function podeTrocarPerfil() { return !!tokenAdmin; }
 
+  /**
+   * Troca de perfil da demonstração (Fase 7). Só funciona para quem entrou
+   * como ADMIN e só com o servidor em modo demonstração. O servidor emite o
+   * token do outro perfil e registra a troca na trilha de auditoria.
+   */
+  async function trocarPerfil(role) {
+    if (!tokenAdmin) return null;
+    const res = await fetch(`${BASE}/auth/demo/perfil`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', Authorization: `Bearer ${tokenAdmin}` },
+      body: JSON.stringify({ perfil: role }),
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    token = data.token;
+    perfil = data.role;
+    return data;
+  }
+
+  /** Sem auto-login: devolve o token de quem entrou, ou null. */
   async function garantirLogin() {
-    if (token) return token;
-    const data = await login(DEMO_ADMIN.email, DEMO_ADMIN.senha);
-    return data ? data.token : null;
+    return token;
   }
 
   function authHeaders(extra = {}) {
     return token ? { ...extra, Authorization: `Bearer ${token}` } : extra;
   }
 
-  /** Chama uma rota protegida, fazendo auto-login e 1 retry em caso de 401. */
+  /**
+   * Chama uma rota protegida com o token de quem entrou. Sem token, a API
+   * responde 401 e quem chamou mantém os dados locais. Um 401 com token
+   * significa crachá vencido: descarta e exige novo login.
+   */
   async function protegido(fn) {
-    await garantirLogin();
-    let res = await fn();
-    if (res.status === 401) {
-      token = null;
-      await garantirLogin();
-      res = await fn();
+    const res = await fn();
+    if (res.status === 401 && token) {
+      token = null; perfil = null; tokenAdmin = null;
+      if (typeof document !== 'undefined') {
+        document.dispatchEvent(new CustomEvent('protege:sessao-expirada'));
+      }
     }
     return res;
   }
@@ -493,7 +533,7 @@ const Backend = (() => {
 
   return {
     BASE, estaOnline, reavaliarConexao,
-    login, logout, perfilAtual,
+    login, logout, perfilAtual, trocarPerfil, podeTrocarPerfil,
     criarDenuncia, listarPagina, detalharDenuncia, buscarProtocolo,
     atualizarDenuncia, excluirDenuncia, mudarStatus, atribuirResponsavel,
     listarEquipe, salvarMembro, removerMembro,

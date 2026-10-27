@@ -34,10 +34,16 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final RespostasDeSeguranca respostas;
+    private final boolean consoleH2;
+    private final boolean confiarEmProxy;
 
-    public SecurityConfig(JwtService jwtService, RespostasDeSeguranca respostas) {
+    public SecurityConfig(JwtService jwtService, RespostasDeSeguranca respostas,
+                          @Value("${spring.h2.console.enabled:false}") boolean consoleH2,
+                          @Value("${protege.proxy-confiavel:false}") boolean confiarEmProxy) {
         this.jwtService = jwtService;
         this.respostas = respostas;
+        this.consoleH2 = consoleH2;
+        this.confiarEmProxy = confiarEmProxy;
     }
 
     @Bean
@@ -57,6 +63,13 @@ public class SecurityConfig {
                 // que e a razao de existir do canal.
                 .requestMatchers(HttpMethod.POST, "/api/denuncias").permitAll()
                 .requestMatchers(HttpMethod.GET, "/api/denuncias/protocolo/**").permitAll()
+
+                // Fase 7 | Troca de perfil da demonstracao. Antes, o navegador
+                // guardava a senha de cada perfil no JavaScript publico. Agora
+                // so quem ja entrou como ADMIN pede ao servidor um token de
+                // outro perfil, e so em modo demonstracao. Precisa vir ANTES
+                // da liberacao geral de /api/auth/**.
+                .requestMatchers("/api/auth/demo/**").hasRole(PerfilUsuario.ADMIN.name())
                 .requestMatchers("/api/auth/**", "/api/vigia/status").permitAll()
 
                 // Anexar evidencia e publico pelo protocolo: quem denuncia
@@ -72,13 +85,29 @@ public class SecurityConfig {
                 // token e perfil, como todo o resto da API.
                 .requestMatchers(HttpMethod.POST, "/api/iot/**").permitAll()
 
-                // ---- Documentacao e console do banco de demonstracao ----
+                // ---- Documentacao ----
                 .requestMatchers("/swagger-ui/**", "/swagger-ui.html",
-                                 "/v3/api-docs/**", "/h2-console/**").permitAll()
+                                 "/v3/api-docs/**").permitAll()
+
+                // ---- Console do banco (Fase 7) ----
+                // Antes ficava aberto para qualquer um que alcancasse a porta.
+                // Agora so existe se H2_CONSOLE=true, e o proprio H2 recusa
+                // conexao que nao venha da maquina local (web-allow-others).
+                // Desligado, a rota cai na regra geral e exige autenticacao.
+                .requestMatchers(consoleH2 ? "/h2-console/**" : "/__console-desligado__/**").permitAll()
 
                 // ---- TRILHA DE AUDITORIA ----
                 // Quem opera o sistema nao fiscaliza o proprio uso dele.
                 .requestMatchers("/api/auditoria/**")
+                    .hasAnyRole(PerfilUsuario.AUDITOR.name(), PerfilUsuario.ADMIN.name())
+
+                // ---- BACKUP (Fase 7) ----
+                // Gerar backup e operacao de administrador. Conferir a
+                // integridade dos backups e tarefa de fiscalizacao, entao o
+                // AUDITOR tambem le a lista (mas nao gera).
+                .requestMatchers(HttpMethod.POST, "/api/backup/**")
+                    .hasRole(PerfilUsuario.ADMIN.name())
+                .requestMatchers(HttpMethod.GET, "/api/backup/**")
                     .hasAnyRole(PerfilUsuario.AUDITOR.name(), PerfilUsuario.ADMIN.name())
 
                 // ---- EXPORTACAO DE DADOS ----
@@ -127,11 +156,20 @@ public class SecurityConfig {
 
             // O limite por origem vem antes da autenticacao: forca bruta de
             // senha precisa ser barrada ANTES de chegar na verificacao dela.
-            .addFilterBefore(new RateLimitFilter(), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new RateLimitFilter(confiarEmProxy), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
-        // Permite o console do H2, que usa frames
-        http.headers(h -> h.frameOptions(f -> f.disable()));
+        // Fase 7 | Antes a protecao contra a pagina ser embutida em outro
+        // site (frameOptions) estava DESLIGADA para o sistema inteiro, so
+        // para o console do H2 funcionar. sameOrigin atende o console (que
+        // usa frames do proprio servidor) e volta a impedir que um site
+        // terceiro carregue o painel dentro de um frame invisivel.
+        http.headers(h -> h
+            .frameOptions(f -> f.sameOrigin())
+            .contentTypeOptions(Customizer.withDefaults())
+            .referrerPolicy(r -> r.policy(
+                org.springframework.security.web.header.writers.ReferrerPolicyHeaderWriter
+                    .ReferrerPolicy.NO_REFERRER)));
         return http.build();
     }
 
@@ -185,9 +223,17 @@ public class SecurityConfig {
     public CommandLineRunner seedUsuarios(UsuarioRepository repo, PasswordEncoder encoder,
                                           @Value("${app.admin.email}") String emailAdmin,
                                           @Value("${app.admin.senha}") String senhaAdmin,
-                                          @Value("${app.admin.nome}") String nomeAdmin) {
+                                          @Value("${app.admin.nome}") String nomeAdmin,
+                                          @Value("${protege.demo:true}") boolean demo) {
         return args -> {
             criar(repo, encoder, emailAdmin, senhaAdmin, nomeAdmin, PerfilUsuario.ADMIN);
+            // Fase 7 | Contas de demonstracao (senhas conhecidas, documentadas
+            // no README) so existem em modo demonstracao. Em producao, os
+            // demais usuarios sao cadastrados pelo administrador.
+            if (!demo) {
+                log.info("[Protege+] Modo producao: usuarios de demonstracao NAO criados.");
+                return;
+            }
             criar(repo, encoder, "gestor@protege.gov.br",    "gestor123",    "Carlos Lima - Coordenador", PerfilUsuario.GESTOR);
             criar(repo, encoder, "atendente@protege.gov.br", "atendente123", "Ana Souza - Atendente",     PerfilUsuario.ATENDENTE);
             criar(repo, encoder, "auditor@protege.gov.br",   "auditor123",   "Controladoria Interna",     PerfilUsuario.AUDITOR);

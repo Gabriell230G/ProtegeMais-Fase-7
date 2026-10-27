@@ -37,6 +37,42 @@ public final class MascaraUtil {
         return vazio(valor) ? null : "[endereco protegido]";
     }
 
+    // Padroes de dado pessoal que aparecem com frequencia no relato livre.
+    // A ordem importa: CPF e CEP antes do telefone, para um numero com
+    // pontuacao de CPF nao ser lido como celular. Sequencia de 11 digitos
+    // sem pontuacao cai na regra de telefone: o rotulo pode errar, mas o
+    // dado sai mascarado do mesmo jeito.
+    private static final java.util.regex.Pattern EMAIL =
+            java.util.regex.Pattern.compile("[\\w.+-]+@[\\w-]+(\\.[\\w-]+)+");
+    private static final java.util.regex.Pattern CPF =
+            java.util.regex.Pattern.compile("\\b\\d{3}\\.\\d{3}\\.\\d{3}-\\d{2}\\b");
+    private static final java.util.regex.Pattern CEP =
+            java.util.regex.Pattern.compile("\\b\\d{5}-\\d{3}\\b");
+    private static final java.util.regex.Pattern TELEFONE =
+            java.util.regex.Pattern.compile("(\\+?55\\s?)?(\\(?\\d{2}\\)?\\s?)?9?\\d{4}[-\\s]?\\d{4}\\b");
+    private static final java.util.regex.Pattern LOGRADOURO =
+            java.util.regex.Pattern.compile(
+                "(?i)\\b(rua|r\\.|avenida|av\\.|travessa|alameda|estrada|rodovia|praca|praça)\\s+[^,.;\\n]{2,60}(,\\s*(n[ºo°.]?\\s*)?\\d+)?");
+
+    /**
+     * Fase 7 | Remove dado pessoal de um texto livre antes que ele saia do
+     * servidor (por exemplo, para um servico de IA externo).
+     *
+     * E uma barreira por padrao conhecido, e nao uma garantia: nome proprio
+     * nao e detectado. Por isso o envio do relato a IA externa continua
+     * DESLIGADO por padrao (protege.vigia.enviar-relato=false) e, quando
+     * ligado, passa sempre por aqui primeiro.
+     */
+    public static String textoLivre(String valor) {
+        if (vazio(valor)) return valor;
+        String t = EMAIL.matcher(valor).replaceAll("[email]");
+        t = CPF.matcher(t).replaceAll("[cpf]");
+        t = CEP.matcher(t).replaceAll("[cep]");
+        t = LOGRADOURO.matcher(t).replaceAll("[endereco]");
+        t = TELEFONE.matcher(t).replaceAll("[telefone]");
+        return t;
+    }
+
     private static boolean vazio(String s) {
         return s == null || s.isBlank();
     }
