@@ -32,6 +32,9 @@ public class AuthController {
     private final boolean demo;
     private final String emailAdmin;
 
+    /** Acao gravada na trilha quando o ADMIN troca de perfil na demonstracao. */
+    public static final String TROCA_PERFIL_DEMO = "TROCA_PERFIL_DEMO";
+
     /** Contas de demonstracao por perfil (criadas so em modo demonstracao). */
     static final Map<String, String> CONTA_DEMO = Map.of(
             PerfilUsuario.GESTOR.name(),    "gestor@protege.gov.br",
@@ -70,7 +73,7 @@ public class AuthController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("erro", "Conta de demonstracao ausente"));
         }
         Usuario u = alvo.get();
-        auditoria.registrar("TROCA_PERFIL_DEMO", "Usuario", u.getEmail(),
+        auditoria.registrar(TROCA_PERFIL_DEMO, "Usuario", u.getEmail(),
                 AuditoriaService.PERMITIDO, "Administrador assumiu o perfil " + u.getRole() + " na demonstracao");
         String token = jwt.gerarToken(u.getEmail(), u.getNome(), u.getRole());
         return ResponseEntity.ok(Map.of("token", token, "nome", u.getNome(), "role", u.getRole(),

@@ -49,4 +49,23 @@ class BackupServiceTest {
         assertFalse(new BackupService(null, null, "x", 7, "jdbc:postgresql://h/db").suportado());
         assertFalse(new BackupService(null, null, "x", 7, "jdbc:h2:mem:t").suportado());
     }
+
+    @Test
+    @DisplayName("situacao: integro, ALTERADO ou sem registro")
+    void situacao() {
+        assertEquals("integro", BackupService.situacao("ab", "AB"));
+        assertEquals("ALTERADO", BackupService.situacao("ab", "cd"));
+        assertEquals("sem registro", BackupService.situacao(null, "cd"));
+    }
+
+    @Test
+    @DisplayName("manifesto fora do banco: a ultima linha de cada arquivo prevalece")
+    void manifesto(@TempDir Path pasta) throws Exception {
+        String h1 = "a".repeat(64), h2 = "b".repeat(64);
+        Files.writeString(pasta.resolve(BackupService.MANIFESTO),
+                h1 + "  protege-1.zip\n" + h2 + "  protege-1.zip\nlinha invalida\n");
+        BackupService b = new BackupService(null, null, pasta.toString(), 7, "jdbc:h2:file:./x");
+        assertEquals(h2, b.lerManifesto().get("protege-1.zip"));
+        assertEquals(1, b.lerManifesto().size());
+    }
 }

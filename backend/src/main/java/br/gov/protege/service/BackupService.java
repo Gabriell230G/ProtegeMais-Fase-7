@@ -36,6 +36,13 @@ import java.util.stream.Stream;
  *     backup trocado ou corrompido depois e detectado ANTES de ser restaurado.
  *  5. Separacao: a pasta de backups e configuravel (BACKUP_DIR) para ficar
  *     em outro disco ou volume, e nao ao lado do banco que ela protege.
+ *  6. Manifesto fora do banco: cada backup tambem anota o seu hash em
+ *     manifesto.sha256, na pasta dos backups. Depois de uma restauracao a
+ *     trilha volta ao ponto do backup (e nao conhece os backups seguintes);
+ *     o manifesto continua sabendo quais arquivos o sistema gerou.
+ *
+ * Escopo: o backup cobre o BANCO. Os arquivos de evidencia (EVIDENCIAS_DIR)
+ * entram na copia do volume, responsabilidade da infraestrutura.
  *
  * No perfil PostgreSQL o backup e responsabilidade do servico gerenciado
  * (pg_dump / snapshots do provedor) e o metodo informa isso em vez de fingir.
@@ -44,7 +51,8 @@ import java.util.stream.Stream;
 public class BackupService {
 
     private static final Logger log = LoggerFactory.getLogger(BackupService.class);
-    private static final DateTimeFormatter CARIMBO = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss");
+    private static final DateTimeFormatter CARIMBO = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS");
+    static final String MANIFESTO = "manifesto.sha256";
     public static final String BACKUP = "BACKUP";
 
     private final JdbcTemplate jdbc;
@@ -97,6 +105,9 @@ public class BackupService {
 
         String hash = sha256(destino);
         long tamanho = Files.size(destino);
+        Files.writeString(pasta.resolve(MANIFESTO), hash + "  " + nome + System.lineSeparator(),
+                java.nio.charset.StandardCharsets.UTF_8,
+                java.nio.file.StandardOpenOption.CREATE, java.nio.file.StandardOpenOption.APPEND);
         auditoria.registrar(BACKUP, "Banco", nome, AuditoriaService.PERMITIDO,
                 "origem=" + origem + "; bytes=" + tamanho + "; sha256=" + hash);
         int removidos = aplicarRetencao();
@@ -111,29 +122,54 @@ public class BackupService {
     }
 
     /**
-     * Lista os backups e confere cada um contra o hash gravado na trilha.
-     * "integro" = arquivo bate com o registro; "ALTERADO" = nao bate;
-     * "sem registro" = arquivo que o sistema nao gerou (suspeito).
+     * Lista os backups e confere cada um contra o hash registrado no momento
+     * da copia: primeiro o da trilha de auditoria, e na falta dele o do
+     * manifesto. "integro" = arquivo bate com o registro; "ALTERADO" = nao
+     * bate (NAO restaure); "sem registro" = arquivo que o sistema nao gerou.
      */
     public List<Map<String, Object>> listar(Map<String, String> hashesRegistrados) throws IOException {
         List<Map<String, Object>> lista = new ArrayList<>();
         if (!Files.isDirectory(pasta)) return lista;
+        Map<String, String> manifesto = lerManifesto();
         try (Stream<Path> arquivos = Files.list(pasta)) {
             for (Path p : arquivos.filter(f -> f.getFileName().toString().endsWith(".zip"))
                                   .sorted(Comparator.reverseOrder()).toList()) {
                 String nome = p.getFileName().toString();
                 String atual = sha256(p);
                 String registrado = hashesRegistrados.get(nome);
+                String fonte = "trilha";
+                if (registrado == null) {
+                    registrado = manifesto.get(nome);
+                    fonte = registrado == null ? null : "manifesto";
+                }
                 Map<String, Object> item = new LinkedHashMap<>();
                 item.put("arquivo", nome);
                 item.put("bytes", Files.size(p));
-                item.put("sha256", atual);
-                item.put("situacao", registrado == null ? "sem registro"
-                                   : registrado.equals(atual) ? "integro" : "ALTERADO");
+                item.put("sha256Atual", atual);
+                item.put("sha256Registrado", registrado);
+                item.put("fonteDoRegistro", fonte);
+                item.put("situacao", situacao(registrado, atual));
                 lista.add(item);
             }
         }
         return lista;
+    }
+
+    static String situacao(String registrado, String atual) {
+        if (registrado == null) return "sem registro";
+        return registrado.equalsIgnoreCase(atual) ? "integro" : "ALTERADO";
+    }
+
+    /** Le "hash  nome" por linha. Uma linha posterior com o mesmo nome prevalece. */
+    Map<String, String> lerManifesto() throws IOException {
+        Map<String, String> m = new java.util.HashMap<>();
+        Path arq = pasta.resolve(MANIFESTO);
+        if (!Files.isRegularFile(arq)) return m;
+        for (String linha : Files.readAllLines(arq, java.nio.charset.StandardCharsets.UTF_8)) {
+            String[] partes = linha.trim().split("\\s+", 2);
+            if (partes.length == 2 && partes[0].length() == 64) m.put(partes[1].trim(), partes[0]);
+        }
+        return m;
     }
 
     int aplicarRetencao() throws IOException {

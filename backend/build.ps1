@@ -27,8 +27,29 @@ function Escrever($msg, $cor = 'Cyan') { Write-Host "[Protege+] $msg" -Foregroun
 # --- Java -------------------------------------------------------------
 $java = Get-Command java -ErrorAction SilentlyContinue
 if (-not $java) {
-    Escrever 'JDK nao encontrado no PATH. Instale um JDK 17 ou superior.' 'Red'
+    Escrever 'JDK nao encontrado no PATH. Instale um JDK 17 ou 21.' 'Red'
     exit 1
+}
+
+# Fase 7 | Confere a versao. O "java -version" escreve no erro padrao; pelo
+# cmd /c a saida volta como texto comum, sem virar erro no PowerShell 5.1.
+# Filtra a linha com 'version "' porque JAVA_TOOL_OPTIONS acrescenta uma
+# linha "Picked up..." antes dela.
+$linhaVersao = cmd /c "java -version 2>&1" | Where-Object { $_ -match 'version "' } | Select-Object -First 1
+$major = 0
+if ($linhaVersao -match 'version "(\d+)(\.(\d+))?') {
+    $major = [int]$Matches[1]
+    if ($major -eq 1 -and $Matches[3]) { $major = [int]$Matches[3] }   # formato antigo 1.8
+}
+if ($major -gt 0 -and $major -lt 17) {
+    Escrever "JDK $major encontrado. O Protege+ precisa do JDK 17 ou 21." 'Red'
+    exit 1
+}
+if ($major -gt 21) {
+    Escrever "JDK $major detectado. O projeto foi validado com JDK 17 e 21; com versoes mais novas pode haver avisos." 'Yellow'
+}
+if ($env:JAVA_HOME) {
+    Escrever "Observacao: o Maven usa o JDK de JAVA_HOME ($env:JAVA_HOME)." 'Yellow'
 }
 
 # --- Maven ------------------------------------------------------------
@@ -50,6 +71,8 @@ else {
 
     try {
         $ProgressPreference = 'SilentlyContinue'
+        # Windows antigo com .NET padrao em TLS 1.0 nao consegue baixar do Apache.
+        [Net.ServicePointManager]::SecurityProtocol = [Net.ServicePointManager]::SecurityProtocol -bor [Net.SecurityProtocolType]::Tls12
         Invoke-WebRequest -Uri $UrlMaven -OutFile $zip -UseBasicParsing
     } catch {
         Escrever "Falha ao baixar o Maven: $($_.Exception.Message)" 'Red'

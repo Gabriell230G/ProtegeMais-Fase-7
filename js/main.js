@@ -882,7 +882,7 @@ async function buscarProtocolo() {
           Verifique se o protocolo foi digitado corretamente, incluindo o <strong style="color:var(--blue-dark)">#</strong> no início e os zeros.
         </p>
         <div style="background:var(--gray-50);border:1.5px dashed var(--gray-300);border-radius:10px;padding:12px 24px;display:inline-block;font-size:13px;color:var(--gray-600);margin-bottom:20px">
-          Formato correto: <strong style="color:var(--blue-dark);font-size:15px">#2026-00001</strong>
+          Formato correto: <strong style="color:var(--blue-dark);font-size:15px">#2026-7KQM-3HXA-9PTZ</strong>
         </div>
         <div style="font-size:12px;color:var(--gray-400)">
           Protocolos de teste: <strong>#2026-00451</strong> · <strong>#2026-00452</strong> · <strong>#2026-00453</strong>

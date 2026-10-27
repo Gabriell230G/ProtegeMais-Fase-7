@@ -1,6 +1,13 @@
 # ===== Backend Java / Maven =====
 backend/target/
 backend/data/
+# Fase 7: banco, chave IoT, evidencias e backups em qualquer pasta data/
+# (a IDE pode rodar a API a partir da raiz do repositorio)
+**/data/
+*.mv.db
+*.trace.db
+iot-chave.txt
+manifesto.sha256
 *.class
 
 # ===== Logs =====

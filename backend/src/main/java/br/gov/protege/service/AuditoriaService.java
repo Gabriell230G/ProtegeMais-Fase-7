@@ -181,7 +181,6 @@ public class AuditoriaService {
         return (attrs instanceof ServletRequestAttributes s) ? s.getRequest() : null;
     }
 
-    /** Respeita o cabecalho de proxy quando presente, sem confiar cegamente nele. */
     /**
      * Fase 7 | A trilha grava o endereco real da conexao. O X-Forwarded-For
      * e escrito pelo proprio cliente: gravar o valor dele deixaria quem age

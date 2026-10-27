@@ -108,7 +108,10 @@ public class AuditoriaController {
             Map.entry(AuditoriaService.EXPORTACAO,        "Exportacao de dados para fora do sistema"),
             Map.entry(AuditoriaService.REANALISE_IA,      "Reanalise de denuncia por inteligencia artificial"),
             Map.entry(AuditoriaService.ALTERACAO_EQUIPE,  "Cadastro, alteracao ou remocao de membro da equipe"),
-            Map.entry(AuditoriaService.ACESSO_AUDITORIA,  "Consulta a propria trilha de auditoria"));
+            Map.entry(AuditoriaService.ACESSO_AUDITORIA,  "Consulta a propria trilha de auditoria"),
+            Map.entry(br.gov.protege.service.BackupService.BACKUP, "Backup do banco, com o SHA-256 do arquivo gerado"),
+            Map.entry(br.gov.protege.controller.AuthController.TROCA_PERFIL_DEMO,
+                      "Administrador assumiu outro perfil na demonstracao"));
     }
 
     private String vazioParaNulo(String v) {
