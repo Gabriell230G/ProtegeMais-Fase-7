@@ -507,7 +507,7 @@ function handleFiles(files) {
       : `${Math.round(f.size/1024)}KB`;
     return `<span style="display:flex;align-items:center;gap:6px;margin:2px 0">
       <i class="fa-solid ${icon}" style="color:var(--blue-light)"></i>
-      ${f.name} <span style="color:#94a3b8;font-size:11px">(${tam})</span>
+      ${escHtml(f.name)} <span style="color:#94a3b8;font-size:11px">(${tam})</span>
     </span>`;
   }).join('');
 }
@@ -919,8 +919,8 @@ async function buscarProtocolo() {
       : (i ? i.t('status.pend_sub') : 'Pendente');
     return `<div class="status-step ${cls}">
       <div class="status-step-icon">${idx <= cur ? s.icon : '○'}</div>
-      <div class="status-step-label">${s.label}</div>
-      <div class="status-step-date">${sub}</div>
+      <div class="status-step-label">${escHtml(s.label)}</div>
+      <div class="status-step-date">${escHtml(sub)}</div>
     </div>`;
   }).join('');
 
@@ -947,9 +947,9 @@ async function buscarProtocolo() {
           </div>
           <!-- Conteúdo -->
           <div style="flex:1;padding-bottom:20px;">
-            <div style="font-size:14px;font-weight:700;color:#1e293b;">${meta.label}</div>
+            <div style="font-size:14px;font-weight:700;color:#1e293b;">${escHtml(meta.label)}</div>
             <div style="font-size:12px;color:#64748b;margin-top:2px;">
-              📅 ${h.data} às ${h.hora}
+              📅 ${escHtml(h.data)} às ${escHtml(h.hora)}
             </div>
           </div>
         </div>`;
@@ -966,7 +966,7 @@ async function buscarProtocolo() {
 
   // ── NOTIFICAÇÕES ───────────────────────────────────────────
   const notifs = [
-    `<div class="notification-item"><div class="notification-dot"></div><span>${found.criadoEm || found.data} — Denúncia recebida no sistema</span></div>`,
+    `<div class="notification-item"><div class="notification-dot"></div><span>${escHtml(found.criadoEm || found.data)} — Denúncia recebida no sistema</span></div>`,
     cur >= 1 ? `<div class="notification-item"><div class="notification-dot"></div><span>Em análise pelo responsável</span></div>` : '',
     cur >= 2 ? `<div class="notification-item"><div class="notification-dot"></div><span>Encaminhada ao órgão competente</span></div>` : '',
     cur >= 3 ? `<div class="notification-item"><div class="notification-dot" style="background:var(--green)"></div><span>Processo concluído</span></div>` : '',
@@ -977,10 +977,10 @@ async function buscarProtocolo() {
       <div class="denuncia-header">
         <div>
           <h2>Acompanhe sua Denúncia</h2>
-          <div class="protocol-id">${found.id}</div>
+          <div class="protocol-id">${escHtml(found.id)}</div>
         </div>
         <!-- BOTÃO COMPARTILHAR -->
-        <button onclick="compartilharProtocolo('${found.id}')"
+        <button onclick="compartilharProtocolo(${jsArg(found.id)})"
           style="display:flex;align-items:center;gap:8px;padding:10px 18px;background:#f0f7ff;color:#1A4DA0;border:1.5px solid #1A4DA0;border-radius:10px;font-size:13px;font-weight:600;cursor:pointer;font-family:inherit;white-space:nowrap;transition:all .2s;"
           onmouseover="this.style.background='#1A4DA0';this.style.color='white'"
           onmouseout="this.style.background='#f0f7ff';this.style.color='#1A4DA0'">
@@ -988,23 +988,23 @@ async function buscarProtocolo() {
         </button>
       </div>
       <div class="denuncia-meta">
-        <div class="meta-item"><span>Tipo:</span><strong>${TIPO_LABELS[found.tipo] || found.tipo}</strong></div>
-        <div class="meta-item"><span>Data:</span><strong>${found.data}</strong></div>
-        <div class="meta-item"><span>📍 Local:</span><strong>${found.local}</strong></div>
+        <div class="meta-item"><span>Tipo:</span><strong>${escHtml(TIPO_LABELS[found.tipo] || found.tipo)}</strong></div>
+        <div class="meta-item"><span>Data:</span><strong>${escHtml(found.data)}</strong></div>
+        <div class="meta-item"><span>📍 Local:</span><strong>${escHtml(found.local)}</strong></div>
       </div>
       <div class="status-tracker">${stepsHTML}</div>
       <div class="denuncia-details">
         <div class="detail-section">
           <h4>Detalhes da Denúncia</h4>
-          <div class="detail-row"><strong>Descrição:</strong> <span>${found.desc}</span></div>
-          <div class="detail-row"><strong>Endereço:</strong> <span>${found.endereco || '—'}</span></div>
+          <div class="detail-row"><strong>Descrição:</strong> <span>${escHtml(found.desc)}</span></div>
+          <div class="detail-row"><strong>Endereço:</strong> <span>${escHtml(found.endereco || '—')}</span></div>
           <div class="detail-row"><strong>Anônima:</strong> <span>${found.anonimo ? 'Sim' : 'Não'}</span></div>
           ${_renderAnexos(found)}
         </div>
         <div class="detail-section">
           ${timelineHTML ||
             `<h4>Histórico de Atualizações</h4>
-            <div class="notification-item"><div class="notification-dot"></div><span>${found.criadoEm || found.data} — Denúncia recebida no sistema</span></div>
+            <div class="notification-item"><div class="notification-dot"></div><span>${escHtml(found.criadoEm || found.data)} — Denúncia recebida no sistema</span></div>
             ${cur >= 1 ? '<div class="notification-item"><div class="notification-dot"></div><span>Em análise pelo responsável</span></div>' : ''}
             ${cur >= 2 ? '<div class="notification-item"><div class="notification-dot"></div><span>Encaminhada ao órgão competente</span></div>' : ''}
             ${cur >= 3 ? '<div class="notification-item"><div class="notification-dot" style="background:var(--green)"></div><span>Processo concluído</span></div>' : ''}`
@@ -1024,35 +1024,40 @@ function _renderAnexos(denuncia) {
   // Arquivos
   if (denuncia.anexos && denuncia.anexos.length > 0) {
     const itens = denuncia.anexos.map(a => {
-      if (a.base64 && a.tipo?.startsWith('image/')) {
+      // Nome e base64 vêm do cidadão (canal anônimo): o nome é escapado e a
+      // data: URL só é usada se for imagem, áudio, vídeo ou PDF em base64.
+      const nome = escHtml(a.nome);
+      const url  = dataUrlSegura(a.base64);
+      const tam = a.tamanho > 1024*1024
+        ? `${(a.tamanho/1024/1024).toFixed(1)}MB`
+        : `${Math.round(a.tamanho/1024)}KB`;
+      if (url && a.tipo?.startsWith('image/') && url.startsWith('data:image/')) {
         // Imagem — mostra preview clicável
         return `<div style="display:inline-block;margin:4px;">
-          <a href="${a.base64}" target="_blank" title="${a.nome}">
-            <img src="${a.base64}" alt="${a.nome}"
+          <a href="${escAttr(url)}" target="_blank" title="${nome}">
+            <img src="${escAttr(url)}" alt="${nome}"
               style="width:80px;height:80px;object-fit:cover;border-radius:8px;border:2px solid #e2e8f0;cursor:pointer;"
               onmouseover="this.style.borderColor='#1A4DA0'"
               onmouseout="this.style.borderColor='#e2e8f0'">
           </a>
-          <div style="font-size:10px;color:#94a3b8;text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${a.nome}</div>
+          <div style="font-size:10px;color:#94a3b8;text-align:center;max-width:80px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${nome}</div>
         </div>`;
       } else if (a.base64) {
         // Outros arquivos — link de download
-        const tam = a.tamanho > 1024*1024
-          ? `${(a.tamanho/1024/1024).toFixed(1)}MB`
-          : `${Math.round(a.tamanho/1024)}KB`;
+        // O link só aparece se a data: URL for de tipo permitido.
         return `<div style="display:flex;align-items:center;gap:8px;padding:8px 12px;background:#f8faff;border:1.5px solid #e2e8f0;border-radius:8px;margin:4px 0;">
           <i class="fa-solid fa-file" style="color:#1A4DA0;"></i>
-          <span style="font-size:13px;color:#1e293b;">${a.nome}</span>
-          <span style="font-size:11px;color:#94a3b8;">(${tam})</span>
-          <a href="${a.base64}" download="${a.nome}"
+          <span style="font-size:13px;color:#1e293b;">${nome}</span>
+          <span style="font-size:11px;color:#94a3b8;">(${escHtml(tam)})</span>
+          ${url ? `<a href="${escAttr(url)}" download="${nome}"
             style="margin-left:auto;padding:4px 10px;background:#1A4DA0;color:white;border-radius:6px;font-size:11px;text-decoration:none;font-weight:600;">
             ⬇️ Baixar
-          </a>
+          </a>` : ''}
         </div>`;
       } else {
         // Arquivo sem Base64 (muito grande)
         return `<div style="font-size:12px;color:#94a3b8;padding:4px 0;">
-          📎 ${a.nome} <span style="color:#f59e0b;">(${a.erro || 'não armazenado'})</span>
+          📎 ${nome} <span style="color:#f59e0b;">(${escHtml(a.erro || 'não armazenado')})</span>
         </div>`;
       }
     }).join('');
@@ -1069,15 +1074,20 @@ function _renderAnexos(denuncia) {
       const dur = denuncia.audio.duracao
         ? `${Math.floor(denuncia.audio.duracao/60)}:${String(denuncia.audio.duracao%60).padStart(2,'0')}`
         : '—';
+      // O player só recebe data: URL de áudio ou vídeo; outro tipo vira ícone simples.
+      const urlAudio = dataUrlSegura(denuncia.audio.base64);
+      const okAudio  = /^data:(audio|video)\//i.test(urlAudio);
       partes.push(`<div class="detail-row">
-        <strong>🎙️ Relato em Áudio (${dur}):</strong>
-        <audio controls src="${denuncia.audio.base64}"
-          style="width:100%;margin-top:8px;border-radius:8px;"></audio>
+        <strong>🎙️ Relato em Áudio (${escHtml(dur)}):</strong>
+        ${okAudio
+          ? `<audio controls src="${escAttr(urlAudio)}"
+          style="width:100%;margin-top:8px;border-radius:8px;"></audio>`
+          : `<span style="color:#94a3b8;"><i class="fa-solid fa-file"></i> formato não reconhecido</span>`}
       </div>`);
     } else {
       partes.push(`<div class="detail-row">
         <strong>🎙️ Áudio:</strong>
-        <span style="color:#f59e0b;">${denuncia.audio.erro || 'Não armazenado'}</span>
+        <span style="color:#f59e0b;">${escHtml(denuncia.audio.erro || 'Não armazenado')}</span>
       </div>`);
     }
   }
@@ -1594,14 +1604,14 @@ function renderBacklog(filter = 'all', filtrosAvancados = null) {
       : '';
 
     return `
-    <tr data-tipo="${d.tipo}">
-      <td><strong>${d.id}</strong>${iconesHTML}</td>
-      <td>${TIPO_LABELS[d.tipo] || d.tipo}</td>
-      <td>${d.local}</td>
-      <td>${d.data}</td>
-      <td>${STATUS_BADGES[d.status] || d.status}</td>
+    <tr data-tipo="${escAttr(d.tipo)}">
+      <td><strong>${escHtml(d.id)}</strong>${iconesHTML}</td>
+      <td>${escHtml(TIPO_LABELS[d.tipo] || d.tipo)}</td>
+      <td>${escHtml(d.local)}</td>
+      <td>${escHtml(d.data)}</td>
+      <td>${STATUS_BADGES[d.status] || escHtml(d.status)}</td>
       <td>${typeof ScoreSystem !== 'undefined' ? ScoreSystem.renderBadge({ score: d.score ?? 0, classificacao: d.scoreTxt || d.scoreLabel || '—', label: d.scoreLabel || 'low' }) : ''}</td>
-      <td><button class="btn btn-primary btn-sm" onclick="verDetalhes('${d.id}')"><i class="fa-solid fa-eye"></i></button></td>
+      <td><button class="btn btn-primary btn-sm" onclick="verDetalhes(${jsArg(d.id)})"><i class="fa-solid fa-eye"></i></button></td>
     </tr>`;
   }).join('');
 }
@@ -1648,7 +1658,7 @@ function renderStatusTable() {
     let identidade = '';
     const _niv = d.nivelAnonimato || (d.anonimo ? 1 : 3);
     if (_niv === 3) {
-      identidade = `<br><span class="ident-info">👤 ${d.nome || '—'}</span>`;
+      identidade = `<br><span class="ident-info">👤 ${escHtml(d.nome || '—')}</span>`;
     }
 
     // Badge de nível de anonimato
@@ -1662,23 +1672,23 @@ function renderStatusTable() {
       if (Anonimato.temCanal(d)) {
         const pend = Anonimato.temPendencia(d, 'gestor');
         const ident = d.codigoAcompanhamento || d.id;
-        canalBtn = `<button class="btn-elo-gestor" onclick="EloGestor.abrir('${ident}')">
+        canalBtn = `<button class="btn-elo-gestor" onclick="EloGestor.abrir(${jsArg(ident)})">
           🔐 Canal${pend ? ' <span class="elo-pendencia">● nova</span>' : ''}
         </button>`;
       }
     }
 
     return `<tr id="row-${key}">
-      <td><strong>${d.id}</strong>${nivelBadge}${identidade}</td>
-      <td>${d.tipo}</td>
-      <td><span style="color:${color};font-weight:600">${OPT_LABELS[d.status] || d.status}</span></td>
+      <td><strong>${escHtml(d.id)}</strong>${nivelBadge}${identidade}</td>
+      <td>${escHtml(d.tipo)}</td>
+      <td><span style="color:${color};font-weight:600">${escHtml(OPT_LABELS[d.status] || d.status)}</span></td>
       <td>
         <select id="ns-${key}" style="padding:6px 10px;font-size:12px;border-radius:6px;border:1.5px solid var(--gray-200);font-family:'DM Sans',sans-serif;cursor:pointer">
           ${OPTS.map(s => `<option value="${s}" ${s === d.status ? 'selected' : ''}>${OPT_LABELS[s]}</option>`).join('')}
         </select>
       </td>
       <td>
-        <button class="btn btn-primary btn-sm" onclick="StatusConfirm.solicitar('${d.id}','${key}')">💾 Salvar</button>
+        <button class="btn btn-primary btn-sm" onclick="StatusConfirm.solicitar(${jsArg(d.id)},${jsArg(key)})">💾 Salvar</button>
         ${canalBtn}
       </td>
     </tr>`;
@@ -1731,7 +1741,9 @@ function atualizarStatus(id, key) {
 function showToast(msg) {
   const t = document.getElementById('toast');
   if (!t) return;
-  t.innerHTML = msg;
+  // textContent: a mensagem pode trazer dado de usuário (nome de membro,
+  // nome de arquivo, mensagem de erro da API). Nenhum toast usa HTML.
+  t.textContent = msg;
   t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 3500);
 }

@@ -40,11 +40,9 @@ const Fluxo = (() => {
     else console.log('[Fluxo]', msg);
   }
 
-  function esc(t) {
-    const d = document.createElement('div');
-    d.textContent = t == null ? '' : String(t);
-    return d.innerHTML;
-  }
+  // Delegado ao helper global (storage-guard.js). A versão anterior, via
+  // textContent/innerHTML, não escapava aspas e deixava atributos vulneráveis.
+  function esc(t) { return escHtml(t); }
 
   // ── FILA ────────────────────────────────────────────────────
   async function carregarFila() {
@@ -67,8 +65,8 @@ const Fluxo = (() => {
 
     const meta = document.getElementById('fila-meta');
     if (meta) {
-      meta.innerHTML = `<span><b>${dados.totalNaFila}</b> ${esc(T('fluxo.fila.aberto', 'em aberto'))}</span>`
-        + `<span>${esc(T('fluxo.fila.mais_antigo', 'mais antigo há'))} <b>${dados.diasDeEsperaDoMaisAntigo}</b> ${esc(T('fluxo.fila.dias', 'dia(s)'))}</span>`
+      meta.innerHTML = `<span><b>${esc(dados.totalNaFila)}</b> ${esc(T('fluxo.fila.aberto', 'em aberto'))}</span>`
+        + `<span>${esc(T('fluxo.fila.mais_antigo', 'mais antigo há'))} <b>${esc(dados.diasDeEsperaDoMaisAntigo)}</b> ${esc(T('fluxo.fila.dias', 'dia(s)'))}</span>`
         + `<span class="fluxo-estrutura">${esc(dados.estrutura)}</span>`;
     }
 
@@ -95,7 +93,7 @@ const Fluxo = (() => {
           </div>
           <div class="fila-linha2">
             <span>${esc(d.tipo)}</span> · <span>${esc(d.local || '—')}</span>
-            · <span>${esc(T('fluxo.score', 'score'))} ${d.score}</span>
+            · <span>${esc(T('fluxo.score', 'score'))} ${esc(d.score)}</span>
           </div>
         </div>
       </div>`;
@@ -139,7 +137,7 @@ const Fluxo = (() => {
 
     const meta = document.getElementById('pilha-meta');
     if (meta) {
-      meta.innerHTML = `<span><b>${dados.tamanho}</b> ${esc(T('fluxo.pilha.de', 'de'))} ${dados.profundidadeMaxima}</span>`
+      meta.innerHTML = `<span><b>${esc(dados.tamanho)}</b> ${esc(T('fluxo.pilha.de', 'de'))} ${esc(dados.profundidadeMaxima)}</span>`
         + `<span class="fluxo-estrutura">${esc(dados.estrutura)}</span>`;
     }
 

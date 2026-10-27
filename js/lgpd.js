@@ -146,7 +146,7 @@ const LGPD = (() => {
           <div class="lgpd-demo-arrow">➜</div>
           <div class="lgpd-demo-col">
             <span class="ldc-label">Como fica salvo (cifrado)</span>
-            <div class="ldc-box enc">${amostra || 'enc::A1b2C3d4e5F6g7H8i9J0k…'}</div>
+            <div class="ldc-box enc">${escHtml(amostra || 'enc::A1b2C3d4e5F6g7H8i9J0k…')}</div>
           </div>
         </div>
         <div class="lgpd-nota">

@@ -31,11 +31,9 @@ const Evidencias = (() => {
 
   let idAtual = null;
 
-  function esc(t) {
-    const d = document.createElement('div');
-    d.textContent = t == null ? '' : String(t);
-    return d.innerHTML;
-  }
+  // Delegado ao helper global (storage-guard.js). A versão anterior, via
+  // textContent/innerHTML, não escapava aspas e deixava atributos vulneráveis.
+  function esc(t) { return escHtml(t); }
 
   function tamanho(bytes) {
     return bytes >= 1024 * 1024
@@ -107,24 +105,26 @@ const Evidencias = (() => {
     }
 
     alvo.innerHTML = lista.map(e => `
-      <div class="evid-item">
-        <span class="evid-ic">${icone(e.tipoConteudo)}</span>
+      <div class="evid-item" data-evid-id="${esc(e.id)}">
+        <span class="evid-ic">${esc(icone(e.tipoConteudo))}</span>
         <div class="evid-corpo">
           <div class="evid-nome">${esc(e.nomeOriginal)}</div>
-          <div class="evid-meta">${esc(e.tipoConteudo)} · ${tamanho(e.tamanhoBytes)}
+          <div class="evid-meta">${esc(e.tipoConteudo)} · ${esc(tamanho(e.tamanhoBytes))}
             · ${esc(String(e.enviadoEm || '').replace('T', ' ').slice(0, 16))}</div>
           <div class="evid-hash" title="SHA-256 do conteúdo recebido">${esc((e.hashSha256 || '').slice(0, 24))}…</div>
         </div>
-        <button class="fluxo-btn secundario" onclick="Evidencias.baixar(${e.id})"
+        <button class="fluxo-btn secundario" onclick="Evidencias.baixar(${jsArg(e.id)})"
                 data-i18n="evid.baixar">⬇ Baixar</button>
-        <button class="fluxo-btn secundario" onclick="Evidencias.remover(${e.id})"
+        <button class="fluxo-btn secundario" onclick="Evidencias.remover(${jsArg(e.id)})"
                 data-i18n="evid.remover">🗑 Remover</button>
       </div>`).join('');
   }
 
   async function baixar(id) {
-    const item = document.querySelector(`[onclick="Evidencias.baixar(${id})"]`);
-    const nome = item?.closest('.evid-item')?.querySelector('.evid-nome')?.textContent;
+    // Localiza o item pelo data-evid-id (comparação de texto, sem montar seletor com o dado).
+    const item = Array.from(document.querySelectorAll('.evid-item[data-evid-id]'))
+      .find(el => el.getAttribute('data-evid-id') === String(id));
+    const nome = item?.querySelector('.evid-nome')?.textContent;
     try {
       await Backend.baixarEvidencia(id, nome);
       if (typeof showToast === 'function') {

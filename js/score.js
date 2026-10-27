@@ -70,9 +70,10 @@ const ScoreSystem = (() => {
    */
   function renderBadge(resultado) {
     const icons = { high: 'fa-circle-check', medium: 'fa-circle-minus', low: 'fa-circle-xmark' };
-    return `<span class="score-badge ${resultado.label}">
-      <i class="fa-solid ${icons[resultado.label]}"></i>
-      ${resultado.score}pts — ${resultado.classificacao} confiabilidade
+    // label, score e classificacao podem vir do localStorage ou da API: escapados.
+    return `<span class="score-badge ${escAttr(resultado.label)}">
+      <i class="fa-solid ${escAttr(icons[resultado.label])}"></i>
+      ${escHtml(resultado.score)}pts — ${escHtml(resultado.classificacao)} confiabilidade
     </span>`;
   }
 

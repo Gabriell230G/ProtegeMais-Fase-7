@@ -66,15 +66,13 @@ const EloGestor = (() => {
           <div class="elo-msg ${m.autor === 'gestor' ? 'cidadao' : 'gestor'}">
             <div class="elo-autor">${m.autor === 'gestor' ? '🏛️ Você (autoridade)' : '🙋 Denunciante'}</div>
             ${_esc(m.texto)}
-            <div class="elo-meta">${m.data} ${m.hora}</div>
+            <div class="elo-meta">${_esc(m.data)} ${_esc(m.hora)}</div>
           </div>`).join('');
     setTimeout(() => { box.scrollTop = box.scrollHeight; }, 50);
   }
 
-  function _esc(s) {
-    return String(s).replace(/[&<>"]/g, c =>
-      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-  }
+  // Delegado ao helper global (storage-guard.js), que também escapa aspas simples.
+  function _esc(s) { return escHtml(s); }
 
   return { abrir, fechar, enviar };
 })();

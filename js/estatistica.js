@@ -28,11 +28,9 @@ const Estatistica = (() => {
   let dados = null;
   const graficos = {};
 
-  function esc(t) {
-    const d = document.createElement('div');
-    d.textContent = t == null ? '' : String(t);
-    return d.innerHTML;
-  }
+  // Delegado ao helper global (storage-guard.js). A versão anterior, via
+  // textContent/innerHTML, não escapava aspas e deixava atributos vulneráveis.
+  function esc(t) { return escHtml(t); }
 
   const num = (v, casas) => Number(v).toLocaleString(
     (typeof I18n !== 'undefined' && I18n.atual() === 'en') ? 'en-US' : 'pt-BR',
@@ -239,7 +237,7 @@ const Estatistica = (() => {
        ${T('est.prazo.2', 'A média é de')} <b>${num(media)}</b> ${T('est.dias', 'dias')},
        ${noPrazoDaMedia
           ? `${T('est.prazo.3', 'mas apenas')} <b>${num(noPrazoDaMedia.percentual, 1)}%</b>
-             ${T('est.prazo.4', 'dos casos fecham em até')} <b>${noPrazoDaMedia.dias}</b> ${T('est.dias', 'dias')}.`
+             ${T('est.prazo.4', 'dos casos fecham em até')} <b>${esc(noPrazoDaMedia.dias)}</b> ${T('est.dias', 'dias')}.`
           : ''}
        ${T('est.prazo.5', 'Um SLA honesto se compromete com o percentil 90')}
        (<b>${num(dados.percentisLeadTime.p90)}</b> ${T('est.dias', 'dias')}),

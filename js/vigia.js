@@ -188,25 +188,28 @@ const VigIA = (() => {
     const agora = new Date();
     const carimbo = `${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}`;
 
+    // Rótulos e títulos embutem cidade, tipo e protocolo vindos das denúncias
+    // (canal anônimo): tudo é escapado na saída. Nenhum texto aqui usa HTML.
+    const e = escHtml;
     body.innerHTML = `
       <div class="vigia-secao-tit">📖 O que está acontecendo</div>
       <div class="vigia-metricas">
         ${leituras.map(l => `
-          <div class="vigia-metrica" style="--mc:${l.cor}">
-            <div class="vm-ic">${l.icon}</div>
-            <div class="vm-valor">${l.valor}</div>
-            <div class="vm-rotulo">${l.rotulo}</div>
-            <div class="vm-sub">${l.sub}</div>
+          <div class="vigia-metrica" style="--mc:${e(l.cor)}">
+            <div class="vm-ic">${e(l.icon)}</div>
+            <div class="vm-valor">${e(l.valor)}</div>
+            <div class="vm-rotulo">${e(l.rotulo)}</div>
+            <div class="vm-sub">${e(l.sub)}</div>
           </div>`).join('')}
       </div>
 
       <div class="vigia-secao-tit" style="margin-top:20px">🎯 Recomendações de ação</div>
       <div class="vigia-recs">
         ${recs.map(r => `
-          <div class="vigia-rec ${r.nivel}">
-            <div class="vr-top"><span class="vr-ic">${r.icon}</span><span class="vr-tit">${r.titulo}</span></div>
-            <div class="vr-porque">${r.porque}</div>
-            ${r.ids.length ? `<div class="vr-ids">${r.ids.slice(0, 6).map(id => `<span>${id}</span>`).join('')}${r.ids.length > 6 ? ` <span class="vr-mais">+${r.ids.length - 6}</span>` : ''}</div>` : ''}
+          <div class="vigia-rec ${e(r.nivel)}">
+            <div class="vr-top"><span class="vr-ic">${e(r.icon)}</span><span class="vr-tit">${e(r.titulo)}</span></div>
+            <div class="vr-porque">${e(r.porque)}</div>
+            ${r.ids.length ? `<div class="vr-ids">${r.ids.slice(0, 6).map(id => `<span>${e(id)}</span>`).join('')}${r.ids.length > 6 ? ` <span class="vr-mais">+${r.ids.length - 6}</span>` : ''}</div>` : ''}
           </div>`).join('')}
       </div>
       <div class="vigia-carimbo">Última análise: ${carimbo} · ${lista.length} denúncia(s) avaliada(s)</div>

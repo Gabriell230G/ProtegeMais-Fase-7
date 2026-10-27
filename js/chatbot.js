@@ -159,15 +159,16 @@ const Chatbot = (() => {
     msgs.scrollTop = msgs.scrollHeight;
   }
 
-  /** Adiciona mensagem do usuário */
+  /** Adiciona mensagem do usuário (texto digitado: entra como texto, nunca como HTML) */
   function addUserMsg(text) {
     const msgs = document.getElementById('chatbot-messages');
     if (!msgs) return;
     const div = document.createElement('div');
     div.className = 'chat-msg user';
     div.innerHTML = `
-      <div class="msg-bubble">${text}</div>
+      <div class="msg-bubble"></div>
       <div class="msg-avatar"><i class="fa-solid fa-user"></i></div>`;
+    div.querySelector('.msg-bubble').textContent = text;
     msgs.appendChild(div);
     msgs.scrollTop = msgs.scrollHeight;
   }
@@ -211,7 +212,7 @@ const Chatbot = (() => {
     let html = node.text.replace(/\n/g, '<br>');
     if (node.action) {
       html += `<div class="chat-options" style="margin-top:10px">
-        <button class="chat-opt-btn" onclick="Chatbot.handleAction('${node.action.label}')">${node.action.label}</button>
+        <button class="chat-opt-btn" onclick="Chatbot.handleAction(${jsArg(node.action.label)})">${escHtml(node.action.label)}</button>
         <button class="chat-opt-btn" onclick="Chatbot.renderMain()">Menu principal</button>
       </div>`;
     } else {
@@ -225,12 +226,12 @@ const Chatbot = (() => {
 
   function _renderSubmenu(node, parentId) {
     const btns = node.items.map(item => `
-      <button class="chat-menu-btn" onclick="Chatbot.select('${item.id}', '${item.label}', '${parentId}')">
-        <span class="menu-num">${item.id}</span>
-        <span>${item.label}</span>
+      <button class="chat-menu-btn" onclick="Chatbot.select(${jsArg(item.id)}, ${jsArg(item.label)}, ${jsArg(parentId)})">
+        <span class="menu-num">${escHtml(item.id)}</span>
+        <span>${escHtml(item.label)}</span>
       </button>`).join('');
 
-    const html = `<strong>${node.label}</strong>
+    const html = `<strong>${escHtml(node.label)}</strong>
       <div class="chat-menu">${btns}</div>
       <div class="chat-options" style="margin-top:8px">
         <button class="chat-opt-btn" onclick="Chatbot.renderMain()">Menu principal</button>
@@ -262,10 +263,10 @@ const Chatbot = (() => {
     currentMenu = 'main';
     const { items } = TREE.main;
     const btns = items.map(item => `
-      <button class="chat-menu-btn" onclick="Chatbot.select('${item.id}', '${item.label}', 'main')">
-        <span class="menu-num">${item.id}</span>
-        <i class="fa-solid ${item.icon}"></i>
-        <span>${item.label}</span>
+      <button class="chat-menu-btn" onclick="Chatbot.select(${jsArg(item.id)}, ${jsArg(item.label)}, 'main')">
+        <span class="menu-num">${escHtml(item.id)}</span>
+        <i class="fa-solid ${escAttr(item.icon)}"></i>
+        <span>${escHtml(item.label)}</span>
       </button>`).join('');
 
     const html = `Como posso te ajudar?

@@ -32,11 +32,9 @@ const Auditoria = (() => {
   let pagina = 0;
   const TAMANHO = 25;
 
-  function esc(t) {
-    const d = document.createElement('div');
-    d.textContent = t == null ? '' : String(t);
-    return d.innerHTML;
-  }
+  // Delegado ao helper global (storage-guard.js). A versão anterior, via
+  // textContent/innerHTML, não escapava aspas e deixava atributos vulneráveis.
+  function esc(t) { return escHtml(t); }
 
   function filtros() {
     const v = id => (document.getElementById(id) || {}).value || '';
@@ -119,7 +117,7 @@ const Auditoria = (() => {
       const r = await Backend.verificarIntegridade();
       if (r.integra) {
         painel.className = 'aud-integridade ok';
-        painel.innerHTML = `✅ <b>${esc(T('aud.integra', 'Cadeia íntegra.'))}</b> ${r.totalDeRegistros} `
+        painel.innerHTML = `✅ <b>${esc(T('aud.integra', 'Cadeia íntegra.'))}</b> ${esc(r.totalDeRegistros)} `
           + esc(T('aud.integra_sub', 'registros foram recalculados e todos os elos conferem.'));
       } else {
         painel.className = 'aud-integridade falha';

@@ -10,7 +10,63 @@
  * Assim, todo o resto do código continua usando localStorage normalmente.
  *
  * DEVE ser o PRIMEIRO script carregado na página.
+ *
+ * Por ser o primeiro script, este arquivo também publica os helpers globais
+ * de escape contra XSS (escHtml, escAttr, jsArg, dataUrlSegura), usados por
+ * todos os módulos que montam HTML com dado vindo do cidadão, da API, do
+ * localStorage, da URL, do IBGE ou da IA.
  */
+
+/* ── Escape global contra injeção de HTML/script (XSS) ─────────────────
+ * Este é um canal anônimo: qualquer texto de uma denúncia pode ter sido
+ * escrito por um atacante e é exibido no painel do servidor público, que
+ * tem token com privilégios. Toda interpolação de dado em HTML deve passar
+ * por um destes helpers.
+ *
+ *   escHtml(v)       texto dentro de elemento (<td>${escHtml(v)}</td>)
+ *   escAttr(v)       valor de atributo entre aspas (title="${escAttr(v)}")
+ *   jsArg(v)         argumento de handler inline:
+ *                    onclick="verDetalhes(${jsArg(id)})"
+ *                    gera um literal JSON já escapado para o atributo, de
+ *                    modo que aspas simples ou duplas no dado não quebram
+ *                    nem injetam código no handler.
+ *   dataUrlSegura(u) devolve a data: URL só se for imagem, áudio, vídeo
+ *                    ou PDF em base64; caso contrário devolve ''.
+ */
+(function () {
+  'use strict';
+
+  var MAPA = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;', '`': '&#96;' };
+
+  function escHtml(v) {
+    if (v == null) return '';
+    return String(v).replace(/[&<>"'`]/g, function (c) { return MAPA[c]; });
+  }
+
+  // Escapa o mesmo conjunto: suficiente para atributos sempre entre aspas.
+  function escAttr(v) { return escHtml(v); }
+
+  function jsArg(v) {
+    var json = JSON.stringify(v === undefined ? null : v);
+    // U+2028/U+2029 são válidos em JSON mas quebravam literais JS antigos.
+    json = String(json).replace(/\u2028/g, '\\u2028').replace(/\u2029/g, '\\u2029');
+    return escAttr(json);
+  }
+
+  // SVG fica de fora de propósito: pode carregar script se aberto direto.
+  var DATA_URL_OK = /^data:(image\/(png|jpe?g|gif|webp|bmp|avif)|audio\/[a-z0-9.+-]+|video\/[a-z0-9.+-]+|application\/pdf)(;[a-z0-9=.+-]+)*;base64,[a-z0-9+\/=\s]*$/i;
+
+  function dataUrlSegura(u) {
+    if (typeof u !== 'string') return '';
+    return DATA_URL_OK.test(u) ? u : '';
+  }
+
+  window.escHtml = escHtml;
+  window.escAttr = escAttr;
+  window.jsArg = jsArg;
+  window.dataUrlSegura = dataUrlSegura;
+})();
+
 (function () {
   'use strict';
 

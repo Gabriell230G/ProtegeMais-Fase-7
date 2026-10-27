@@ -41,11 +41,9 @@ const Detalhe = (() => {
   let caso = null;      // resposta da API
   let editando = false;
 
-  function esc(t) {
-    const d = document.createElement('div');
-    d.textContent = t == null ? '' : String(t);
-    return d.innerHTML;
-  }
+  // Delegado ao helper global (storage-guard.js). A versão anterior, via
+  // textContent/innerHTML, não escapava aspas e deixava atributos vulneráveis.
+  function esc(t) { return escHtml(t); }
 
   function dataHora(v) {
     return String(v || '').replace('T', ' ').slice(0, 16) || '—';
@@ -137,7 +135,7 @@ const Detalhe = (() => {
 
       <div class="det-tags">
         <span class="det-tag status-${esc(caso.status)}">${esc(STATUS[caso.status] || caso.status)}</span>
-        <span class="det-tag">${esc(T('det.score','score'))} ${caso.score} · ${esc(caso.scoreTxt || '')}</span>
+        <span class="det-tag">${esc(T('det.score','score'))} ${esc(caso.score)} · ${esc(caso.scoreTxt || '')}</span>
         ${caso.urgenciaIa ? `<span class="det-tag urg">${esc(T('det.urgencia','urgência'))} ${esc(caso.urgenciaIa)}</span>` : ''}
         <span class="det-tag ${caso.anonimo ? 'anon' : ''}">${caso.anonimo
             ? '🕵️ ' + esc(T('det.anonima','anônima'))
@@ -203,7 +201,7 @@ const Detalhe = (() => {
         <label class="det-rot">${esc(T('form.tipo_label','Tipo'))}</label>
         <select id="det-tipo">
           ${Object.entries(TIPOS).map(([v, r]) =>
-            `<option value="${v}" ${v === caso.tipo ? 'selected' : ''}>${esc(r)}</option>`).join('')}
+            `<option value="${esc(v)}" ${v === caso.tipo ? 'selected' : ''}>${esc(r)}</option>`).join('')}
         </select>
         <label class="det-rot">${esc(T('det.relato','Relato'))}</label>
         <textarea id="det-descricao" rows="5">${esc(caso.descricao || '')}</textarea>
@@ -294,14 +292,14 @@ const Detalhe = (() => {
       return;
     }
     alvo.innerHTML = lista.map(e => `
-      <div class="evid-item">
+      <div class="evid-item" data-evid-id="${esc(e.id)}">
         <span class="evid-ic">📎</span>
         <div class="evid-corpo">
           <div class="evid-nome">${esc(e.nomeOriginal)}</div>
-          <div class="evid-meta">${esc(e.tipoConteudo)} · ${(e.tamanhoBytes / 1024).toFixed(0)} KB</div>
+          <div class="evid-meta">${esc(e.tipoConteudo)} · ${esc((e.tamanhoBytes / 1024).toFixed(0))} KB</div>
           <div class="evid-hash">${esc((e.hashSha256 || '').slice(0, 24))}…</div>
         </div>
-        <button class="fluxo-btn secundario" onclick="Evidencias.baixar(${e.id})">⬇</button>
+        <button class="fluxo-btn secundario" onclick="Evidencias.baixar(${jsArg(e.id)})">⬇</button>
       </div>`).join('');
   }
 

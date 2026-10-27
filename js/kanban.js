@@ -52,7 +52,7 @@ const Kanban = (() => {
              ondragleave="Kanban._dragLeave(event)"
              ondrop="Kanban._drop(event, '${col.key}')">
           <div class="kanban-col-head" style="border-top-color:${col.cor}">
-            <span class="kc-titulo" style="color:${col.cor}">${col.label}</span>
+            <span class="kc-titulo" style="color:${col.cor}">${escHtml(col.label)}</span>
             <span class="kc-count">${cards.length}</span>
           </div>
           <div class="kanban-col-body">
@@ -78,31 +78,31 @@ const Kanban = (() => {
     let atribuicao = '';
     if (typeof Equipe !== 'undefined') {
       const resp = d.responsavelId && Equipe.buscarPorId(d.responsavelId);
-      const atualLabel = resp ? `👤 ${resp.nome}` : '';
+      const atualLabel = resp ? `👤 ${escHtml(resp.nome)}` : '';
       atribuicao = `
         <div class="kc-atrib">
           <select class="kc-resp" id="resp-${d.id.replace(/[^a-zA-Z0-9]/g,'')}"
-                  onchange="Kanban._onSelectResp('${d.id}', this.value)"
+                  onchange="Kanban._onSelectResp(${jsArg(d.id)}, this.value)"
                   onclick="event.stopPropagation()" ondragstart="event.preventDefault()">
             ${Equipe.opcoesSelect(d.responsavelId)}
           </select>
           <button class="kc-confirm-resp" id="confirm-${d.id.replace(/[^a-zA-Z0-9]/g,'')}"
-                  style="display:none" onclick="event.stopPropagation();Kanban.confirmarResp('${d.id}')">✓ Confirmar</button>
+                  style="display:none" onclick="event.stopPropagation();Kanban.confirmarResp(${jsArg(d.id)})">✓ Confirmar</button>
           ${resp ? `<div class="kc-resp-atual">${atualLabel}</div>` : ''}
         </div>`;
     }
 
     return `
       <div class="kanban-card" draggable="true"
-           ondragstart="Kanban._dragStart(event, '${d.id}')"
+           ondragstart="Kanban._dragStart(event, ${jsArg(d.id)})"
            ondragend="Kanban._dragEnd(event)"
-           onclick="if(typeof verDetalhes==='function') verDetalhes('${d.id}')"
+           onclick="if(typeof verDetalhes==='function') verDetalhes(${jsArg(d.id)})"
            title="Clique para abrir a ficha do caso">
         <div class="kc-top">
-          <span class="kc-proto">${d.id}</span>
+          <span class="kc-proto">${escHtml(d.id)}</span>
           ${emerg}
         </div>
-        <div class="kc-tipo">${tipo}</div>
+        <div class="kc-tipo">${escHtml(tipo)}</div>
         <div class="kc-local">${_esc(d.local || '')}</div>
         <div class="kc-foot">${nivel}${_botaoAnexos(d)}</div>
         ${atribuicao}
@@ -312,14 +312,12 @@ const Kanban = (() => {
   function _botaoAnexos(d) {
     if (!d.apiId || typeof Evidencias === 'undefined') return '';
     return `<button class="kc-anexos" title="Anexos da denúncia"
-              onclick="event.stopPropagation();Evidencias.abrir(${d.apiId}, '${d.id}')"
+              onclick="event.stopPropagation();Evidencias.abrir(${jsArg(d.apiId)}, ${jsArg(d.id)})"
               ondragstart="event.preventDefault()">📎</button>`;
   }
 
-  function _esc(s) {
-    return String(s).replace(/[&<>"]/g, c =>
-      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-  }
+  // Delegado ao helper global (storage-guard.js), que também escapa aspas simples.
+  function _esc(s) { return escHtml(s); }
 
   return {
     render, atribuir, confirmarResp, _onSelectResp,

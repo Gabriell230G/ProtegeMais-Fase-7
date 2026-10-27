@@ -293,16 +293,16 @@ function _renderEloCidadao(d) {
   const chat = msgs.length === 0
     ? `<div class="elo-vazio">Nenhuma mensagem ainda.<br>Se a autoridade precisar de mais informações, aparecerá aqui.</div>`
     : msgs.map(m => `
-        <div class="elo-msg ${m.autor}">
+        <div class="elo-msg ${_esc(m.autor)}">
           <div class="elo-autor">${m.autor === 'gestor' ? '🏛️ Autoridade' : '🙋 Você'}</div>
           ${_esc(m.texto)}
-          <div class="elo-meta">${m.data} ${m.hora}</div>
+          <div class="elo-meta">${_esc(m.data)} ${_esc(m.hora)}</div>
         </div>`).join('');
 
   return `
     <div class="consulta-info-denuncia">
-      <div class="cid-status-badge cid-${d.status}">${statusLabels[d.status] || d.status}</div>
-      <div class="cid-protocolo">Protocolo <strong>${d.id}</strong></div>
+      <div class="cid-status-badge cid-${_esc(d.status)}">${_esc(statusLabels[d.status] || d.status)}</div>
+      <div class="cid-protocolo">Protocolo <strong>${_esc(d.id)}</strong></div>
       <div class="nivel-badge" style="color:${r.cor}">${r.icon} ${r.nome}</div>
     </div>
 
@@ -356,7 +356,7 @@ function trocarAbaConsulta(aba) {
   if (porCodigo) porCodigo.style.display = (aba === 'codigo') ? 'block' : 'none';
 }
 
+// Delegado ao helper global (storage-guard.js), que também escapa aspas simples.
 function _esc(s) {
-  return String(s).replace(/[&<>"]/g, c =>
-    ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
+  return escHtml(s);
 }

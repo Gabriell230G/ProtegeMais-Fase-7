@@ -239,7 +239,7 @@ const Emergencia = (() => {
       <div class="emerg-step-label"><span class="num">1</span> ${_t('emerg.passo1', 'O que está acontecendo?')}</div>
       <div class="emerg-tipos">
         ${TIPOS.map(t => `
-          <button class="emerg-tipo-btn" onclick="Emergencia.selecionarTipo('${t.id}', this)">
+          <button class="emerg-tipo-btn" onclick="Emergencia.selecionarTipo(${jsArg(t.id)}, this)">
             <span class="emoji">${t.emoji}</span>
             <span class="emerg-tipo-label">${_t(t.labelKey)}</span>
             <span class="emerg-tipo-sub">${_t(t.subKey)}</span>
@@ -269,7 +269,7 @@ const Emergencia = (() => {
       <div class="emerg-sucesso">
         <div class="check">✅</div>
         <h3>${_t('emerg.suc_titulo', 'Denúncia registrada com prioridade máxima')}</h3>
-        <div class="proto">${id}</div>
+        <div class="proto">${escHtml(id)}</div>
         <p>${_t('emerg.suc_sub', 'Guarde este número para acompanhar o status.')}<br>
         ${_t('emerg.suc_risco', 'Se houver risco imediato, ligue agora:')}</p>
         <a class="call-190" style="margin-top:12px;display:inline-flex" href="tel:190">

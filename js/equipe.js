@@ -59,7 +59,7 @@ const Equipe = (() => {
   function opcoesSelect(selecionadoId) {
     const vazio = '<option value="">— Não atribuído —</option>';
     return vazio + cache.map(m =>
-      `<option value="${m.id}" ${String(m.id) === String(selecionadoId) ? 'selected' : ''}>` +
+      `<option value="${escAttr(m.id)}" ${String(m.id) === String(selecionadoId) ? 'selected' : ''}>` +
       `${_esc(m.nome)}${m.cargo ? ' (' + _esc(m.cargo) + ')' : ''}</option>`
     ).join('');
   }
@@ -121,12 +121,12 @@ const Equipe = (() => {
 
     cont.innerHTML = cache.map(m => `
       <div class="equipe-card">
-        <div class="eq-avatar">${_iniciais(m.nome)}</div>
+        <div class="eq-avatar">${_esc(_iniciais(m.nome))}</div>
         <div class="eq-info">
           <div class="eq-nome">${_esc(m.nome)}</div>
           <div class="eq-meta">${[m.cargo, m.email].filter(Boolean).map(_esc).join(' · ') || '—'}</div>
         </div>
-        <button class="eq-remover" onclick="Equipe.remover('${m.id}')" title="Remover">✕</button>
+        <button class="eq-remover" onclick="Equipe.remover(${jsArg(m.id)})" title="Remover">✕</button>
       </div>`).join('');
   }
 
@@ -134,10 +134,8 @@ const Equipe = (() => {
   function _iniciais(nome) {
     return String(nome).trim().split(/\s+/).slice(0, 2).map(p => p[0] || '').join('').toUpperCase();
   }
-  function _esc(s) {
-    return String(s == null ? '' : s).replace(/[&<>"]/g, c =>
-      ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;' }[c]));
-  }
+  // Delegado ao helper global (storage-guard.js), que também escapa aspas simples.
+  function _esc(s) { return escHtml(s); }
   function _aviso(msg) {
     if (typeof showToast === 'function') showToast(msg);
     else console.log('[Equipe]', msg);

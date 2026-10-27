@@ -25,10 +25,8 @@ const Reincidencia = (() => {
   let janela = 90;
   let params = { janelaEloDias: 14, minimoParaFoco: 3 };
 
-  function _esc(t) {
-    return String(t ?? '').replace(/[&<>"']/g, c =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
+  // Delegado ao helper global (storage-guard.js).
+  function _esc(t) { return escHtml(t); }
 
   function _data(iso) {
     if (!iso) return '';
@@ -63,8 +61,8 @@ const Reincidencia = (() => {
     const criterio = document.getElementById('rei-criterio');
     if (criterio) {
       criterio.innerHTML = `Duas denúncias entram na mesma cadeia quando são do mesmo tipo
-        e do mesmo município e estão a no máximo <b>${params.janelaEloDias} dias</b> uma da outra,
-        e a cadeia só é considerada a partir de <b>${params.minimoParaFoco}</b> denúncias.
+        e do mesmo município e estão a no máximo <b>${_esc(params.janelaEloDias)} dias</b> uma da outra,
+        e a cadeia só é considerada a partir de <b>${_esc(params.minimoParaFoco)}</b> denúncias.
         Quando uma cadeia reúne quase tudo o que aquele município produziu naquele tipo, ela
         deixa de ser um <b>foco</b> e passa a ser marcada como <b>fluxo contínuo</b>: não é um
         surto que se destaca, é a demanda normal do lugar.`;
@@ -87,7 +85,7 @@ const Reincidencia = (() => {
         <div class="rei-vazio">
           <div class="rei-vazio-ic">✅</div>
           <p><strong>Nenhum foco nesta janela.</strong></p>
-          <p>Nenhuma cadeia de ${params.minimoParaFoco} ou mais denúncias encadeadas
+          <p>Nenhuma cadeia de ${_esc(params.minimoParaFoco)} ou mais denúncias encadeadas
              foi encontrada nos últimos ${janela} dias. Isso não significa ausência
              de casos: significa que os casos não se encadearam.</p>
         </div>`;
@@ -115,7 +113,7 @@ const Reincidencia = (() => {
     const t = TIPOS[f.tipo] || { rotulo: f.tipo, cor: '#64748b' };
     // Duracao zero acontece quando o foco inteiro cabe num dia. Escrever
     // "0 dias" parece dado faltando; "no mesmo dia" e o que aconteceu.
-    const dur = f.duracaoDias > 0 ? `${f.duracaoDias} dias` : 'no mesmo dia';
+    const dur = f.duracaoDias > 0 ? `${_esc(f.duracaoDias)} dias` : 'no mesmo dia';
     const pct = Math.round((f.cobertura || 0) * 100);
 
     // Um agrupamento que reune quase todo o grupo nao destaca nada: ele E o
@@ -134,14 +132,14 @@ const Reincidencia = (() => {
          </div>`;
 
     return `
-      <div class="rei-card${f.continuo ? ' e-continuo' : ''}" style="--c:${t.cor}">
+      <div class="rei-card${f.continuo ? ' e-continuo' : ''}" style="--c:${_esc(t.cor)}">
         <div class="rei-card-topo">
           <div>
             <div class="rei-card-tit">${_esc(f.cidade)}</div>
-            <span class="rei-tipo" style="--c:${t.cor}">${_esc(t.rotulo)}</span>
+            <span class="rei-tipo" style="--c:${_esc(t.cor)}">${_esc(t.rotulo)}</span>
           </div>
           <div class="rei-qtd">
-            <span class="rei-qtd-num">${f.quantidade}</span>
+            <span class="rei-qtd-num">${_esc(f.quantidade)}</span>
             <span class="rei-qtd-rot">denúncias</span>
           </div>
         </div>
@@ -154,9 +152,9 @@ const Reincidencia = (() => {
         </div>
 
         <div class="rei-metricas">
-          <div><b>${f.scoreMedio}</b><span>score médio</span></div>
-          <div><b>${f.scoreMaximo}</b><span>pior caso</span></div>
-          <div><b>${(f.quantidade / Math.max(1, f.duracaoDias || 1)).toFixed(1)}</b><span>por dia</span></div>
+          <div><b>${_esc(f.scoreMedio)}</b><span>score médio</span></div>
+          <div><b>${_esc(f.scoreMaximo)}</b><span>pior caso</span></div>
+          <div><b>${_esc((f.quantidade / Math.max(1, f.duracaoDias || 1)).toFixed(1))}</b><span>por dia</span></div>
         </div>
 
         ${selo}

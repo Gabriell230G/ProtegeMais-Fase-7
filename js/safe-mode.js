@@ -111,9 +111,9 @@ const SafeMode = (() => {
 
   function _buildSuggestions(list) {
     return list.map(s => `
-      <div class="safe-suggestion" onmousedown="SafeMode.pickSuggestion('${s}')">
+      <div class="safe-suggestion" onmousedown="SafeMode.pickSuggestion(${jsArg(s)})">
         <i class="fa-solid fa-magnifying-glass"></i>
-        <span>${s}</span>
+        <span>${escHtml(s)}</span>
       </div>`).join('');
   }
 

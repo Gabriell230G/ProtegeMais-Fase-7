@@ -30,10 +30,8 @@ const Dispositivos = (() => {
   let filtro = '';
   let timer  = null;
 
-  function _esc(t) {
-    return String(t ?? '').replace(/[&<>"']/g, c =>
-      ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
-  }
+  // Delegado ao helper global (storage-guard.js).
+  function _esc(t) { return escHtml(t); }
 
   /** Horario legivel. O evento vem do servidor ja truncado em milissegundos. */
   function _hora(iso) {
@@ -119,9 +117,9 @@ const Dispositivos = (() => {
     return `
       <tr>
         <td class="disp-hora">${_hora(e.recebidoEm)}</td>
-        <td><span class="disp-org" style="--c:${o.cor}">${o.icone} ${_esc(o.rotulo)}</span></td>
+        <td><span class="disp-org" style="--c:${_esc(o.cor)}">${_esc(o.icone)} ${_esc(o.rotulo)}</span></td>
         <td class="disp-mono">${_esc(e.dispositivo)}</td>
-        <td><span class="disp-sit ${s.classe}">${_esc(s.rotulo)}</span></td>
+        <td><span class="disp-sit ${_esc(s.classe)}">${_esc(s.rotulo)}</span></td>
         <td class="disp-mono">${e.protocoloGerado ? _esc(e.protocoloGerado) : '<span class="disp-nulo">nao gerou caso</span>'}</td>
         <td class="disp-det">${_esc(e.detalhe)}</td>
       </tr>`;

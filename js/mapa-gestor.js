@@ -139,14 +139,15 @@ const MapaGestor = (() => {
           mouseover: (e) => e.target.setStyle({ weight: 2, color: '#0F172A', fillOpacity: 1 }),
           mouseout:  (e) => geoLayer.resetStyle(e.target),
           click: () => {
-            let html = `<div class="mapa-info-popup"><h4>${nomeReal}</h4>`;
+            // nomeReal vem da malha do IBGE e o tipo vem da denúncia: escapados no popup.
+            let html = `<div class="mapa-info-popup"><h4>${escHtml(nomeReal)}</h4>`;
             if (total < MIN_EXIBICAO) {
               html += `<div class="suprimido">Menos de ${MIN_EXIBICAO} denúncias — detalhe suprimido por privacidade.</div>`;
             } else {
               html += `<div class="total">${total}</div><div style="font-size:11px;color:#64748B">denúncias agregadas</div>`;
               const tipos = porTipo[nome] || {};
               const linhas = Object.entries(tipos)
-                .map(([t, n]) => `${TIPO_LABELS[t] || t}: <strong>${n}</strong>`).join('<br>');
+                .map(([t, n]) => `${escHtml(TIPO_LABELS[t] || t)}: <strong>${escHtml(n)}</strong>`).join('<br>');
               if (linhas) html += `<div class="breakdown">${linhas}</div>`;
             }
             html += `</div>`;
@@ -174,13 +175,13 @@ const MapaGestor = (() => {
       const total = contagem[nome] || 0;
       layer.off('click');
       layer.on('click', () => {
-        let html = `<div class="mapa-info-popup"><h4>${nomeReal}</h4>`;
+        let html = `<div class="mapa-info-popup"><h4>${escHtml(nomeReal)}</h4>`;
         if (total < MIN_EXIBICAO) {
           html += `<div class="suprimido">Menos de ${MIN_EXIBICAO} denúncias — detalhe suprimido por privacidade.</div>`;
         } else {
           html += `<div class="total">${total}</div><div style="font-size:11px;color:#64748B">denúncias agregadas</div>`;
           const tipos = porTipo[nome] || {};
-          const linhas = Object.entries(tipos).map(([t, n]) => `${TIPO_LABELS[t] || t}: <strong>${n}</strong>`).join('<br>');
+          const linhas = Object.entries(tipos).map(([t, n]) => `${escHtml(TIPO_LABELS[t] || t)}: <strong>${escHtml(n)}</strong>`).join('<br>');
           if (linhas) html += `<div class="breakdown">${linhas}</div>`;
         }
         html += `</div>`;
