@@ -8,6 +8,7 @@ import br.gov.protege.dto.RegistroTotemResponse;
 import br.gov.protege.dto.TelemetriaGeofenceRequest;
 import br.gov.protege.dto.TelemetriaResponse;
 import br.gov.protege.model.EventoIot;
+import br.gov.protege.model.PerfilUsuario;
 import br.gov.protege.service.AuditoriaService;
 import br.gov.protege.service.EventoIotService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -18,6 +19,8 @@ import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -31,6 +34,11 @@ import java.util.Map;
  * X-Device-Key, comparada em tempo constante. E uma protecao mais fraca que
  * a do restante da API, e por isso as rotas de dispositivo so conseguem
  * CRIAR evento. Nenhuma delas le, altera ou apaga caso existente.
+ *
+ * Fase 7 | A chave agora e conferida pelo ChaveDispositivoFilter ANTES de o
+ * corpo ser lido; a conferencia aqui fica como segunda barreira. Proximo
+ * passo registrado: credencial por dispositivo (por exemplo MQTT com usuario
+ * e certificado por aparelho) no lugar da chave unica compartilhada.
  */
 @Tag(name = "IoT", description = "Barramento de eventos de dispositivos fisicos (Fase 6)")
 @RestController
@@ -68,9 +76,11 @@ public class IotController {
                description = "Recebe a posicao de uma tornozeleira e avalia o perimetro da medida "
                            + "protetiva NO SERVIDOR. Quando o perimetro e violado, abre um caso "
                            + "critico sozinho. Leituras repetidas dentro de 600 segundos nao "
-                           + "geram caso novo: a violacao ja esta alertada.")
+                           + "geram caso novo: a violacao ja esta alertada. A resposta NAO diz "
+                           + "se a leitura estava dentro do perimetro nem se abriu caso: so "
+                           + "ACEITA ou DESCARTADA (sem medida ativa).")
     @ApiResponses({
-        @ApiResponse(responseCode = "202", description = "Leitura aceita e avaliada"),
+        @ApiResponse(responseCode = "202", description = "Leitura recebida e avaliada"),
         @ApiResponse(responseCode = "401", description = "Chave do dispositivo ausente ou invalida", content = @Content),
         @ApiResponse(responseCode = "400", description = "Dados invalidos", content = @Content)
     })
@@ -82,8 +92,10 @@ public class IotController {
                     .body(Map.of("erro", "Chave de dispositivo ausente ou invalida"));
         }
         EventoIotService.TelemetriaResultado r = service.registrarTelemetria(req);
+        // Fase 7 | Nada de alertaAberto/protocolo: a resposta nao pode servir
+        // de oraculo para desenhar o perimetro protegido.
         return ResponseEntity.accepted()
-                .body(TelemetriaResponse.aceita(r.alertaAberto(), r.protocolo()));
+                .body(r.medidaAtiva() ? TelemetriaResponse.aceita() : TelemetriaResponse.descartada());
     }
 
     @Operation(summary = "Registro feito em totem de atendimento publico",
@@ -123,14 +135,31 @@ public class IotController {
     }
 
     @Operation(summary = "Ultimos eventos recebidos dos dispositivos",
-               description = "Alimenta a tela de dispositivos no painel do orgao.")
+               description = "Alimenta a tela de dispositivos no painel do orgao. Perfis sem "
+                           + "acesso a identificacao (ATENDENTE) recebem a coordenada "
+                           + "arredondada a 3 casas (cerca de 100 m).")
     @SecurityRequirement(name = "bearerAuth")
     @Auditavel(acao = AuditoriaService.CONSULTA_SENSIVEL, recurso = "EventoIot",
                detalhe = "Leitura do fluxo de eventos de dispositivos")
     @GetMapping("/eventos")
     public List<EventoIotResponse> eventos(@RequestParam(required = false) String origem,
-                                           @RequestParam(defaultValue = "50") int limite) {
-        return service.ultimos(origem, limite).stream().map(EventoIotResponse::de).toList();
+                                           @RequestParam(defaultValue = "50") int limite,
+                                           Authentication auth) {
+        boolean exato = podeVerIdentidade(auth);
+        return service.ultimos(origem, limite).stream()
+                .map(e -> EventoIotResponse.de(e, exato))
+                .toList();
+    }
+
+    /** Fase 7 | Mesmo criterio do detalhe da denuncia: so GESTOR e ADMIN veem o ponto exato. */
+    private static boolean podeVerIdentidade(Authentication auth) {
+        if (auth == null || auth.getAuthorities() == null) return false;
+        for (GrantedAuthority a : auth.getAuthorities()) {
+            if (PerfilUsuario.de(a.getAuthority().replaceFirst("^ROLE_", "")).podeVerIdentidade()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Operation(summary = "Totais por origem de dispositivo")

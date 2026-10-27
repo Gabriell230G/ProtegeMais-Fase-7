@@ -145,6 +145,45 @@ class EvidenciaServiceTest {
     }
 
     @Test
+    @DisplayName("Fase 7 | JPEG e gravado sem EXIF/GPS, e o hash e o tamanho sao os da versao limpa")
+    void jpegGravadoSemExif() throws Exception {
+        byte[] exif = "Exif\0\0GPS-23.5108,-46.8761".getBytes(java.nio.charset.StandardCharsets.ISO_8859_1);
+        byte[] cabecalhoApp1 = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xE1, 0, (byte) (exif.length + 2)};
+        byte[] imagem = {(byte) 0xFF, (byte) 0xDA, 0, 2, 0x11, 0x22, (byte) 0xFF, (byte) 0xD9};
+        byte[] original = new byte[cabecalhoApp1.length + exif.length + imagem.length];
+        System.arraycopy(cabecalhoApp1, 0, original, 0, cabecalhoApp1.length);
+        System.arraycopy(exif, 0, original, cabecalhoApp1.length, exif.length);
+        System.arraycopy(imagem, 0, original, cabecalhoApp1.length + exif.length, imagem.length);
+
+        Evidencia ev = svc.guardar(1L, original, "foto.jpg");
+
+        byte[] noDisco = Files.readAllBytes(diretorio.resolve(ev.getNomeArmazenado()));
+        byte[] esperado = {(byte) 0xFF, (byte) 0xD8, (byte) 0xFF, (byte) 0xDA, 0, 2, 0x11, 0x22, (byte) 0xFF, (byte) 0xD9};
+        assertArrayEquals(esperado, noDisco, "a copia no disco ja nasce sem o segmento EXIF");
+        assertEquals(esperado.length, ev.getTamanhoBytes());
+        assertEquals(EvidenciaService.sha256(esperado), ev.getHashSha256());
+        assertArrayEquals(esperado, svc.conteudo(ev), "a leitura confere o hash da versao limpa");
+    }
+
+    @Test
+    @DisplayName("Fase 7 | exclusao da denuncia apaga todos os anexos dela do disco")
+    void removerTodasDaDenuncia() throws Exception {
+        Evidencia a = svc.guardar(7L, png(32), "a.png");
+        Evidencia b = svc.guardar(7L, png(40), "b.png");
+        Mockito.when(repo.findByDenunciaIdAndRemovidaFalseOrderByEnviadoEmAsc(7L))
+               .thenAnswer(inv -> gravadas.stream().filter(e -> !e.isRemovida()).toList());
+
+        int removidas = svc.removerTodasDa(7L, "Exclusao da denuncia: pedido do titular");
+
+        assertEquals(2, removidas);
+        assertFalse(Files.exists(diretorio.resolve(a.getNomeArmazenado())));
+        assertFalse(Files.exists(diretorio.resolve(b.getNomeArmazenado())));
+        assertTrue(a.isRemovida() && b.isRemovida(), "os registros ficam, marcados como removidos");
+        assertEquals("Exclusao da denuncia: pedido do titular", a.getMotivoRemocao());
+        assertEquals(0, svc.removerTodasDa(7L, "de novo"), "segunda chamada nao encontra nada");
+    }
+
+    @Test
     @DisplayName("remoção sem motivo é recusada")
     void remocaoExigeMotivo() {
         Evidencia ev = svc.guardar(1L, png(32), "a.png");

@@ -35,10 +35,16 @@ import java.util.Map;
  *  comportamento desejado). A chave IoT sorteada e gravada em
  *  ./data/iot-chave.txt para o operador colar no simulador.
  *
+ *  Fase 7 | Como as senhas das contas de demonstracao sao publicas, o
+ *  servidor em modo demonstracao escuta SO na propria maquina (127.0.0.1),
+ *  a menos que SERVER_ADDRESS / server.address seja definido de proposito.
+ *  Assim um notebook na rede da faculdade nao expoe o painel com admin123.
+ *
  *  MODO PRODUCAO (false): falha rapido. Se o segredo do JWT, a senha do
  *  administrador ou a chave IoT nao forem informados, ou forem fracos, o
  *  sistema se recusa a subir e diz exatamente o que falta. O console do H2
- *  e desligado a forca.
+ *  e desligado a forca, a massa de exemplo (data.sql) nao e carregada e a
+ *  documentacao interativa (Swagger/OpenAPI) sai do ar.
  *
  * Registrada em META-INF/spring.factories.
  */
@@ -48,6 +54,7 @@ public class GuardiaoDeSegredos implements EnvironmentPostProcessor {
     static final int MIN_JWT = 32;
     static final int MIN_SENHA = 12;
     static final int MIN_IOT = 16;
+    static final String ENDERECO_DEMO = "127.0.0.1";
 
     private static final SecureRandom SORTEIO = new SecureRandom();
 
@@ -68,6 +75,18 @@ public class GuardiaoDeSegredos implements EnvironmentPostProcessor {
                 gravarChaveIot(chave);
             }
             if (senha.isBlank()) definidos.put("app.admin.senha", "admin123");
+            String endereco = env.getProperty("server.address");
+            if (endereco == null || endereco.isBlank()) {
+                definidos.put("server.address", ENDERECO_DEMO);
+                System.out.println("[Protege+] Modo demonstracao: a API escuta apenas em "
+                        + ENDERECO_DEMO + " (esta maquina), porque as contas de demonstracao tem "
+                        + "senha publica. Para expor na rede, defina SERVER_ADDRESS de proposito "
+                        + "ou use o modo producao (PROTEGE_DEMO=false).");
+            } else {
+                System.out.println("[Protege+] Modo demonstracao com SERVER_ADDRESS=" + endereco
+                        + " definido explicitamente: as contas de demonstracao (senhas publicas) "
+                        + "ficam acessiveis por esse endereco.");
+            }
         } else {
             List<String> problemas = validarProducao(jwt, senha, iot);
             if (!problemas.isEmpty()) {
@@ -76,6 +95,12 @@ public class GuardiaoDeSegredos implements EnvironmentPostProcessor {
                         + String.join("\n - ", problemas));
             }
             definidos.put("spring.h2.console.enabled", "false");
+            // Fase 7 | Sem massa ficticia em producao: o data.sql cadastra 190
+            // casos de exemplo e totens/tornozeleira de demonstracao ATIVOS.
+            definidos.put("spring.sql.init.mode", "never");
+            // Fase 7 | O mapa completo da API nao fica publico em producao.
+            definidos.put("springdoc.api-docs.enabled", "false");
+            definidos.put("springdoc.swagger-ui.enabled", "false");
         }
 
         if (!definidos.isEmpty()) {

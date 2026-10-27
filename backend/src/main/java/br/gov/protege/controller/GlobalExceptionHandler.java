@@ -5,6 +5,8 @@ import br.gov.protege.exception.ConflitoException;
 import br.gov.protege.exception.FormatoNaoSuportadoException;
 import br.gov.protege.exception.RecursoNaoEncontradoException;
 import br.gov.protege.exception.RegraDeNegocioException;
+import br.gov.protege.security.LimiteCorpoFilter;
+import br.gov.protege.util.LogSeguro;
 import jakarta.validation.ConstraintViolationException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,11 +14,16 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.security.access.AccessDeniedException;
+import org.springframework.web.HttpMediaTypeNotSupportedException;
+import org.springframework.web.HttpRequestMethodNotSupportedException;
 import org.springframework.web.bind.MethodArgumentNotValidException;
+import org.springframework.web.bind.MissingRequestHeaderException;
 import org.springframework.web.bind.MissingServletRequestParameterException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
+import org.springframework.web.servlet.NoHandlerFoundException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.LinkedHashMap;
@@ -57,12 +64,53 @@ public class GlobalExceptionHandler {
     }
 
     /** JSON malformado ou tipo incompativel -> 400, sem devolver o trecho recebido. */
-    @ExceptionHandler({HttpMessageNotReadableException.class,
-                       MethodArgumentTypeMismatchException.class,
-                       MissingServletRequestParameterException.class})
+    @ExceptionHandler({MethodArgumentTypeMismatchException.class,
+                       MissingServletRequestParameterException.class,
+                       MissingRequestHeaderException.class})
     public ResponseEntity<Map<String, Object>> requisicaoMalformada(Exception ex) {
-        log.warn("Requisicao malformada: {}", ex.getMessage());
+        // Fase 7 | A mensagem pode trazer trecho escrito pelo cliente: sem
+        // quebra de linha, para nao forjar linhas no log.
+        log.warn("Requisicao malformada: {}", LogSeguro.limpar(ex.getMessage()));
         return build(HttpStatus.BAD_REQUEST, "Requisicao malformada", null, null);
+    }
+
+    /**
+     * Corpo ilegivel -> 400. Fase 7 | Se a leitura foi interrompida pelo teto
+     * de tamanho (LimiteCorpoFilter), a resposta e 413.
+     */
+    @ExceptionHandler(HttpMessageNotReadableException.class)
+    public ResponseEntity<Map<String, Object>> corpoIlegivel(HttpMessageNotReadableException ex) {
+        for (Throwable t = ex; t != null; t = t.getCause()) {
+            if (t instanceof LimiteCorpoFilter.CorpoGrandeDemaisException) {
+                return build(HttpStatus.PAYLOAD_TOO_LARGE, "Corpo da requisicao acima do limite de "
+                        + (LimiteCorpoFilter.LIMITE_BYTES / 1024) + " KB", null, null);
+            }
+            if (t.getCause() == t) break;
+        }
+        log.warn("Requisicao malformada: {}", LogSeguro.limpar(ex.getMessage()));
+        return build(HttpStatus.BAD_REQUEST, "Requisicao malformada", null, null);
+    }
+
+    /**
+     * Fase 7 | Rota inexistente -> 404. Antes caia no tratamento generico e
+     * virava 500 com codigo de rastreio, enchendo o log de "erro interno" a
+     * cada varredura de rotas.
+     */
+    @ExceptionHandler({NoResourceFoundException.class, NoHandlerFoundException.class})
+    public ResponseEntity<Map<String, Object>> rotaInexistente(Exception ex) {
+        return build(HttpStatus.NOT_FOUND, "Recurso inexistente", null, null);
+    }
+
+    /** Fase 7 | Metodo HTTP nao suportado pela rota -> 405. */
+    @ExceptionHandler(HttpRequestMethodNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> metodoNaoSuportado(HttpRequestMethodNotSupportedException ex) {
+        return build(HttpStatus.METHOD_NOT_ALLOWED, "Metodo nao suportado nesta rota", null, null);
+    }
+
+    /** Fase 7 | Content-Type nao aceito pela rota -> 415. */
+    @ExceptionHandler(HttpMediaTypeNotSupportedException.class)
+    public ResponseEntity<Map<String, Object>> tipoNaoSuportado(HttpMediaTypeNotSupportedException ex) {
+        return build(HttpStatus.UNSUPPORTED_MEDIA_TYPE, "Tipo de conteudo nao suportado nesta rota", null, null);
     }
 
     /** Recurso inexistente -> 404 com corpo padronizado. */

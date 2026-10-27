@@ -40,4 +40,33 @@ class MascaraTextoLivreTest {
         assertNull(MascaraUtil.textoLivre(null));
         assertEquals("", MascaraUtil.textoLivre(""));
     }
+
+    @Test
+    @DisplayName("Fase 7 | entrada adversaria de 100 KB termina rapido e sem StackOverflowError")
+    void entradaAdversaria() {
+        String[] ataques = {
+                "a@" + "a.".repeat(50_000),
+                "a@b" + ".c".repeat(50_000),
+                "rua" + " ".repeat(100_000),
+                "1".repeat(100_000)
+        };
+        for (String ataque : ataques) {
+            assertTimeout(java.time.Duration.ofSeconds(2), () -> MascaraUtil.textoLivre(ataque));
+        }
+    }
+
+    @Test
+    @DisplayName("Fase 7 | texto acima do teto e cortado, nunca devolvido sem mascara")
+    void textoAcimaDoTeto() {
+        String longo = "x".repeat(MascaraUtil.MAXIMO_TEXTO_LIVRE) + " maria.silva@gmail.com";
+        String r = MascaraUtil.textoLivre(longo);
+        assertEquals(MascaraUtil.MAXIMO_TEXTO_LIVRE, r.length());
+        assertFalse(r.contains("maria.silva"));
+    }
+
+    @Test
+    @DisplayName("Fase 7 | e-mail com subdominios continua mascarado")
+    void emailComSubdominio() {
+        assertEquals("contato: [email].", MascaraUtil.textoLivre("contato: a.b+c@sub.dominio.com.br."));
+    }
 }

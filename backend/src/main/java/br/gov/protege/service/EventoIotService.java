@@ -294,7 +294,7 @@ public class EventoIotService {
             ignorado.setSituacao(EventoIot.DESCARTADO);
             ignorado.setDetalhe("Equipamento sem medida protetiva ativa vinculada");
             repo.save(ignorado);
-            return new TelemetriaResultado(false, null);
+            return new TelemetriaResultado(false, null, false);
         }
 
         ZonaExclusao zona = achada.get();
@@ -314,7 +314,7 @@ public class EventoIotService {
             repo.save(evento);
             zona.setDentroDoPerimetro(false);
             zonas.save(zona);
-            return new TelemetriaResultado(false, null);
+            return new TelemetriaResultado(false, null, true);
         }
 
         boolean alertar = deveAlertar(zona.getUltimoAlertaEm(), agora, COOLDOWN_ALERTA_SEGUNDOS);
@@ -327,7 +327,7 @@ public class EventoIotService {
             repo.save(evento);
             zona.setDentroDoPerimetro(true);
             zonas.save(zona);
-            return new TelemetriaResultado(false, null);
+            return new TelemetriaResultado(false, null, true);
         }
 
         DenunciaRequest pedido = new DenunciaRequest();
@@ -352,11 +352,17 @@ public class EventoIotService {
 
         auditoria.registrar(AuditoriaService.ALTERACAO_DADOS, "ZonaExclusao",
                             String.valueOf(zona.getId()));
-        return new TelemetriaResultado(true, salvo.getProtocoloGerado());
+        return new TelemetriaResultado(true, salvo.getProtocoloGerado(), true);
     }
 
-    /** Resultado interno do processamento de uma leitura de telemetria. */
-    public record TelemetriaResultado(boolean alertaAberto, String protocolo) {}
+    /**
+     * Resultado interno do processamento de uma leitura de telemetria.
+     *
+     * Fase 7 | alertaAberto e protocolo ficam so do lado do servidor (testes
+     * e painel); a resposta ao aparelho usa apenas medidaAtiva. Ver
+     * TelemetriaResponse.
+     */
+    public record TelemetriaResultado(boolean alertaAberto, String protocolo, boolean medidaAtiva) {}
 
     // ------------------------------------------------------------------
     //  Origem C: totem publico

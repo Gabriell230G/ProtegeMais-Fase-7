@@ -34,21 +34,34 @@ public class SecurityConfig {
 
     private final JwtService jwtService;
     private final RespostasDeSeguranca respostas;
+    private final UsuarioRepository usuarios;
     private final boolean consoleH2;
     private final boolean confiarEmProxy;
+    private final String chaveIot;
 
     public SecurityConfig(JwtService jwtService, RespostasDeSeguranca respostas,
+                          UsuarioRepository usuarios,
                           @Value("${spring.h2.console.enabled:false}") boolean consoleH2,
-                          @Value("${protege.proxy-confiavel:false}") boolean confiarEmProxy) {
+                          @Value("${protege.proxy-confiavel:false}") boolean confiarEmProxy,
+                          @Value("${protege.iot.chave:}") String chaveIot) {
         this.jwtService = jwtService;
         this.respostas = respostas;
+        this.usuarios = usuarios;
         this.consoleH2 = consoleH2;
         this.confiarEmProxy = confiarEmProxy;
+        this.chaveIot = chaveIot;
     }
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtService);
+        // Fase 7 | O filtro consulta o usuario no banco a cada requisicao:
+        // perfil removido ou alterado vale na hora, sem esperar o token expirar.
+        JwtAuthFilter jwtAuthFilter = new JwtAuthFilter(jwtService, usuarios);
+
+        final String atendente = PerfilUsuario.ATENDENTE.name();
+        final String gestor = PerfilUsuario.GESTOR.name();
+        final String auditor = PerfilUsuario.AUDITOR.name();
+        final String admin = PerfilUsuario.ADMIN.name();
 
         http
             .csrf(AbstractHttpConfigurer::disable)
@@ -80,7 +93,8 @@ public class SecurityConfig {
 
                 // Dispositivos fisicos (Fase 6) nao tem usuario para autenticar.
                 // Eles entram por chave compartilhada no cabecalho X-Device-Key,
-                // conferida no EventoIotService. A rota fica fora do JWT, mas so
+                // conferida no ChaveDispositivoFilter (Fase 7: antes de ler o
+                // corpo) e de novo no controlador. A rota fica fora do JWT, mas so
                 // permite CRIAR evento: ler, alterar e apagar continuam exigindo
                 // token e perfil, como todo o resto da API.
                 .requestMatchers(HttpMethod.POST, "/api/iot/**").permitAll()
@@ -98,17 +112,65 @@ public class SecurityConfig {
 
                 // ---- TRILHA DE AUDITORIA ----
                 // Quem opera o sistema nao fiscaliza o proprio uso dele.
-                .requestMatchers("/api/auditoria/**")
-                    .hasAnyRole(PerfilUsuario.AUDITOR.name(), PerfilUsuario.ADMIN.name())
+                .requestMatchers("/api/auditoria/**").hasAnyRole(auditor, admin)
 
                 // ---- BACKUP (Fase 7) ----
                 // Gerar backup e operacao de administrador. Conferir a
                 // integridade dos backups e tarefa de fiscalizacao, entao o
                 // AUDITOR tambem le a lista (mas nao gera).
-                .requestMatchers(HttpMethod.POST, "/api/backup/**")
-                    .hasRole(PerfilUsuario.ADMIN.name())
-                .requestMatchers(HttpMethod.GET, "/api/backup/**")
-                    .hasAnyRole(PerfilUsuario.AUDITOR.name(), PerfilUsuario.ADMIN.name())
+                .requestMatchers(HttpMethod.GET, "/api/backup/**").hasAnyRole(auditor, admin)
+                .requestMatchers("/api/backup/**").hasRole(admin)
+
+                // ---- Fase 7 | MATRIZ DE PERFIS DO PAINEL ----
+                // Antes, tudo que nao tinha regra propria caia em
+                // authenticated(): o AUDITOR lia relatos, baixava evidencias e
+                // podia reescrever um caso. A matriz abaixo, por metodo e
+                // rota, e a fonte da verdade:
+                //   AUDITOR   so agregados (stats), trilha, lista de backups.
+                //   ATENDENTE le e trabalha o caso (dados, avanco de status,
+                //             IA, anexos), sem atribuir, desfazer, excluir,
+                //             mexer na equipe, backup ou trilha.
+                //   GESTOR    tudo do ATENDENTE + atribuir, desfazer, excluir,
+                //             equipe, reabrir caso. Sem trilha e sem backup.
+                //   ADMIN     tudo.
+                // As regras de retorno de etapa/reabertura ficam no servico
+                // (FluxoStatus), porque dependem do status atual do caso.
+
+                // Casos: leitura e trabalho do dia a dia.
+                .requestMatchers(HttpMethod.GET, "/api/denuncias", "/api/denuncias/*",
+                                 "/api/denuncias/*/evidencias")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers(HttpMethod.PUT, "/api/denuncias/*")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers(HttpMethod.PATCH, "/api/denuncias/*/status")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers(HttpMethod.PATCH, "/api/denuncias/*/responsavel")
+                    .hasAnyRole(gestor, admin)
+
+                // Evidencias: o binario e o dado mais sensivel do sistema.
+                .requestMatchers(HttpMethod.GET, "/api/evidencias/*/arquivo")
+                    .hasAnyRole(atendente, gestor, admin)
+
+                // Fila: o ATENDENTE consulta e assume o proximo caso. A pilha
+                // (consultar e desfazer, que pode reabrir um caso) e de
+                // coordenacao, como o retorno de etapa.
+                .requestMatchers(HttpMethod.GET, "/api/fluxo/fila")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers(HttpMethod.POST, "/api/fluxo/fila/atender")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers("/api/fluxo/**").hasAnyRole(gestor, admin)
+
+                // Eventos de dispositivo carregam coordenada (arredondada para
+                // o ATENDENTE no controlador); focos de reincidencia agrupam
+                // casos individuais. Fora do alcance do AUDITOR.
+                .requestMatchers(HttpMethod.GET, "/api/iot/eventos")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers(HttpMethod.GET, "/api/reincidencia/focos")
+                    .hasAnyRole(atendente, gestor, admin)
+
+                // VigIA: reanalise e perguntas leem casos e chamam servico externo.
+                .requestMatchers(HttpMethod.POST, "/api/vigia/**")
+                    .hasAnyRole(atendente, gestor, admin)
 
                 // ---- EXPORTACAO DE DADOS ----
                 // A operacao de maior exposicao do sistema: entrega centenas de
@@ -126,23 +188,25 @@ public class SecurityConfig {
                 // trabalha os casos. Dar-lhe a base inteira seria criar o unico
                 // perfil com visao total, que e o que a segregacao evita.
                 .requestMatchers("/api/exportacao/**")
-                    .hasAnyRole(PerfilUsuario.ATENDENTE.name(),
-                                PerfilUsuario.GESTOR.name(),
-                                PerfilUsuario.ADMIN.name())
+                    .hasAnyRole(atendente, gestor, admin)
 
                 // ---- EXCLUSAO DE DENUNCIA E DE ANEXO ----
                 .requestMatchers(HttpMethod.DELETE, "/api/denuncias/**")
-                    .hasAnyRole(PerfilUsuario.GESTOR.name(), PerfilUsuario.ADMIN.name())
+                    .hasAnyRole(gestor, admin)
                 .requestMatchers(HttpMethod.DELETE, "/api/evidencias/**")
-                    .hasAnyRole(PerfilUsuario.GESTOR.name(), PerfilUsuario.ADMIN.name())
+                    .hasAnyRole(gestor, admin)
 
                 // ---- GESTAO DA EQUIPE ----
-                .requestMatchers(HttpMethod.POST,   "/api/equipe/**")
-                    .hasAnyRole(PerfilUsuario.GESTOR.name(), PerfilUsuario.ADMIN.name())
-                .requestMatchers(HttpMethod.PUT,    "/api/equipe/**")
-                    .hasAnyRole(PerfilUsuario.GESTOR.name(), PerfilUsuario.ADMIN.name())
-                .requestMatchers(HttpMethod.DELETE, "/api/equipe/**")
-                    .hasAnyRole(PerfilUsuario.GESTOR.name(), PerfilUsuario.ADMIN.name())
+                // Ler a equipe serve para atribuir e exibir o responsavel;
+                // alterar e de coordenacao.
+                .requestMatchers(HttpMethod.GET, "/api/equipe/**")
+                    .hasAnyRole(atendente, gestor, admin)
+                .requestMatchers("/api/equipe/**")
+                    .hasAnyRole(gestor, admin)
+
+                // Agregados (/api/stats/**, /api/iot/resumo,
+                // /api/reincidencia/parametros) seguem para a regra geral:
+                // qualquer perfil autenticado, inclusive o AUDITOR.
 
                 // ---- Demais rotas do painel ----
                 .anyRequest().authenticated())
@@ -156,7 +220,13 @@ public class SecurityConfig {
 
             // O limite por origem vem antes da autenticacao: forca bruta de
             // senha precisa ser barrada ANTES de chegar na verificacao dela.
+            // Fase 7 | Em seguida, ainda sem ler o corpo: a chave dos
+            // dispositivos (rotas IoT) e o teto de tamanho do corpo JSON.
+            // Filtros registrados antes do mesmo ponto rodam na ordem em
+            // que foram adicionados.
             .addFilterBefore(new RateLimitFilter(confiarEmProxy), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new ChaveDispositivoFilter(chaveIot), UsernamePasswordAuthenticationFilter.class)
+            .addFilterBefore(new LimiteCorpoFilter(), UsernamePasswordAuthenticationFilter.class)
             .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class);
 
         // Fase 7 | Antes a protecao contra a pagina ser embutida em outro

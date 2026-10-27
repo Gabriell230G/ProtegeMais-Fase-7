@@ -7,7 +7,9 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClient;
 
+import java.text.Normalizer;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -75,8 +77,29 @@ public class VigiaService {
 
     public record Analise(String urgencia, String resumo, String origem) {}
 
-    /** Classifica urgencia e resume uma denuncia. */
+    /**
+     * Fase 7 | Conjunto fechado de urgencias, da mais grave para a mais leve.
+     * A posicao na lista e a ordem de gravidade.
+     */
+    static final List<String> URGENCIAS = List.of("CRITICA", "ALTA", "MEDIA", "BAIXA");
+
+    /** Tamanho da coluna resumo_ia: resposta maior nao pode derrubar a gravacao. */
+    static final int RESUMO_MAXIMO = 2000;
+
+    /**
+     * Classifica urgencia e resume uma denuncia.
+     *
+     * Fase 7 | A saida do modelo deixou de ser confiada como veio:
+     *  - a urgencia e normalizada (sem acento, maiuscula) e so vale se for
+     *    uma das quatro conhecidas; fora disso, vale a analise por regras;
+     *  - as regras sao o PISO: a urgencia final e a mais grave entre a das
+     *    regras e a do modelo. Um texto que tente convencer o modelo a
+     *    rebaixar o caso (injecao de prompt) nao o deixa abaixo do que as
+     *    regras ja identificaram;
+     *  - o resumo e cortado no tamanho da coluna.
+     */
     public Analise analisar(Denuncia d) {
+        Analise regras = analisePorRegras(d);
         if (iaAtiva()) {
             try {
                 String prompt = """
@@ -92,18 +115,58 @@ public class VigiaService {
                     Relato: %s
                     """.formatted(nz(d.getTipo()), nz(d.getLocal()), relatoParaIa(d));
 
-                String texto = chamarGemini(prompt);
-                String limpo = texto.replaceAll("(?s)```json|```", "").trim();
-                JsonNode json = mapper.readTree(limpo);
-                return new Analise(
-                        json.path("urgencia").asText("MEDIA").toUpperCase(),
-                        json.path("resumo").asText(""),
-                        "gemini");
+                Analise doModelo = combinar(regras, chamarGemini(prompt));
+                if (doModelo != null) return doModelo;
             } catch (Exception e) {
                 // cai para as regras
             }
         }
-        return analisePorRegras(d);
+        return regras;
+    }
+
+    /**
+     * Fase 7 | Interpreta a resposta do modelo e aplica o piso das regras.
+     * Devolve null quando a resposta nao serve (JSON invalido ou urgencia
+     * fora do conjunto), para quem chamou usar as regras.
+     */
+    Analise combinar(Analise regras, String textoDoModelo) {
+        if (textoDoModelo == null) return null;
+        try {
+            String limpo = textoDoModelo.replaceAll("(?s)```json|```", "").trim();
+            JsonNode json = mapper.readTree(limpo);
+            if (json == null) return null;
+            String urgenciaModelo = normalizarUrgencia(json.path("urgencia").asText(""));
+            if (urgenciaModelo == null) return null;
+            return new Analise(maisGrave(regras.urgencia(), urgenciaModelo),
+                               truncar(json.path("resumo").asText(""), RESUMO_MAXIMO),
+                               "gemini");
+        } catch (Exception e) {
+            return null;
+        }
+    }
+
+    /** "Crítica " vira "CRITICA"; valor fora do conjunto fechado vira null. */
+    static String normalizarUrgencia(String bruto) {
+        if (bruto == null) return null;
+        String u = Normalizer.normalize(bruto, Normalizer.Form.NFD)
+                .replaceAll("\\p{M}", "")
+                .trim()
+                .toUpperCase(Locale.ROOT);
+        return URGENCIAS.contains(u) ? u : null;
+    }
+
+    /** A mais grave das duas; valor desconhecido nunca vence um conhecido. */
+    static String maisGrave(String a, String b) {
+        int ia = a == null ? -1 : URGENCIAS.indexOf(a);
+        int ib = b == null ? -1 : URGENCIAS.indexOf(b);
+        if (ia < 0) return ib < 0 ? "MEDIA" : b;
+        if (ib < 0) return a;
+        return ia <= ib ? a : b;
+    }
+
+    static String truncar(String texto, int maximo) {
+        if (texto == null) return null;
+        return texto.length() <= maximo ? texto : texto.substring(0, maximo);
     }
 
     /** Responde uma pergunta livre do gestor sobre o panorama das denuncias. */

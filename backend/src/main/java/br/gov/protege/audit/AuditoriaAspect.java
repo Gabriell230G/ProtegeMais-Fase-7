@@ -35,17 +35,29 @@ public class AuditoriaAspect {
         try {
             Object retorno = jp.proceed();
             auditoria.registrar(auditavel.acao(), auditavel.recurso(), recursoId,
-                    AuditoriaService.PERMITIDO, auditavel.detalhe());
+                    AuditoriaService.PERMITIDO, detalheCompleto(auditavel.detalhe()));
             return retorno;
         } catch (org.springframework.security.access.AccessDeniedException e) {
+            AuditoriaService.consumirDetalheComplementar();
             auditoria.registrar(auditavel.acao(), auditavel.recurso(), recursoId,
                     AuditoriaService.NEGADO, "Acesso negado pelo perfil");
             throw e;
         } catch (Throwable e) {
+            AuditoriaService.consumirDetalheComplementar();
             auditoria.registrar(auditavel.acao(), auditavel.recurso(), recursoId,
                     AuditoriaService.ERRO, e.getClass().getSimpleName());
             throw e;
         }
+    }
+
+    /**
+     * Fase 7 | Junta o detalhe fixo da anotacao ao complemento deixado pelo
+     * servico durante a requisicao (ex.: nomes dos campos alterados).
+     */
+    private static String detalheCompleto(String fixo) {
+        String extra = AuditoriaService.consumirDetalheComplementar();
+        if (extra == null) return fixo;
+        return (fixo == null || fixo.isEmpty()) ? extra : fixo + "; " + extra;
     }
 
     /**

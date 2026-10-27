@@ -2,12 +2,14 @@ package br.gov.protege.service;
 
 import br.gov.protege.model.AuditoriaLog;
 import br.gov.protege.repository.AuditoriaLogRepository;
+import br.gov.protege.util.LogSeguro;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
+import org.springframework.web.context.request.RequestAttributes;
 import org.springframework.web.context.request.RequestContextHolder;
 import org.springframework.web.context.request.ServletRequestAttributes;
 
@@ -55,8 +57,38 @@ public class AuditoriaService {
 
     private final AuditoriaLogRepository repo;
 
+    /** Atributo da requisicao onde os servicos deixam o complemento do detalhe. */
+    static final String ATRIBUTO_DETALHE = AuditoriaService.class.getName() + ".detalhe";
+
     public AuditoriaService(AuditoriaLogRepository repo) {
         this.repo = repo;
+    }
+
+    /**
+     * Fase 7 | Complementa o detalhe que o @Auditavel vai gravar ao fim da
+     * requisicao atual (por exemplo, quais campos uma edicao alterou ou
+     * quantos anexos uma exclusao apagou). O detalhe fixo da anotacao nao
+     * conhece o que aconteceu dentro do servico; este atalho leva essa
+     * informacao ate o aspecto sem mudar a assinatura dos metodos. Fora de
+     * uma requisicao web (testes, tarefas agendadas) nao faz nada.
+     *
+     * Nunca passe aqui o VALOR de um dado pessoal: apenas nomes e contagens.
+     */
+    public static void complementarDetalhe(String texto) {
+        RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
+        if (attrs == null || texto == null || texto.isBlank()) return;
+        Object atual = attrs.getAttribute(ATRIBUTO_DETALHE, RequestAttributes.SCOPE_REQUEST);
+        attrs.setAttribute(ATRIBUTO_DETALHE, atual == null ? texto : atual + "; " + texto,
+                RequestAttributes.SCOPE_REQUEST);
+    }
+
+    /** Le e limpa o complemento deixado pelos servicos nesta requisicao. */
+    public static String consumirDetalheComplementar() {
+        RequestAttributes attrs = RequestContextHolder.getRequestAttributes();
+        if (attrs == null) return null;
+        Object valor = attrs.getAttribute(ATRIBUTO_DETALHE, RequestAttributes.SCOPE_REQUEST);
+        if (valor != null) attrs.removeAttribute(ATRIBUTO_DETALHE, RequestAttributes.SCOPE_REQUEST);
+        return valor == null ? null : String.valueOf(valor);
     }
 
     // ------------------------------------------------------------------
@@ -105,19 +137,21 @@ public class AuditoriaService {
         reg.setDataHora(LocalDateTime.now().truncatedTo(ChronoUnit.MILLIS));
         reg.setAcao(acao);
         reg.setRecurso(recurso);
-        reg.setRecursoId(recursoId);
+        // Fase 7 | Valores que podem ter vindo do cliente passam por
+        // LogSeguro: uma quebra de linha neles forjaria linhas na trilha.
+        reg.setRecursoId(LogSeguro.limpar(recursoId));
         reg.setResultado(resultado);
-        reg.setDetalhe(truncar(detalhe, 300));
+        reg.setDetalhe(truncar(LogSeguro.limpar(detalhe), 300));
 
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        reg.setUsuario(usuarioExplicito != null ? usuarioExplicito
-                     : (auth == null ? "anonimo" : auth.getName()));
+        reg.setUsuario(LogSeguro.limpar(usuarioExplicito != null ? usuarioExplicito
+                     : (auth == null ? "anonimo" : auth.getName())));
         reg.setPerfil(perfilExplicito != null ? perfilExplicito : perfilDe(auth));
 
         HttpServletRequest req = requisicaoAtual();
         if (req != null) {
             reg.setOrigemIp(ipDe(req));
-            reg.setUserAgent(truncar(req.getHeader("User-Agent"), 200));
+            reg.setUserAgent(truncar(LogSeguro.limpar(req.getHeader("User-Agent")), 200));
         }
 
         String anterior = repo.findFirstByOrderByIdDesc()

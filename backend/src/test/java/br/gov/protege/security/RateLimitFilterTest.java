@@ -29,6 +29,21 @@ class RateLimitFilterTest {
     }
 
     @Test
+    @DisplayName("Fase 7 | com proxy confiavel vale o ULTIMO endereco, acrescentado pelo proxy")
+    void usaUltimoEnderecoDoProxy() {
+        MockHttpServletRequest req = new MockHttpServletRequest();
+        req.setRemoteAddr("10.0.0.2");
+        // O cliente forjou "6.6.6.6"; o proxy acrescentou o endereco real no fim.
+        req.addHeader("X-Forwarded-For", "6.6.6.6, 198.51.100.7");
+        assertEquals("198.51.100.7", RateLimitFilter.origem(req, true));
+
+        MockHttpServletRequest vazio = new MockHttpServletRequest();
+        vazio.setRemoteAddr("10.0.0.3");
+        vazio.addHeader("X-Forwarded-For", " , ");
+        assertEquals("10.0.0.3", RateLimitFilter.origem(vazio, true), "lista sem endereco cai na conexao");
+    }
+
+    @Test
     @DisplayName("bloqueia ao passar do limite dentro da janela de um minuto")
     void bloqueiaNoLimite() {
         RateLimitFilter f = new RateLimitFilter();

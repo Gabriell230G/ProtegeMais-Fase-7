@@ -7,6 +7,7 @@ import br.gov.protege.model.AcaoReversivel;
 import br.gov.protege.model.Denuncia;
 import br.gov.protege.model.HistoricoItem;
 import br.gov.protege.repository.DenunciaRepository;
+import br.gov.protege.repository.MembroRepository;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
@@ -15,7 +16,6 @@ import org.springframework.transaction.annotation.Transactional;
 import java.time.LocalDateTime;
 import java.time.Year;
 import java.time.format.DateTimeFormatter;
-import java.util.List;
 
 @Service
 public class DenunciaService {
@@ -24,20 +24,21 @@ public class DenunciaService {
     private final ScoreService scoreService;
     private final VigiaService vigia;
     private final PilhaAcoesService pilha;
+    private final EvidenciaService evidencias;
+    private final MembroRepository membros;
 
     private static final DateTimeFormatter DATA = DateTimeFormatter.ofPattern("dd/MM/yyyy");
     private static final DateTimeFormatter HORA = DateTimeFormatter.ofPattern("HH:mm");
 
-    /** Fluxo oficial: nenhuma transicao pode pular etapas para tras sem registro. */
-    private static final List<String> STATUS_VALIDOS =
-            List.of("recebida", "analise", "encaminhada", "concluida");
-
     public DenunciaService(DenunciaRepository repo, ScoreService scoreService,
-                           VigiaService vigia, PilhaAcoesService pilha) {
+                           VigiaService vigia, PilhaAcoesService pilha,
+                           EvidenciaService evidencias, MembroRepository membros) {
         this.repo = repo;
         this.scoreService = scoreService;
         this.vigia = vigia;
         this.pilha = pilha;
+        this.evidencias = evidencias;
+        this.membros = membros;
     }
 
     /** Registra uma nova denuncia: gera protocolo, score, analise de IA e historico. */
@@ -55,13 +56,39 @@ public class DenunciaService {
         return repo.save(d);
     }
 
-    /** Atualizacao completa do caso (PUT). Nao mexe em status nem protocolo. */
+    /**
+     * Atualizacao do caso pelo orgao (PUT). Nao mexe em status nem protocolo.
+     *
+     * Fase 7 | Duas regras novas, aplicadas em EdicaoDoCaso:
+     *  1. O relato (descricao) e a escolha de anonimato sao a palavra de quem
+     *     denunciou e nao sao reescritos pelo orgao. O valor recebido e
+     *     ignorado e a trilha registra que houve a tentativa.
+     *  2. Quem nao ve o endereco (ATENDENTE) recebe o marcador de protecao no
+     *     lugar dele; o formulario devolve esse marcador ou vazio. Isso nao
+     *     pode apagar o endereco real gravado.
+     * A trilha recebe os NOMES dos campos alterados, nunca os valores.
+     */
     @Transactional
-    public Denuncia atualizar(Long id, DenunciaRequest req) {
+    public Denuncia atualizar(Long id, DenunciaRequest req, boolean podeVerIdentidade) {
         Denuncia d = buscarObrigatoria(id);
-        aplicar(d, req);
-        calcularScoreEIa(d, req);
+        EdicaoDoCaso.Edicao edicao = EdicaoDoCaso.aplicar(d, req, podeVerIdentidade);
+        // O score e recalculado sobre o que ficou gravado, e nao sobre o
+        // corpo recebido: o relato ignorado nao pode mudar a prioridade.
+        calcularScoreEIa(d, paraPedido(d));
+        AuditoriaService.complementarDetalhe(edicao.resumo());
         return repo.save(d);
+    }
+
+    /** Monta, a partir do que esta gravado, o pedido usado no calculo do score. */
+    private static DenunciaRequest paraPedido(Denuncia d) {
+        DenunciaRequest r = new DenunciaRequest();
+        r.setTipo(d.getTipo());
+        r.setDescricao(d.getDescricao());
+        r.setEstado(d.getEstado());
+        r.setCidade(d.getCidade());
+        r.setEndereco(d.getEndereco());
+        r.setAnonimo(d.isAnonimo());
+        return r;
     }
 
     public Page<Denuncia> listar(String status, String tipo, String estado, Pageable pageable) {
@@ -86,19 +113,30 @@ public class DenunciaService {
         return atualizarStatus(id, novoStatus, null);
     }
 
+    /** Mudanca de status sem permissao de retorno (so avanca). */
+    @Transactional
+    public Denuncia atualizarStatus(Long id, String novoStatus, String usuario) {
+        return atualizarStatus(id, novoStatus, usuario, false);
+    }
+
     /**
      * Muda o status, registra o passo no historico e empilha a acao para
      * que o servidor possa desfazer um engano operacional (US21).
+     *
+     * Fase 7 | Maquina de estados (FluxoStatus): avancar e livre para
+     * quem trabalha o caso; voltar uma etapa, ou reabrir um caso concluido,
+     * e decisao de coordenacao (GESTOR/ADMIN). Pedir a etapa em que o caso ja
+     * esta nao muda nada e nao gera passo novo no historico.
+     *
+     * @param podeRetroceder verdadeiro para GESTOR e ADMIN
      */
     @Transactional
-    public Denuncia atualizarStatus(Long id, String novoStatus, String usuario) {
-        if (!STATUS_VALIDOS.contains(novoStatus)) {
-            throw new RegraDeNegocioException("Status invalido: " + novoStatus);
-        }
+    public Denuncia atualizarStatus(Long id, String novoStatus, String usuario, boolean podeRetroceder) {
         Denuncia d = buscarObrigatoria(id);
         String anterior = d.getStatus();
-        if (novoStatus.equals(anterior)) {
-            throw new RegraDeNegocioException("A denuncia ja esta no status " + novoStatus);
+        if (!FluxoStatus.validar(anterior, novoStatus, podeRetroceder)) {
+            AuditoriaService.complementarDetalhe("Sem mudanca: o caso ja estava em " + anterior);
+            return d;
         }
 
         aplicarStatus(d, novoStatus);
@@ -107,6 +145,8 @@ public class DenunciaService {
         pilha.empilhar(usuario, new AcaoReversivel(
                 salva.getId(), salva.getProtocolo(), anterior, novoStatus, LocalDateTime.now()));
 
+        AuditoriaService.complementarDetalhe(anterior + " -> " + novoStatus
+                + (FluxoStatus.FINAL.equals(anterior) ? " (reabertura)" : ""));
         return salva;
     }
 
@@ -135,7 +175,10 @@ public class DenunciaService {
         if (proximo == null) {
             throw new RegraDeNegocioException("Nenhum caso aguardando atendimento");
         }
-        if ("analise".equals(proximo.getStatus())) {
+        // Fase 7 | Caso ja em tratamento (analise ou encaminhada) nao volta
+        // para analise: isso seria um retorno de etapa, que a maquina de
+        // estados reserva a coordenacao.
+        if ("analise".equals(proximo.getStatus()) || "encaminhada".equals(proximo.getStatus())) {
             return proximo;
         }
         return atualizarStatus(proximo.getId(), "analise", usuario);
@@ -151,6 +194,11 @@ public class DenunciaService {
     @Transactional
     public Denuncia atribuirResponsavel(Long id, Long responsavelId) {
         Denuncia d = buscarObrigatoria(id);
+        // Fase 7 | O id precisa existir na equipe: antes qualquer numero era
+        // aceito e o caso ficava "atribuido" a ninguem.
+        if (responsavelId == null || !membros.existsById(responsavelId)) {
+            throw new RegraDeNegocioException("Responsavel inexistente na equipe: " + responsavelId);
+        }
         d.setResponsavelId(responsavelId);
         return repo.save(d);
     }
@@ -170,12 +218,23 @@ public class DenunciaService {
         }
         Denuncia d = buscarObrigatoria(id);
         d.setExcluida(true);
-        d.setMotivoExclusao(motivo);
+        d.setMotivoExclusao(motivo.length() <= 300 ? motivo : motivo.substring(0, 300));
         d.setExcluidaEm(LocalDateTime.now());
         d.setDescricao(null);
         d.setEndereco(null);
         d.setResumoIa(null);
         repo.save(d);
+
+        // Fase 7 | Os anexos acompanham a exclusao: o arquivo sai do disco e
+        // o registro fica marcado como removido. Antes, a denuncia excluida
+        // continuava com fotos e documentos listaveis e baixaveis por id.
+        int anexos = evidencias.removerTodasDa(id, "Exclusao da denuncia: " + motivo);
+        AuditoriaService.complementarDetalhe(anexos + " anexo(s) apagado(s) do disco");
+    }
+
+    /** Fase 7 | Verdadeiro se a denuncia existe e nao foi excluida. */
+    public boolean ativa(Long id) {
+        return id != null && repo.findByIdAndExcluidaFalse(id).isPresent();
     }
 
     // ---------------------------------------------------------------
@@ -206,7 +265,7 @@ public class DenunciaService {
         return new HistoricoItem(status, agora.format(DATA), agora.format(HORA));
     }
 
-    private String montarLocal(String cidade, String estado) {
+    private static String montarLocal(String cidade, String estado) {
         if (cidade == null || cidade.isBlank()) return estado == null ? "" : estado;
         return estado == null || estado.isBlank() ? cidade : cidade + ", " + estado;
     }

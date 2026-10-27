@@ -145,11 +145,24 @@ public class RateLimitFilter extends OncePerRequestFilter {
      * Endereco de quem fez a requisicao. Por padrao, o da conexao TCP, que o
      * cliente nao consegue falsificar. O X-Forwarded-For so vale quando ha um
      * proxy reverso confiavel na frente (protege.proxy-confiavel=true).
+     *
+     * Fase 7 | Com proxy, vale o ULTIMO endereco da lista, e nao o primeiro.
+     * O cliente pode mandar o cabecalho ja preenchido com o que quiser; o
+     * nosso proxy acrescenta ao FIM o endereco real de quem se conectou a
+     * ele. Ler o primeiro item deixava o cliente escolher a propria origem e
+     * zerar o limite trocando o valor a cada pedido. (Supoe um unico proxy
+     * nosso na frente; com mais de um, contar a partir do fim.)
      */
     public static String origem(HttpServletRequest req, boolean confiarEmProxy) {
         if (confiarEmProxy) {
             String fwd = req.getHeader("X-Forwarded-For");
-            if (fwd != null && !fwd.isBlank()) return fwd.split(",")[0].trim();
+            if (fwd != null && !fwd.isBlank()) {
+                String[] partes = fwd.split(",");
+                for (int i = partes.length - 1; i >= 0; i--) {
+                    String ip = partes[i].trim();
+                    if (!ip.isEmpty()) return ip;
+                }
+            }
         }
         return req.getRemoteAddr();
     }

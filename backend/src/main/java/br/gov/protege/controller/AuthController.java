@@ -32,6 +32,14 @@ public class AuthController {
     private final boolean demo;
     private final String emailAdmin;
 
+    /**
+     * Fase 7 | Hash BCrypt de uma senha sorteada, gerado uma vez na subida
+     * com o mesmo codificador (e o mesmo custo) das contas reais. Serve so
+     * para gastar, no login com e-mail inexistente, o mesmo tempo de uma
+     * conferencia de senha de verdade.
+     */
+    private final String hashFalso;
+
     /** Acao gravada na trilha quando o ADMIN troca de perfil na demonstracao. */
     public static final String TROCA_PERFIL_DEMO = "TROCA_PERFIL_DEMO";
 
@@ -51,6 +59,7 @@ public class AuthController {
         this.auditoria = auditoria;
         this.demo = demo;
         this.emailAdmin = emailAdmin;
+        this.hashFalso = encoder.encode(java.util.UUID.randomUUID().toString());
     }
 
     @Operation(summary = "Troca de perfil na demonstracao (somente ADMIN, somente modo demo)",
@@ -98,8 +107,19 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@Valid @RequestBody LoginRequest req) {
 
-        Optional<Usuario> encontrado = repo.findByEmail(req.getEmail())
-                .filter(u -> encoder.matches(req.getSenha(), u.getSenhaHash()));
+        // Fase 7 | Tempo igual para e-mail inexistente e senha errada. Antes o
+        // BCrypt (dezenas de milissegundos) so rodava quando a conta existia,
+        // e a diferenca de tempo de resposta revelava quais e-mails tinham
+        // conta no orgao, mesmo com a mensagem identica.
+        Optional<Usuario> conta = repo.findByEmail(req.getEmail());
+        boolean senhaConfere;
+        if (conta.isPresent()) {
+            senhaConfere = encoder.matches(req.getSenha(), conta.get().getSenhaHash());
+        } else {
+            encoder.matches(req.getSenha(), hashFalso);   // resultado descartado de proposito
+            senhaConfere = false;
+        }
+        Optional<Usuario> encontrado = senhaConfere ? conta : Optional.empty();
 
         if (encontrado.isEmpty()) {
             auditoria.registrarLogin(req.getEmail(), null, false);

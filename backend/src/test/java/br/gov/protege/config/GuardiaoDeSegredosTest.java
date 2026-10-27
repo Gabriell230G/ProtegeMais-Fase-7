@@ -2,6 +2,7 @@ package br.gov.protege.config;
 
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.mock.env.MockEnvironment;
 
 import java.util.List;
 
@@ -40,6 +41,45 @@ class GuardiaoDeSegredosTest {
     void recusaJwtCurto() {
         List<String> p = GuardiaoDeSegredos.validarProducao("curto", SENHA_FORTE, IOT_FORTE);
         assertTrue(p.get(0).contains("JWT_SECRET"));
+    }
+
+    /** Ambiente com chave IoT definida, para o teste nao gravar data/iot-chave.txt. */
+    private static MockEnvironment ambiente(String demo) {
+        return new MockEnvironment()
+                .withProperty("protege.demo", demo)
+                .withProperty("protege.iot.chave", IOT_FORTE);
+    }
+
+    @Test
+    @DisplayName("Fase 7 | demonstracao escuta so na propria maquina por padrao")
+    void demoPresoAoLoopback() {
+        MockEnvironment env = ambiente("true");
+        new GuardiaoDeSegredos().postProcessEnvironment(env, null);
+        assertEquals("127.0.0.1", env.getProperty("server.address"));
+        // A massa de exemplo continua em demonstracao.
+        assertNotEquals("never", env.getProperty("spring.sql.init.mode"));
+    }
+
+    @Test
+    @DisplayName("Fase 7 | demonstracao respeita SERVER_ADDRESS definido de proposito")
+    void demoRespeitaEnderecoExplicito() {
+        MockEnvironment env = ambiente("true").withProperty("server.address", "0.0.0.0");
+        new GuardiaoDeSegredos().postProcessEnvironment(env, null);
+        assertEquals("0.0.0.0", env.getProperty("server.address"));
+    }
+
+    @Test
+    @DisplayName("Fase 7 | producao sem massa de exemplo e sem Swagger publico")
+    void producaoSemDataSqlNemSwagger() {
+        MockEnvironment env = ambiente("false")
+                .withProperty("jwt.secret", JWT_FORTE)
+                .withProperty("app.admin.senha", SENHA_FORTE);
+        new GuardiaoDeSegredos().postProcessEnvironment(env, null);
+        assertEquals("never", env.getProperty("spring.sql.init.mode"));
+        assertEquals("false", env.getProperty("springdoc.api-docs.enabled"));
+        assertEquals("false", env.getProperty("springdoc.swagger-ui.enabled"));
+        assertEquals("false", env.getProperty("spring.h2.console.enabled"));
+        assertNull(env.getProperty("server.address"), "em producao o endereco e decisao da implantacao");
     }
 
     @Test

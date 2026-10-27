@@ -78,24 +78,73 @@ public class RespostasDeSeguranca implements AuthenticationEntryPoint, AccessDen
     private void registrarRecusa(HttpServletRequest req) {
         try {
             String uri = req.getRequestURI();
-            String acao;
-            String recurso;
-            if (uri.startsWith("/api/auditoria")) {
-                acao = AuditoriaService.ACESSO_AUDITORIA; recurso = "AuditoriaLog";
-            } else if (uri.startsWith("/api/exportacao")) {
-                acao = AuditoriaService.EXPORTACAO; recurso = "Denuncia";
-            } else if (uri.startsWith("/api/equipe")) {
-                acao = AuditoriaService.ALTERACAO_EQUIPE; recurso = "Membro";
-            } else if (uri.startsWith("/api/evidencias")) {
-                acao = AuditoriaService.EXCLUSAO; recurso = "Evidencia";
-            } else {
-                acao = AuditoriaService.EXCLUSAO; recurso = "Denuncia";
-            }
-            auditoria.registrar(acao, recurso, null, AuditoriaService.NEGADO,
+            String[] rotulo = classificarRecusa(req.getMethod(), uri);
+            auditoria.registrar(rotulo[0], rotulo[1], null, AuditoriaService.NEGADO,
                     "Recusado pela regra de rota: " + req.getMethod() + " " + uri);
         } catch (RuntimeException e) {
             // Auditar e importante; negar o acesso e mais.
         }
+    }
+
+    /**
+     * Fase 7 | Rotulo (acao, recurso) de uma recusa, pelo METODO e pela rota.
+     *
+     * A versao anterior olhava so o caminho e gravava EXCLUSAO para qualquer
+     * rota de denuncia: um PUT ou PATCH negado aparecia na trilha como
+     * tentativa de exclusao, o que atrapalha justamente a investigacao que a
+     * trilha existe para apoiar.
+     */
+    static String[] classificarRecusa(String metodo, String uri) {
+        String m = metodo == null ? "" : metodo.toUpperCase(java.util.Locale.ROOT);
+        String u = uri == null ? "" : uri;
+        boolean leitura = "GET".equals(m) || "HEAD".equals(m);
+
+        if (u.startsWith("/api/auditoria")) {
+            return new String[]{AuditoriaService.ACESSO_AUDITORIA, "AuditoriaLog"};
+        }
+        if (u.startsWith("/api/exportacao")) {
+            return new String[]{AuditoriaService.EXPORTACAO, "Denuncia"};
+        }
+        if (u.startsWith("/api/backup")) {
+            return new String[]{leitura ? AuditoriaService.CONSULTA_SENSIVEL : br.gov.protege.service.BackupService.BACKUP, "Banco"};
+        }
+        if (u.startsWith("/api/equipe")) {
+            return new String[]{leitura ? AuditoriaService.CONSULTA_SENSIVEL
+                                        : AuditoriaService.ALTERACAO_EQUIPE, "Membro"};
+        }
+        if (u.startsWith("/api/evidencias") || (u.startsWith("/api/denuncias") && u.endsWith("/evidencias"))) {
+            return new String[]{"DELETE".equals(m) ? AuditoriaService.EXCLUSAO
+                                                   : AuditoriaService.CONSULTA_SENSIVEL, "Evidencia"};
+        }
+        if (u.startsWith("/api/denuncias")) {
+            if ("DELETE".equals(m)) return new String[]{AuditoriaService.EXCLUSAO, "Denuncia"};
+            if ("PATCH".equals(m) && u.endsWith("/status")) {
+                return new String[]{AuditoriaService.ALTERACAO_STATUS, "Denuncia"};
+            }
+            if ("PATCH".equals(m) && u.endsWith("/responsavel")) {
+                return new String[]{AuditoriaService.ATRIBUICAO, "Denuncia"};
+            }
+            if (leitura) return new String[]{AuditoriaService.CONSULTA_SENSIVEL, "Denuncia"};
+            return new String[]{AuditoriaService.ALTERACAO_DADOS, "Denuncia"};
+        }
+        if (u.startsWith("/api/fluxo")) {
+            return new String[]{leitura ? AuditoriaService.CONSULTA_SENSIVEL
+                                        : AuditoriaService.ALTERACAO_STATUS, "Denuncia"};
+        }
+        if (u.startsWith("/api/vigia")) {
+            return new String[]{AuditoriaService.REANALISE_IA, "Denuncia"};
+        }
+        if (u.startsWith("/api/iot")) {
+            return new String[]{AuditoriaService.CONSULTA_SENSIVEL, "EventoIot"};
+        }
+        if (u.startsWith("/api/reincidencia")) {
+            return new String[]{AuditoriaService.CONSULTA_SENSIVEL, "Reincidencia"};
+        }
+        if (u.startsWith("/api/auth/demo")) {
+            return new String[]{br.gov.protege.controller.AuthController.TROCA_PERFIL_DEMO, "Usuario"};
+        }
+        return new String[]{leitura ? AuditoriaService.CONSULTA_SENSIVEL
+                                    : AuditoriaService.ALTERACAO_DADOS, "Rota"};
     }
 
     private void escrever(HttpServletResponse res, HttpStatus status, String mensagem)

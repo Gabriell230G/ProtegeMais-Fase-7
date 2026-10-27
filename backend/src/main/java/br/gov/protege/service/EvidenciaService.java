@@ -7,6 +7,7 @@ import br.gov.protege.exception.RegraDeNegocioException;
 import br.gov.protege.model.Evidencia;
 import br.gov.protege.repository.EvidenciaRepository;
 import br.gov.protege.util.AssinaturaArquivo;
+import br.gov.protege.util.MetadadosUtil;
 import br.gov.protege.util.NomeArquivoUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -86,11 +87,16 @@ public class EvidenciaService {
                     "Formato nao aceito. Envie: " + AssinaturaArquivo.formatosAceitos());
         }
 
+        // Fase 7 | EXIF/GPS, comentarios e blocos de texto saem ANTES de gravar:
+        // a copia no disco ja nasce limpa e o hash da cadeia de custodia e o
+        // da versao limpa, que e a unica que o sistema entrega.
+        byte[] limpo = MetadadosUtil.remover(conteudo, tipo);
+
         String armazenado = UUID.randomUUID().toString();
         Path destino = resolverDentroDoDiretorio(armazenado);
         try {
             Files.createDirectories(diretorio);
-            Files.write(destino, conteudo);
+            Files.write(destino, limpo);
         } catch (IOException e) {
             log.error("Falha ao gravar evidencia da denuncia {}", denunciaId, e);
             throw new RegraDeNegocioException("Nao foi possivel armazenar o arquivo");
@@ -101,8 +107,8 @@ public class EvidenciaService {
         ev.setNomeOriginal(NomeArquivoUtil.higienizar(nomeInformado));
         ev.setNomeArmazenado(armazenado);
         ev.setTipoConteudo(tipo);
-        ev.setTamanhoBytes(conteudo.length);
-        ev.setHashSha256(sha256(conteudo));
+        ev.setTamanhoBytes(limpo.length);
+        ev.setHashSha256(sha256(limpo));
         ev.setEnviadoEm(LocalDateTime.now());
         return repo.save(ev);
     }
@@ -161,6 +167,32 @@ public class EvidenciaService {
         ev.setRemovidaEm(LocalDateTime.now());
         ev.setMotivoRemocao(motivo);
         repo.save(ev);
+    }
+
+    /**
+     * Fase 7 | Remove todas as evidencias de uma denuncia excluida (LGPD).
+     *
+     * A exclusao logica da denuncia anonimiza relato e endereco, mas os anexos
+     * continuavam no disco e saiam pela API. Agora cada arquivo e apagado e o
+     * registro fica marcado como removido, com o motivo, como na remocao
+     * individual. Devolve quantos anexos foram removidos, para a trilha.
+     */
+    @Transactional
+    public int removerTodasDa(Long denunciaId, String motivo) {
+        int removidas = 0;
+        for (Evidencia ev : repo.findByDenunciaIdAndRemovidaFalseOrderByEnviadoEmAsc(denunciaId)) {
+            try {
+                Files.deleteIfExists(resolverDentroDoDiretorio(ev.getNomeArmazenado()));
+            } catch (IOException e) {
+                log.warn("Nao foi possivel apagar o arquivo da evidencia {}", ev.getId(), e);
+            }
+            ev.setRemovida(true);
+            ev.setRemovidaEm(LocalDateTime.now());
+            ev.setMotivoRemocao(motivo == null || motivo.length() <= 300 ? motivo : motivo.substring(0, 300));
+            repo.save(ev);
+            removidas++;
+        }
+        return removidas;
     }
 
     /**

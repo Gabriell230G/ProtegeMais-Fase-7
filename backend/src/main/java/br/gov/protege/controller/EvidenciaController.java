@@ -2,6 +2,7 @@ package br.gov.protege.controller;
 
 import br.gov.protege.audit.Auditavel;
 import br.gov.protege.dto.EvidenciaResponse;
+import br.gov.protege.exception.RecursoNaoEncontradoException;
 import br.gov.protege.exception.RegraDeNegocioException;
 import br.gov.protege.model.Denuncia;
 import br.gov.protege.model.Evidencia;
@@ -105,6 +106,9 @@ public class EvidenciaController {
     @ApiResponse(responseCode = "200", description = "Metadados dos anexos")
     @GetMapping("/api/denuncias/{id}/evidencias")
     public List<EvidenciaResponse> listar(@PathVariable Long id) {
+        // Fase 7 | Denuncia excluida (ou inexistente) responde 404: os anexos
+        // dela nao sao mais listaveis.
+        denuncias.buscarObrigatoria(id);
         return service.listar(id).stream().map(EvidenciaController::paraResposta).toList();
     }
 
@@ -124,6 +128,12 @@ public class EvidenciaController {
     @GetMapping("/api/evidencias/{id}/arquivo")
     public ResponseEntity<byte[]> baixar(@PathVariable Long id) {
         Evidencia ev = service.buscar(id);
+        // Fase 7 | Anexo de denuncia excluida nao sai, nem por id direto. A
+        // mensagem e a mesma de evidencia inexistente, para nao confirmar
+        // que o arquivo existiu.
+        if (!denuncias.ativa(ev.getDenunciaId())) {
+            throw new RecursoNaoEncontradoException("Evidencia nao encontrada");
+        }
         byte[] dados = service.conteudo(ev);
 
         HttpHeaders h = new HttpHeaders();

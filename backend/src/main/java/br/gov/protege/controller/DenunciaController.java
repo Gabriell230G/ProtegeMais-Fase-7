@@ -128,7 +128,10 @@ public class DenunciaController {
     @Operation(summary = "Atualiza os dados de uma denuncia",
                description = "Substitui os campos descritivos do caso. Protocolo e status "
                            + "nao sao alterados por esta rota - status tem endpoint proprio "
-                           + "porque cada transicao precisa gerar historico.",
+                           + "porque cada transicao precisa gerar historico. O relato e a "
+                           + "escolha de anonimato do denunciante nao sao reescritos (o valor "
+                           + "recebido e ignorado e a trilha registra a tentativa). Para quem "
+                           + "nao ve o endereco, endereco vazio ou mascarado mantem o gravado.",
                security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Denuncia atualizada"),
@@ -140,15 +143,20 @@ public class DenunciaController {
     public DenunciaDetalheResponse atualizar(@PathVariable Long id,
                                              @Valid @RequestBody DenunciaRequest req,
                                              Authentication auth) {
-        return DenunciaMapper.detalhe(service.atualizar(id, req), podeVerIdentidade(auth));
+        boolean veIdentidade = podeVerIdentidade(auth);
+        return DenunciaMapper.detalhe(service.atualizar(id, req, veIdentidade), veIdentidade);
     }
 
     @Operation(summary = "Muda o status e registra na linha do tempo",
+               description = "Avancar no fluxo (recebida, analise, encaminhada, concluida) e "
+                           + "permitido a quem trabalha o caso. Voltar uma etapa ou reabrir um "
+                           + "caso concluido e restrito a GESTOR e ADMIN. Pedir o status atual "
+                           + "nao altera nada.",
                security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
-        @ApiResponse(responseCode = "200", description = "Status alterado"),
+        @ApiResponse(responseCode = "200", description = "Status alterado (ou ja estava nele)"),
         @ApiResponse(responseCode = "404", description = "Denuncia inexistente", content = @io.swagger.v3.oas.annotations.media.Content),
-        @ApiResponse(responseCode = "422", description = "Transicao invalida", content = @io.swagger.v3.oas.annotations.media.Content)
+        @ApiResponse(responseCode = "409", description = "Retorno de etapa ou reabertura sem perfil de coordenacao", content = @io.swagger.v3.oas.annotations.media.Content)
     })
     @Auditavel(acao = AuditoriaService.ALTERACAO_STATUS, recurso = "Denuncia")
     @PatchMapping("/{id}/status")
@@ -156,14 +164,16 @@ public class DenunciaController {
                                               @Valid @RequestBody AtualizarStatusRequest req,
                                               Authentication auth) {
         String usuario = (auth == null || auth.getName() == null) ? "anonimo" : auth.getName();
-        return DenunciaMapper.resumo(service.atualizarStatus(id, req.getStatus(), usuario));
+        return DenunciaMapper.resumo(service.atualizarStatus(id, req.getStatus(), usuario,
+                temPerfil(auth, PerfilUsuario.GESTOR, PerfilUsuario.ADMIN)));
     }
 
     @Operation(summary = "Atribui um responsavel pelo caso",
                security = @SecurityRequirement(name = "bearerAuth"))
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Responsavel atribuido"),
-        @ApiResponse(responseCode = "404", description = "Denuncia inexistente", content = @io.swagger.v3.oas.annotations.media.Content)
+        @ApiResponse(responseCode = "404", description = "Denuncia inexistente", content = @io.swagger.v3.oas.annotations.media.Content),
+        @ApiResponse(responseCode = "422", description = "Responsavel inexistente na equipe", content = @io.swagger.v3.oas.annotations.media.Content)
     })
     @Auditavel(acao = AuditoriaService.ATRIBUICAO, recurso = "Denuncia")
     @PatchMapping("/{id}/responsavel")
@@ -204,6 +214,18 @@ public class DenunciaController {
         for (GrantedAuthority a : auth.getAuthorities()) {
             PerfilUsuario perfil = PerfilUsuario.de(a.getAuthority().replaceFirst("^ROLE_", ""));
             if (perfil.podeVerIdentidade()) return true;
+        }
+        return false;
+    }
+
+    /** Fase 7 | Verdadeiro se o usuario autenticado tem algum dos perfis. */
+    private boolean temPerfil(Authentication auth, PerfilUsuario... perfis) {
+        if (auth == null || auth.getAuthorities() == null) return false;
+        for (GrantedAuthority a : auth.getAuthorities()) {
+            PerfilUsuario perfil = PerfilUsuario.de(a.getAuthority().replaceFirst("^ROLE_", ""));
+            for (PerfilUsuario p : perfis) {
+                if (p == perfil) return true;
+            }
         }
         return false;
     }

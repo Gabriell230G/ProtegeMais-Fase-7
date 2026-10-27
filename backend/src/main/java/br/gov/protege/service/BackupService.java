@@ -13,6 +13,8 @@ import java.nio.file.DirectoryStream;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.security.MessageDigest;
+import java.time.Duration;
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
@@ -55,6 +57,15 @@ public class BackupService {
     static final String MANIFESTO = "manifesto.sha256";
     public static final String BACKUP = "BACKUP";
 
+    /**
+     * Fase 7 | Intervalo minimo entre um backup e o proximo backup MANUAL.
+     * A retencao guarda os N arquivos mais recentes; sem este intervalo, N
+     * pedidos seguidos (de um ADMIN comprometido, por exemplo) empurravam
+     * para fora todo o historico de recuperacao em segundos. O agendado
+     * diario nao passa por esta regra.
+     */
+    public static final Duration INTERVALO_MINIMO_MANUAL = Duration.ofMinutes(10);
+
     private final JdbcTemplate jdbc;
     private final AuditoriaService auditoria;
     private final Path pasta;
@@ -86,6 +97,44 @@ public class BackupService {
         } catch (Exception e) {
             log.error("[Protege+] Falha no backup agendado: {}", e.getMessage());
         }
+    }
+
+    /**
+     * Fase 7 | Backup pedido pelo ADMIN. Recusado (IllegalStateException,
+     * 409 no controlador) se o ultimo backup tem menos de 10 minutos.
+     */
+    public synchronized Map<String, Object> executarManual() throws IOException {
+        if (suportado()) {
+            Instant ultimo = ultimoBackup();
+            Instant agora = Instant.now();
+            if (!intervaloRespeitado(ultimo, agora, INTERVALO_MINIMO_MANUAL)) {
+                long faltam = Math.max(1, Duration.between(agora, ultimo.plus(INTERVALO_MINIMO_MANUAL))
+                        .toMinutes() + 1);
+                throw new IllegalStateException("Ja existe um backup gerado ha menos de "
+                        + INTERVALO_MINIMO_MANUAL.toMinutes() + " minutos. Tente de novo em "
+                        + faltam + " minuto(s).");
+            }
+        }
+        return executar("manual");
+    }
+
+    /** Regra pura: o proximo backup manual so sai depois do intervalo minimo. */
+    static boolean intervaloRespeitado(Instant ultimo, Instant agora, Duration minimo) {
+        if (ultimo == null) return true;
+        return !agora.isBefore(ultimo.plus(minimo));
+    }
+
+    /** Data do backup mais recente na pasta, ou null se nao houver. */
+    Instant ultimoBackup() throws IOException {
+        if (!Files.isDirectory(pasta)) return null;
+        Instant maisRecente = null;
+        try (DirectoryStream<Path> ds = Files.newDirectoryStream(pasta, "protege-*.zip")) {
+            for (Path p : ds) {
+                Instant t = Files.getLastModifiedTime(p).toInstant();
+                if (maisRecente == null || t.isAfter(maisRecente)) maisRecente = t;
+            }
+        }
+        return maisRecente;
     }
 
     /** Gera um backup agora e devolve nome, tamanho e hash. */

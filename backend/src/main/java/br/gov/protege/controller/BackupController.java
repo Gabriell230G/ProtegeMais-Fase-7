@@ -37,12 +37,14 @@ public class BackupController {
 
     @Operation(summary = "Gera um backup agora (ADMIN)",
                description = "Copia consistente do banco sem parar o sistema. O SHA-256 do "
-                           + "arquivo fica gravado na trilha de auditoria encadeada.",
+                           + "arquivo fica gravado na trilha de auditoria encadeada. Responde 409 "
+                           + "se o ultimo backup tem menos de 10 minutos (protege o historico "
+                           + "contra rotacao forcada por pedidos seguidos).",
                security = @SecurityRequirement(name = "bearerAuth"))
     @PostMapping
     public ResponseEntity<?> gerar() {
         try {
-            return ResponseEntity.status(HttpStatus.CREATED).body(backup.executar("manual"));
+            return ResponseEntity.status(HttpStatus.CREATED).body(backup.executarManual());
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage()));
         } catch (Exception e) {

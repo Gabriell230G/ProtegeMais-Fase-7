@@ -6,6 +6,8 @@ import org.junit.jupiter.api.io.TempDir;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.time.Duration;
+import java.time.Instant;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -67,5 +69,27 @@ class BackupServiceTest {
         BackupService b = new BackupService(null, null, pasta.toString(), 7, "jdbc:h2:file:./x");
         assertEquals(h2, b.lerManifesto().get("protege-1.zip"));
         assertEquals(1, b.lerManifesto().size());
+    }
+
+    @Test
+    @DisplayName("Fase 7 | backup manual so depois de 10 minutos do anterior")
+    void intervaloMinimoManual() {
+        Instant base = Instant.parse("2026-10-27T12:00:00Z");
+        Duration dez = BackupService.INTERVALO_MINIMO_MANUAL;
+        assertTrue(BackupService.intervaloRespeitado(null, base, dez), "sem backup anterior, libera");
+        assertFalse(BackupService.intervaloRespeitado(base, base.plusSeconds(60), dez));
+        assertFalse(BackupService.intervaloRespeitado(base, base.plusSeconds(599), dez));
+        assertTrue(BackupService.intervaloRespeitado(base, base.plusSeconds(600), dez));
+    }
+
+    @Test
+    @DisplayName("Fase 7 | pedidos manuais seguidos nao rotacionam o historico")
+    void manualRecusadoLogoAposOutro(@TempDir Path pasta) throws Exception {
+        Files.writeString(pasta.resolve("protege-20261027-120000-000.zip"), "recente");
+        BackupService b = new BackupService(null, null, pasta.toString(), 7, "jdbc:h2:file:./x");
+        assertNotNull(b.ultimoBackup());
+        IllegalStateException e = assertThrows(IllegalStateException.class, b::executarManual);
+        assertTrue(e.getMessage().contains("10 minutos"));
+        assertTrue(Files.exists(pasta.resolve("protege-20261027-120000-000.zip")), "nada foi apagado");
     }
 }

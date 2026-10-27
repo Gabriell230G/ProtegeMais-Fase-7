@@ -592,10 +592,12 @@ async function enviarTelemetria(){
   if (!r) return;
   if (r.status === 401) return log('401: chave recusada. Copie a chave desta execução em backend/data/iot-chave.txt.', 'err');
   const d = r.dados || {};
-  if (d.alertaAberto)
-    log(`Violacao de perimetro. Caso ${d.protocoloGerado} aberto. Repare que a resposta nao traz distancia nem raio.`, 'ok');
+  // Fase 7: a resposta nao diz mais se houve alerta (isso revelaria o
+  // perimetro protegido). O resultado aparece no painel do orgao.
+  if (d.situacao === 'DESCARTADA')
+    log('Leitura descartada: equipamento sem medida protetiva ativa.', 'info');
   else
-    log('Leitura aceita, sem alerta. Fora do perimetro, dentro do cooldown ou sem medida ativa.', 'info');
+    log('Leitura recebida (situacao ' + (d.situacao || r.status) + '). A resposta nao revela se houve violacao, nem distancia ou raio: confira o alerta no painel de dispositivos.', 'ok');
 }
 
 async function enviarTotem(){
