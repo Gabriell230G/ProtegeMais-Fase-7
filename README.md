@@ -533,11 +533,8 @@ Dois testes existem por causa de defeitos reais desta fase:
 | [`docs/Protege_Mais_Fase6_Apresentacao.pdf`](docs/Protege_Mais_Fase6_Apresentacao.pdf) | Apresentação da Fase 6, 10 slides |
 | [`docs/Protege_Mais_Fase6_Apresentacao.html`](docs/Protege_Mais_Fase6_Apresentacao.html) | A mesma apresentação, navegável, com o roteiro do apresentador embutido (tecla `N`) |
 | [`docs/Protege_Mais_Fase6_Roteiro_do_Pitch.md`](docs/Protege_Mais_Fase6_Roteiro_do_Pitch.md) | Roteiro do vídeo, bloco a bloco, com marcação de tempo |
-| [`docs/Protege_Mais_Fase5_Documento.pdf`](docs/Protege_Mais_Fase5_Documento.pdf) | Documento técnico da Fase 5, 87 páginas |
-| [`docs/Protege_Mais_Fase5_Apresentacao.pdf`](docs/Protege_Mais_Fase5_Apresentacao.pdf) | Apresentação da Fase 5 |
-| [`docs/Protege_Mais_EC_Atividade4_Apresentacao.pdf`](docs/Protege_Mais_EC_Atividade4_Apresentacao.pdf) | Apresentação da Atividade 4 do Enterprise Challenge |
 
-Os vídeos de pitch são entregas diferentes do mesmo produto: [Fase 6](https://youtu.be/FHOxDr-g8I8), [Fase 5](https://youtu.be/DoenYynHA6E) e [Atividade 4](https://youtu.be/bCIv81vYzPs).
+Os documentos e apresentações das entregas anteriores ficam no repositório daquelas fases. Os vídeos de pitch são entregas diferentes do mesmo produto: [Fase 6](https://youtu.be/FHOxDr-g8I8), [Fase 5](https://youtu.be/DoenYynHA6E) e [Atividade 4](https://youtu.be/bCIv81vYzPs).
 
 O documento da Fase 6 declara, nas seções **4.12**, **5.11** e **6.2**, o que ainda **não** está resolvido no sistema: não há modo offline no aparelho, a chave é por integração e não por aparelho, e o volume da base não permite concluir sobre a calibragem da janela de repique. Um documento de segurança que só relata acertos não permite avaliar risco.
 
