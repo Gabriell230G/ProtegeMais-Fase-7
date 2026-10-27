@@ -30,7 +30,7 @@ public class VigiaService {
 
     /** Construtor curto, usado pelos testes: relato nunca sai, tempo limite padrao. */
     public VigiaService(String apiKey, String model, String baseUrl) {
-        this(apiKey, model, baseUrl, false, 8000);
+        this(apiKey, model, baseUrl, false, 15000);
     }
 
     /**
@@ -42,7 +42,7 @@ public class VigiaService {
      *    sempre mascarado por MascaraUtil.textoLivre. Isso torna verdadeira,
      *    no codigo, a promessa "nenhum relato sai do sistema".
      *
-     * 2. tempoLimiteMs: a chamada ao Gemini tinha espera indefinida. Se o
+     * 2. tempoLimiteMs (padrao 15 s): a chamada ao Gemini tinha espera indefinida. Se o
      *    servico externo travasse, a tela do gestor travava junto. Agora,
      *    passado o limite, cai para a analise por regras.
      */
@@ -52,7 +52,7 @@ public class VigiaService {
             @Value("${gemini.api.model:gemini-2.5-flash}") String model,
             @Value("${gemini.api.url}") String baseUrl,
             @Value("${protege.vigia.enviar-relato:false}") boolean enviarRelato,
-            @Value("${protege.vigia.tempo-limite-ms:8000}") int tempoLimiteMs) {
+            @Value("${protege.vigia.tempo-limite-ms:15000}") int tempoLimiteMs) {
         this.apiKey = apiKey;
         this.model = model;
         this.baseUrl = baseUrl;
@@ -146,9 +146,15 @@ public class VigiaService {
         // de proxy, de servidor e de ferramenta de monitoramento; cabecalho nao.
         String url = baseUrl + "/" + model + ":generateContent";
 
-        Map<String, Object> body = Map.of(
+        Map<String, Object> conteudo = Map.of(
                 "contents", List.of(Map.of(
                         "parts", List.of(Map.of("text", prompt)))));
+        // Os modelos 2.5 "pensam" antes de responder por padrao, o que pode
+        // passar do tempo limite. Para classificar e resumir nao e preciso.
+        Map<String, Object> body = model != null && model.startsWith("gemini-2.5-flash")
+                ? Map.of("contents", conteudo.get("contents"),
+                         "generationConfig", Map.of("thinkingConfig", Map.of("thinkingBudget", 0)))
+                : conteudo;
 
         JsonNode resp = http.post()
                 .uri(url)

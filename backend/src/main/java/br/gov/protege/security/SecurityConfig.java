@@ -226,29 +226,46 @@ public class SecurityConfig {
                                           @Value("${app.admin.nome}") String nomeAdmin,
                                           @Value("${protege.demo:true}") boolean demo) {
         return args -> {
-            criar(repo, encoder, emailAdmin, senhaAdmin, nomeAdmin, PerfilUsuario.ADMIN);
-            // Fase 7 | Contas de demonstracao (senhas conhecidas, documentadas
-            // no README) so existem em modo demonstracao. Em producao, os
-            // demais usuarios sao cadastrados pelo administrador.
+            // Fase 7 | Em producao, a senha do ADMIN vem sempre da variavel
+            // ADMIN_SENHA: se o banco trouxer outra (ex.: admin123 de uma
+            // execucao de demonstracao anterior), ela e substituida.
+            criar(repo, encoder, emailAdmin, senhaAdmin, nomeAdmin, PerfilUsuario.ADMIN, !demo);
             if (!demo) {
+                // Contas de demonstracao herdadas de uma execucao anterior tem
+                // senha publica no README: nao podem continuar ativas.
+                for (String e : List.of("gestor@protege.gov.br", "atendente@protege.gov.br",
+                                        "auditor@protege.gov.br")) {
+                    repo.findByEmail(e).ifPresent(u -> {
+                        repo.delete(u);
+                        log.warn("[Protege+] Modo producao: conta de demonstracao removida: {}", e);
+                    });
+                }
                 log.info("[Protege+] Modo producao: usuarios de demonstracao NAO criados.");
                 return;
             }
-            criar(repo, encoder, "gestor@protege.gov.br",    "gestor123",    "Carlos Lima - Coordenador", PerfilUsuario.GESTOR);
-            criar(repo, encoder, "atendente@protege.gov.br", "atendente123", "Ana Souza - Atendente",     PerfilUsuario.ATENDENTE);
-            criar(repo, encoder, "auditor@protege.gov.br",   "auditor123",   "Controladoria Interna",     PerfilUsuario.AUDITOR);
+            criar(repo, encoder, "gestor@protege.gov.br",    "gestor123",    "Carlos Lima - Coordenador", PerfilUsuario.GESTOR,    false);
+            criar(repo, encoder, "atendente@protege.gov.br", "atendente123", "Ana Souza - Atendente",     PerfilUsuario.ATENDENTE, false);
+            criar(repo, encoder, "auditor@protege.gov.br",   "auditor123",   "Controladoria Interna",     PerfilUsuario.AUDITOR,   false);
         };
     }
 
     private void criar(UsuarioRepository repo, PasswordEncoder encoder,
-                       String email, String senha, String nome, PerfilUsuario perfil) {
+                       String email, String senha, String nome, PerfilUsuario perfil,
+                       boolean sincronizarSenha) {
         repo.findByEmail(email).ifPresentOrElse(
             u -> {
+                boolean mudou = false;
                 if (!perfil.name().equals(u.getRole())) {
                     u.setRole(perfil.name());
-                    repo.save(u);
+                    mudou = true;
                     log.info("[Protege+] Perfil atualizado: {} -> {}", email, perfil);
                 }
+                if (sincronizarSenha && !encoder.matches(senha, u.getSenhaHash())) {
+                    u.setSenhaHash(encoder.encode(senha));
+                    mudou = true;
+                    log.info("[Protege+] Senha do administrador sincronizada com ADMIN_SENHA");
+                }
+                if (mudou) repo.save(u);
             },
             () -> {
                 repo.save(new Usuario(email, encoder.encode(senha), nome, perfil.name()));

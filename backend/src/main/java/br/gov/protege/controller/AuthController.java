@@ -82,7 +82,7 @@ public class AuthController {
                            + "e-mail inexistente e senha errada: diferenciar as duas permitiria "
                            + "descobrir quais contas existem no orgao. Tanto o sucesso quanto a "
                            + "recusa geram registro na trilha de auditoria. A rota tem limite de "
-                           + "10 tentativas por minuto por origem.")
+                           + "20 tentativas por minuto por origem.")
     @ApiResponses({
         @ApiResponse(responseCode = "200", description = "Token, nome e perfil do usuario"),
         @ApiResponse(responseCode = "400", description = "Corpo invalido",

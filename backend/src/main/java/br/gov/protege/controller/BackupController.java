@@ -24,6 +24,9 @@ import java.util.Map;
 @RequestMapping("/api/backup")
 public class BackupController {
 
+    private static final org.slf4j.Logger log =
+            org.slf4j.LoggerFactory.getLogger(BackupController.class);
+
     private final BackupService backup;
     private final AuditoriaLogRepository trilha;
 
@@ -43,6 +46,7 @@ public class BackupController {
         } catch (IllegalStateException e) {
             return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("erro", e.getMessage()));
         } catch (Exception e) {
+            log.error("[Protege+] Falha no backup manual", e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
                     .body(Map.of("erro", "Falha ao gerar o backup"));
         }

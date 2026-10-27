@@ -128,9 +128,16 @@ public class RateLimitFilter extends OncePerRequestFilter {
         // A consulta por protocolo conta por origem, e nao por protocolo:
         // quem tenta adivinhar troca de protocolo a cada pedido.
         String uri = req.getRequestURI();
-        String grupo = uri.startsWith("/api/denuncias/protocolo/") && "GET".equalsIgnoreCase(req.getMethod())
-                ? "consulta-protocolo"
-                : uri.startsWith("/api/iot/") ? "iot" : uri;
+        String grupo;
+        if (uri.startsWith("/api/denuncias/protocolo/")) {
+            // Upload tambem conta por origem: quem tem varios protocolos nao
+            // ganha 10 envios por minuto para cada um.
+            grupo = "GET".equalsIgnoreCase(req.getMethod()) ? "consulta-protocolo" : "upload-evidencia";
+        } else if (uri.startsWith("/api/iot/")) {
+            grupo = "iot";
+        } else {
+            grupo = uri;
+        }
         return grupo + "@" + origem(req, confiarEmProxy);
     }
 
@@ -151,27 +158,30 @@ public class RateLimitFilter extends OncePerRequestFilter {
         return excedeu(chave, limite, System.currentTimeMillis());
     }
 
+    /**
+     * Conta a requisicao e diz se a origem passou do limite. A atualizacao e
+     * feita de forma atomica pelo proprio mapa (compute), para a limpeza
+     * periodica nunca descartar uma janela no meio de uma contagem.
+     */
     boolean excedeu(String chave, int limite, long agora) {
         if (contador.incrementAndGet() % LIMPAR_A_CADA == 0) limpar(agora);
-        Deque<Long> janela = historico.computeIfAbsent(chave, k -> new ArrayDeque<>());
-        synchronized (janela) {
-            while (!janela.isEmpty() && agora - janela.peekFirst() > JANELA_MS) {
-                janela.pollFirst();
-            }
-            if (janela.size() >= limite) return true;
-            janela.addLast(agora);
-            return false;
-        }
+        boolean[] bloqueado = {false};
+        historico.compute(chave, (k, janela) -> {
+            if (janela == null) janela = new ArrayDeque<>();
+            while (!janela.isEmpty() && agora - janela.peekFirst() > JANELA_MS) janela.pollFirst();
+            if (janela.size() >= limite) bloqueado[0] = true;
+            else janela.addLast(agora);
+            return janela;
+        });
+        return bloqueado[0];
     }
 
     /** Remove do mapa as origens sem requisicao dentro da janela. */
     void limpar(long agora) {
-        historico.entrySet().removeIf(e -> {
-            Deque<Long> j = e.getValue();
-            synchronized (j) {
-                return j.isEmpty() || agora - j.peekLast() > JANELA_MS;
-            }
-        });
+        for (String k : historico.keySet()) {
+            historico.computeIfPresent(k, (c, j) ->
+                    j.isEmpty() || agora - j.peekLast() > JANELA_MS ? null : j);
+        }
     }
 
     int origensEmMemoria() {

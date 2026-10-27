@@ -31,7 +31,11 @@ import org.springframework.test.context.TestPropertySource;
         "spring.datasource.password=",
         "spring.jpa.hibernate.ddl-auto=create-drop",
         "spring.sql.init.mode=always",
-        "gemini.api.key="
+        "gemini.api.key=",
+        // Fase 7: chave fixa so no teste, para o GuardiaoDeSegredos nao
+        // sobrescrever o data/iot-chave.txt de um servidor que esteja no ar.
+        "protege.iot.chave=chave-iot-do-teste-de-fumaca",
+        "protege.demo=true"
 })
 class ContextoSobeTest {
 
