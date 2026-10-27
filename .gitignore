@@ -37,3 +37,7 @@ database/massa_gerada.json
 *.orig
 
 css/Claude outputs/
+
+# ===== Python =====
+__pycache__/
+*.pyc
