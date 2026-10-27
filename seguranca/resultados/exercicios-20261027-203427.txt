@@ -1,0 +1,21 @@
+[20:35:35] Estado inicial | denuncias: 195 | integridade: {"totalDeRegistros":30,"integra":true,"motivo":"Cadeia intacta: todos os elos conferem"}
+[20:35:35] Ultimo backup disponivel: protege-20261027-203428-469.zip
+
+[20:35:35] === Exercicio A: funcionario com acesso ao servidor altera a trilha direto no banco ===
+[20:35:38] API parada. Insider abre o arquivo do banco e reescreve o registro 3 da trilha e apaga o registro 5
+ID | ACAO             | USUARIO                  | RESULTADO
+3  | LOGIN            | atendente@protege.gov.br | PERMITIDO
+5  | ACESSO_AUDITORIA | atendente@protege.gov.br | NEGADO
+(2 rows, 17 ms)
+(Update count: 1, 6 ms)
+(Update count: 1, 0 ms)
+[20:35:47] API de volta. Verificacao de integridade pedida pelo AUDITOR:
+{"totalDeRegistros":30,"integra":false,"rompidoNoRegistro":3,"motivo":"O conteudo do registro foi alterado apos a gravacao"}
+
+[20:35:47] === Exercicio B: o disco do banco e perdido (ou sequestrado por ransomware) ===
+[20:35:50] Banco removido da pasta de dados. Restaurando do backup protege-20261027-203428-469.zip, conferindo antes o hash do manifesto
+[20:35:50] SHA-256 atual:      1a3770f0c748d64d5d015a55f859c04a13b01575206a3d36e65b28565c3a13cf
+[20:35:50] SHA-256 registrado: 1a3770f0c748d64d5d015a55f859c04a13b01575206a3d36e65b28565c3a13cf
+[20:35:50] Confere: backup integro, pode restaurar
+[20:36:00] API restaurada | denuncias: 195 | integridade: {"totalDeRegistros":12,"integra":true,"motivo":"Cadeia intacta: todos os elos conferem"}
+[20:36:00] Arquivo adulterado preservado como prova: data/protege.mv.db.adulterado-pelo-insider

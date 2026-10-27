@@ -1,0 +1,17 @@
+Protege+ | Simulacao de ataques | 27/10/2026 20:34:27 | API http://localhost:8080/api
+
+Tokens obtidos para os 4 perfis.
+
+[BLOQUEADO] C01 Token de ADMIN forjado | esperado 401, 401, 401 | obtido 401, 401, 401
+[BLOQUEADO] C02 Escalada de privilegio entre perfis | esperado 403 em todos | obtido 403; 403; 403; 403; 403; 403
+[BLOQUEADO] C05 Script malicioso dentro da denuncia anonima | esperado Aceita como texto; consulta publica sem o relato; painel exibe escapado | obtido 201; consulta publica nao expoe o relato
+[BLOQUEADO] C06 Inundacao do canal com denuncias falsas | esperado 201 ate o limite, depois 429 | obtido 201 201 201 201 429 429 429 429
+[BLOQUEADO] C07 Upload de executavel disfarcado e de arquivo gigante | esperado Recusa dos dois (415 e 413) | obtido 415 e 413
+[BLOQUEADO] C08 Corpo JSON gigante para esgotar memoria | esperado 413 antes de ler o corpo | obtido 413
+[BLOQUEADO] C04 Adivinhar protocolo de outra pessoa | esperado 404 e, passado o limite, 429 | obtido 29 x 404, 11 x 429, 0 x 200
+[BLOQUEADO] C09 Aparelho IoT falso e oraculo de localizacao | esperado 401, 401 e resposta sem informacao de perimetro | obtido 401, 401, 202
+[BLOQUEADO] C10 Ransomware altera o backup | esperado 201, 409, ALTERADO, e integro de novo apos restaurar o original | obtido 201, 409, ALTERADO, integro
+[BLOQUEADO] C03 Forca bruta na senha com IP falsificado | esperado 401 ate o limite, depois 429 | obtido 16 x 401, 9 x 429
+[BLOQUEADO] C11 Os ataques deixaram rastro? | esperado Recusas registradas e cadeia intacta | obtido 22 recusas (16 logins negados); cadeia intacta
+
+11 bloqueados, 0 falhas. Relatorio em /home/claude/ProtegeMais-Fase-7/seguranca/resultados

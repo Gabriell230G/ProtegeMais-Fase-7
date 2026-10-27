@@ -1256,6 +1256,9 @@ function showDashTab(tab, el) {
   // O relatorio e calculado no servidor a cada abertura: os numeros mudam
   // conforme a equipe conclui casos, e um cache mudo seria pior que esperar.
   if (tab === 'estatistica' && typeof Estatistica !== 'undefined') { Estatistica.carregar(); }
+  // Fase 7 | A trilha carrega pela troca de aba, como as demais, e nao so
+  // pelo clique no menu: a troca de perfil tambem abre abas por codigo.
+  if (tab === 'auditoria' && typeof Auditoria !== 'undefined') { Auditoria.abrir(); }
   if (tab === 'mapa' && typeof MapaGestor !== 'undefined') {
     setTimeout(() => MapaGestor.init(), 150);
   }

@@ -115,6 +115,14 @@ const Sincronia = (() => {
     const bruto = [];
     try {
       if (!(await Backend.estaOnline())) { daApi = false; recusa = null; return false; }
+      // Fase 7 | O AUDITOR nao le casos: pedir a lista so gerava uma recusa
+      // na trilha a cada login dele, poluindo justamente o registro que ele
+      // fiscaliza. A tela dele usa so os indicadores agregados.
+      if (Backend.perfilAtual && Backend.perfilAtual() === 'AUDITOR') {
+        daApi = false; ultimaCarga = Date.now();
+        recusa = { status: 403, message: 'Seu perfil não tem acesso a este conteúdo', acessoNegado: true };
+        return false;
+      }
       let n = 0;
       while (n < MAX_PAGINAS) {
         const pagina = await Backend.listarPagina({ pagina: n, tamanho: TAMANHO });

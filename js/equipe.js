@@ -159,7 +159,17 @@ const Equipe = (() => {
 
   // Carrega o cache assim que a página abre, para que o Kanban já encontre
   // os nomes dos responsáveis na primeira renderização.
-  document.addEventListener('DOMContentLoaded', () => { setTimeout(sincronizar, 300); });
+  // Fase 7 | Na abertura da pagina so busca a equipe quando ha alguem logado
+  // (ou no modo local). Antes, a pagina publica do cidadao chamava uma rota
+  // restrita e recebia 401 a cada visita. Depois do login, o acesso.js
+  // sincroniza de novo.
+  document.addEventListener('DOMContentLoaded', () => {
+    setTimeout(async () => {
+      const logado = typeof Backend !== 'undefined' && Backend.perfilAtual && Backend.perfilAtual();
+      const online = typeof Backend !== 'undefined' && await Backend.estaOnline();
+      if (logado || !online) sincronizar();
+    }, 300);
+  });
 
   return { adicionar, remover, render, sincronizar, opcoesSelect, buscarPorId };
 })();

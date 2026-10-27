@@ -1,0 +1,118 @@
+{
+  "executadoEm": "2026-10-27T20:34:27",
+  "api": "http://localhost:8080/api",
+  "bloqueados": 11,
+  "falhas": 0,
+  "cenarios": [
+    {
+      "cenario": "C01 Token de ADMIN forjado",
+      "ataque": "Assinar um token de ADMIN com o segredo que era publico ate a Fase 6, um token sem assinatura (alg=none) e um token real com a assinatura alterada",
+      "esperado": "401, 401, 401",
+      "obtido": "401, 401, 401",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Respostas: {\"timestamp\":\"2026-10-27T20:34:27.784075624\",\"status\":401,\"erro\":\"Unauthorized\",\"mensagem\" | {\"timestamp\":\"2026-10-27T20:34:27.787804378\",\"status\":401,\"erro\":\"Unauthorized\",\"mensagem\" | {\"timestamp\":\"2026-10-27T20:34:27.790052799\",\"status\":401,\"erro\":\"Unauthorized\",\"mensagem\"",
+      "defesa": "GuardiaoDeSegredos sorteia o segredo do JWT a cada execucao; jjwt recusa alg=none e assinatura invalida",
+      "pilarCIA": "Confidencialidade e Integridade"
+    },
+    {
+      "cenario": "C02 Escalada de privilegio entre perfis",
+      "ataque": "Usar um login valido de perfil baixo para acessar o que e de outro perfil",
+      "esperado": "403 em todos",
+      "obtido": "403; 403; 403; 403; 403; 403",
+      "situacao": "BLOQUEADO",
+      "evidencia": "ATENDENTE GET /auditoria -> 403; ATENDENTE DELETE /denuncias/1 -> 403; ATENDENTE PATCH /denuncias/1/responsavel -> 403; AUDITOR GET /denuncias/1 -> 403; AUDITOR GET /evidencias/1/arquivo -> 403; GESTOR POST /backup -> 403",
+      "defesa": "Matriz de perfis por rota no SecurityConfig; o perfil vem do banco a cada requisicao",
+      "pilarCIA": "Confidencialidade"
+    },
+    {
+      "cenario": "C05 Script malicioso dentro da denuncia anonima",
+      "ataque": "Denuncia anonima com <img onerror> no relato e <script> na cidade, para rodar no painel do gestor",
+      "esperado": "Aceita como texto; consulta publica sem o relato; painel exibe escapado",
+      "obtido": "201; consulta publica nao expoe o relato",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Protocolo #2026-AKRZ-PJ6S-X3S2. A API guarda o texto como texto; quem neutraliza e o front-end, que escapa todo dado antes de exibir (escHtml/jsArg, testado no navegador: 0 execucoes em 44 pontos).",
+      "defesa": "Escape de saida em todo o front-end; DTO publico sem relato nem endereco",
+      "pilarCIA": "Integridade e Confidencialidade"
+    },
+    {
+      "cenario": "C06 Inundacao do canal com denuncias falsas",
+      "ataque": "8 denuncias seguidas da mesma origem para enterrar os casos reais na fila",
+      "esperado": "201 ate o limite, depois 429",
+      "obtido": "201 201 201 201 429 429 429 429",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Limite de 5 denuncias por minuto por origem (o C05 ja usou 1).",
+      "defesa": "RateLimitFilter na rota publica de registro",
+      "pilarCIA": "Disponibilidade"
+    },
+    {
+      "cenario": "C07 Upload de executavel disfarcado e de arquivo gigante",
+      "ataque": "Programa do Windows (MZ) renomeado para .jpg, e um arquivo de 7 MB",
+      "esperado": "Recusa dos dois (415 e 413)",
+      "obtido": "415 e 413",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Executavel: {\"timestamp\":\"2026-10-27T20:34:28.131519579\",\"status\":415,\"erro\":\"Unsupported Media Type\",\"mensagem\":\"Formato  | Gigante: {\"timestamp\":\"2026-10-27T20:34:28.197362141\",\"status\":413,\"erro\":\"Payload Too Large\",\"mensagem\":\"Arquivo acima",
+      "defesa": "Tipo conferido pelos bytes iniciais (nao pela extensao); limite de 5 MB; nome gerado no servidor",
+      "pilarCIA": "Integridade e Disponibilidade"
+    },
+    {
+      "cenario": "C08 Corpo JSON gigante para esgotar memoria",
+      "ataque": "PUT com 400 KB de texto, sem nem estar autenticado",
+      "esperado": "413 antes de ler o corpo",
+      "obtido": "413",
+      "situacao": "BLOQUEADO",
+      "evidencia": "{\"timestamp\":\"2026-10-27T20:34:28.201739595\",\"status\":413,\"erro\":\"Payload Too Large\",\"mensagem\":\"Corpo da requisicao acima do limite de 256 KB\"}",
+      "defesa": "LimiteCorpoFilter (256 KB) roda antes da autenticacao e do parser JSON",
+      "pilarCIA": "Disponibilidade"
+    },
+    {
+      "cenario": "C04 Adivinhar protocolo de outra pessoa",
+      "ataque": "40 protocolos sorteados no formato valido, tentando achar o caso de uma vitima",
+      "esperado": "404 e, passado o limite, 429",
+      "obtido": "29 x 404, 11 x 429, 0 x 200",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Espaco de protocolos: 31^12 (cerca de 7,9 x 10^17). A 30 tentativas/min por origem, varrer 1%% do espaco levaria mais de 500 milhoes de anos.",
+      "defesa": "Protocolo com SecureRandom (59 bits) e limite de consultas por origem",
+      "pilarCIA": "Confidencialidade"
+    },
+    {
+      "cenario": "C09 Aparelho IoT falso e oraculo de localizacao",
+      "ataque": "Telemetria sem chave, com a chave antiga publicada na Fase 6, e com a chave certa tentando descobrir se a coordenada cai no perimetro da vitima",
+      "esperado": "401, 401 e resposta sem informacao de perimetro",
+      "obtido": "401, 401, 202",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Resposta com a chave certa: {\"situacao\":\"DESCARTADA\"}",
+      "defesa": "ChaveDispositivoFilter confere a chave antes do corpo; chave sorteada por execucao; resposta so diz ACEITA ou DESCARTADA",
+      "pilarCIA": "Confidencialidade e Integridade"
+    },
+    {
+      "cenario": "C10 Ransomware altera o backup",
+      "ataque": "Gerar backup, tentar gerar outro em seguida (para girar o historico) e alterar o arquivo do backup",
+      "esperado": "201, 409, ALTERADO, e integro de novo apos restaurar o original",
+      "obtido": "201, 409, ALTERADO, integro",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Backup protege-20261027-203428-469.zip com SHA-256 1a3770f0c748d64d... registrado na trilha e no manifesto",
+      "defesa": "BackupService: SHA-256 do arquivo gravado na trilha encadeada e em manifesto.sha256; restaurar-backup.ps1 recusa arquivo ALTERADO",
+      "pilarCIA": "Integridade e Disponibilidade"
+    },
+    {
+      "cenario": "C03 Forca bruta na senha com IP falsificado",
+      "ataque": "25 senhas erradas em sequencia, cada uma com um X-Forwarded-For diferente",
+      "esperado": "401 ate o limite, depois 429",
+      "obtido": "16 x 401, 9 x 429",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Sequencia: 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 401 429 429 429 429 429 429 429 429 429",
+      "defesa": "RateLimitFilter usa o IP real da conexao (20 logins/min); senha em BCrypt; tentativa registrada como LOGIN_NEGADO",
+      "pilarCIA": "Confidencialidade e Disponibilidade"
+    },
+    {
+      "cenario": "C11 Os ataques deixaram rastro?",
+      "ataque": "Auditor consulta a trilha depois de todos os ataques",
+      "esperado": "Recusas registradas e cadeia intacta",
+      "obtido": "22 recusas (16 logins negados); cadeia intacta",
+      "situacao": "BLOQUEADO",
+      "evidencia": "Integridade: Cadeia intacta: todos os elos conferem",
+      "defesa": "AuditoriaService com corrente de hash SHA-256; RespostasDeSeguranca registra cada 403",
+      "pilarCIA": "Integridade"
+    }
+  ]
+}
