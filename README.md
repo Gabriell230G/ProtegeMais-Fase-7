@@ -622,7 +622,7 @@ Cobrem as regras de negócio das fases anteriores (score, VigIA, fila, pilha, es
 
 Os valores esperados nos testes de estatística foram **calculados fora do programa**. Um teste que confere o programa contra a saída do próprio programa passa a fingir que a conta está certa exatamente quando ela deixa de estar.
 
-Além dos testes unitários, três roteiros testam o sistema rodando: [`seguranca/simular_ataques.py`](seguranca/simular_ataques.py), [`infra/testar-rede.sh`](infra/testar-rede.sh) e a demonstração em [`blockchain/`](blockchain/README.md). Os dois primeiros, os testes Java e os do contrato rodam a cada push no [GitHub Actions](https://github.com/Gabriell230G/ProtegeMais-Fase-7/actions/workflows/provas.yml) ([`.github/workflows/provas.yml`](.github/workflows/provas.yml)).
+Além dos testes unitários, quatro roteiros testam o sistema rodando: os testes de navegador em [`testes-navegador/`](testes-navegador/README.md) (XSS: 44 pontos na Fase 6, 0 agora; e o painel inteiro aberto pela borda HTTPS), e mais [`seguranca/simular_ataques.py`](seguranca/simular_ataques.py), [`infra/testar-rede.sh`](infra/testar-rede.sh) e a demonstração em [`blockchain/`](blockchain/README.md). A simulação de ataques e o teste de rede, junto com os testes Java e os do contrato, rodam a cada push no [GitHub Actions](https://github.com/Gabriell230G/ProtegeMais-Fase-7/actions/workflows/provas.yml) ([`.github/workflows/provas.yml`](.github/workflows/provas.yml)).
 
 </details>
 
@@ -644,6 +644,8 @@ Além dos testes unitários, três roteiros testam o sistema rodando: [`seguranc
 ├── seguranca/                  simulação de ataques, exercícios e resultados   ← Parte 1
 ├── infra/                      borda nginx, autoridade certificadora e teste    ← Parte 2
 ├── blockchain/                 contrato, testes, rotinas e resultados          ← Parte 4
+├── testes-navegador/          XSS e painel pela borda, no navegador (Playwright)
+├── .github/workflows/         testes e provas a cada push (GitHub Actions)
 └── backend/
     ├── build.cmd / build.ps1   bootstrap: baixa o Maven se necessário
     ├── restaurar-backup.cmd    restauração com conferência de hash

@@ -1,0 +1,16 @@
+{
+  "name": "protege-testes-navegador",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Protege+ | testes de navegador (Playwright): XSS no front-end e painel completo pela borda HTTPS",
+  "scripts": {
+    "xss": "node xss.js",
+    "painel": "node painel.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "devDependencies": {
+    "playwright": "1.48.2"
+  }
+}
