@@ -8,7 +8,9 @@ O mesmo vídeo e os mesmos slides servem ao relatório final do Enterprise Chall
 
 ## Parte A. Conteúdo de cada slide
 
-Para o visual, use as cores do projeto: azul `#1A4DA0`, laranja `#F5A623`, verde `#4CAF50` e fundo claro `#EEF2F8`. Use pouco texto por slide: o detalhe fica na fala e no documento.
+Para o visual, use as cores da logo, as mesmas do documento e do README: azul `#1A4DA0`, turquesa `#0E7C8C`, verde `#2E8B3A`, amarelo `#F2A900` e fundo claro `#EEF2F8`. Use pouco texto por slide: o detalhe fica na fala e no documento.
+
+Imagens prontas para usar nos slides: as telas reais em `docs/img/telas/` e os gráficos do documento (painel de números, tríade CIA, ataques, camadas de defesa, correlações, árvore Merkle e exercício C), que são as figuras do PDF.
 
 ### Slide 1. Capa (obrigatório: nome, RM e foto)
 
@@ -192,4 +194,4 @@ $env:ARQUIVO="C:\caminho\foto-editada.jpg"; $env:EVIDENCIA_ID="1"; npm run prova
 3. Pare a API (Ctrl+C) e, na pasta backend, rode `.\restaurar-backup.cmd data\backups\<nome do backup>.zip`.
 4. Suba a API de novo e rode `npm run verificar`.
 
-**Na edição:** acelere os trechos de terminal (2x a 4x), mantenha a fala em velocidade normal e confira se o total ficou abaixo de 5:00. Suba no YouTube como **não listado** e cole o link no documento, nos slides e no README.
+**Na edição:** acelere os trechos de terminal (2x a 4x), mantenha a fala em velocidade normal e confira se o total ficou abaixo de 5:00. Suba no YouTube como **não listado** e cole o link no documento, nos slides, no README e no site (botão **Assistir** e rodapé do `index.html`). Eu faço essa troca em todos os lugares de uma vez quando você me mandar o link.
