@@ -32,12 +32,15 @@ const Acesso = (() => {
   //   atribuir    PATCH /denuncias/{id}/responsavel   (senao 403)
   //   pilha       GET /fluxo/pilha e POST /fluxo/desfazer (senao 403)
   //   excluir     DELETE de denuncia e de anexo        (senao 403)
+  //   verBackup   GET /backup  (lista e conferencia)   (senao 403)
+  //   gerarBackup POST /backup (backup manual)         (senao 403)
   // Esconder botao nao e controle de acesso: quem decide continua sendo a API.
   const PERMISSOES = {
     master: {
       label: 'Administrador',
       verIdentidade: true,
       retroceder: true, atribuir: true, pilha: true, excluir: true,
+      verBackup: true, gerarBackup: true,
       abas: ['resumo','backlog','status-d','kanban','equipe','mapa','dispositivos','reincidencia','estatistica','auditoria'],
       role: 'ADMIN', email: 'admin@protege.gov.br',
       aviso: '🛡️ Perfil Administrador — acesso pleno, integralmente auditado.',
@@ -62,6 +65,7 @@ const Acesso = (() => {
       label: 'Auditor',
       verIdentidade: false,
       retroceder: false, atribuir: false, pilha: false, excluir: false,
+      verBackup: true, gerarBackup: false,
       abas: ['resumo','estatistica','auditoria'],   // Fase 7: só agregados, sem caso individual
       role: 'AUDITOR', email: 'auditor@protege.gov.br',
       aviso: '🔎 Perfil Auditor — fiscaliza o uso do sistema, sem ver o relato das denúncias.',
@@ -173,6 +177,7 @@ const Acesso = (() => {
     if (typeof Kanban !== 'undefined') Kanban.render();
     if (typeof Fluxo !== 'undefined' && Fluxo.aplicarPerfil) Fluxo.aplicarPerfil();
     if (typeof ajustarResumoAoAcesso === 'function') ajustarResumoAoAcesso();
+    if (typeof Auditoria !== 'undefined' && Auditoria.aplicarPerfil) Auditoria.aplicarPerfil();
   }
 
   /** Perfis que veem o Kanban ou a aba Equipe (os que leem /api/equipe). */

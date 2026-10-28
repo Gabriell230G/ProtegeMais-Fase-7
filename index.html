@@ -1044,6 +1044,32 @@
           <button class="fluxo-btn secundario" id="aud-prox" onclick="Auditoria.proxima()" data-i18n="aud.prox">Próxima →</button>
           <span id="aud-info"></span>
         </div>
+
+        <!-- Fase 7 | Backups do banco: o ADMIN gera, o AUDITOR confere (auditoria.js) -->
+        <section class="bkp-card" id="bkp-card" aria-labelledby="bkp-titulo" hidden>
+          <div class="bkp-topo">
+            <div class="bkp-cab">
+              <h4 id="bkp-titulo" data-i18n="aud.bkp.titulo">💾 Backups do banco</h4>
+              <div class="bkp-sub" data-i18n="aud.bkp.sub">Cada cópia é conferida contra o SHA-256 registrado no momento em que foi gerada.</div>
+            </div>
+            <button class="fluxo-btn primario" id="bkp-gerar" onclick="Auditoria.gerarBackup()" data-i18n="aud.bkp.gerar" hidden>Gerar backup agora</button>
+          </div>
+          <div class="bkp-alerta" id="bkp-alerta" role="status" aria-live="polite" hidden></div>
+          <div class="bkp-resumo" id="bkp-resumo"></div>
+          <div class="aud-tabela-wrap">
+            <table class="bkp-tabela" id="bkp-table">
+              <thead>
+                <tr>
+                  <th data-i18n="aud.bkp.th.arquivo">Arquivo</th><th data-i18n="aud.bkp.th.datahora">Data e hora</th>
+                  <th data-i18n="aud.bkp.th.tamanho">Tamanho</th><th data-i18n="aud.bkp.th.sha">SHA-256</th>
+                  <th data-i18n="aud.bkp.th.integridade">Integridade</th>
+                </tr>
+              </thead>
+              <tbody id="bkp-tbody"></tbody>
+            </table>
+          </div>
+          <p class="bkp-nota" data-i18n="aud.bkp.nota">Backup automático diário às 02:30, com retenção dos 7 mais recentes. O SHA-256 de cada arquivo também fica na trilha de auditoria e em manifesto.sha256. Para restaurar, pare a API e rode backend\restaurar-backup.cmd.</p>
+        </section>
       </div>
 
       <!-- TAB FOCOS DE REINCIDENCIA (Fase 6, Parte 4) -->

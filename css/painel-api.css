@@ -129,6 +129,64 @@ tr.aud-negado td{ background:#fef2f2; }
 .aud-paginacao{ display:flex;align-items:center;gap:10px;margin-top:12px;font-size:12.5px;color:#64748b; }
 .aud-paginacao .fluxo-btn{ padding:6px 12px;font-size:12px; }
 
+/* ---------- Backups do banco (aba Auditoria, Fase 7) ---------- */
+.bkp-card{ margin-top:22px;background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:16px 18px; }
+.bkp-card[hidden],.bkp-card [hidden]{ display:none !important; }
+.bkp-topo{ display:flex;gap:10px 16px;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;margin-bottom:12px; }
+.bkp-cab{ flex:1 1 280px;min-width:0; }
+.bkp-cab h4{ margin:0 0 3px;font-size:15px;color:#0f172a; }
+.bkp-sub{ font-size:12.5px;color:#64748b;line-height:1.5; }
+.bkp-topo .fluxo-btn{ flex:0 0 auto; }
+.bkp-resumo{ display:flex;flex-wrap:wrap;gap:4px 16px;font-size:12.5px;color:#64748b;margin-bottom:10px; }
+.bkp-resumo:empty{ display:none; }
+.bkp-resumo b{ color:#0f172a; }
+.bkp-resumo .alt,.bkp-resumo .alt b{ color:#b91c1c;font-weight:700; }
+.bkp-resumo .sem,.bkp-resumo .sem b{ color:#b45309; }
+.bkp-resumo .nao-suportado{ flex-basis:100%;color:#b45309; }
+.bkp-alerta{ border:1px solid;border-radius:9px;padding:10px 14px;font-size:13px;line-height:1.5;margin-bottom:12px; }
+.bkp-alerta.aviso{ background:#fffbeb;border-color:#fde68a;color:#92400e; }
+.bkp-alerta.erro{ background:#fef2f2;border-color:#fecaca;color:#b91c1c; }
+.bkp-tabela{ width:100%;border-collapse:collapse;font-size:12.5px; }
+.bkp-tabela th{
+  text-align:left;padding:10px 12px;background:#f8fafc;color:#64748b;
+  font-size:10.5px;text-transform:uppercase;letter-spacing:.06em;font-weight:800;
+  border-bottom:1px solid #e2e8f0;white-space:nowrap;
+}
+.bkp-tabela td{ padding:9px 12px;border-bottom:1px solid #f1f5f9;vertical-align:middle;color:#334155; }
+.bkp-tabela tr:last-child td{ border-bottom:0; }
+.bkp-tabela tr.bkp-alterado td{ background:#fef2f2; }
+.bkp-arq{ font-family:ui-monospace,Menlo,monospace;font-size:11.5px;color:#0f172a;word-break:break-all; }
+.bkp-num{ white-space:nowrap; }
+.bkp-sit-wrap{ display:inline-flex;flex-direction:column;align-items:flex-start;gap:3px; }
+.bkp-sit{ display:inline-block;font-size:10.5px;font-weight:800;padding:3px 9px;border-radius:999px;white-space:nowrap;cursor:help; }
+.bkp-sit.ok { background:#f0fdf4;color:#15803d; }
+.bkp-sit.alt{ background:#fee2e2;color:#b91c1c; }
+.bkp-sit.sem{ background:#fffbeb;color:#b45309; }
+.bkp-fonte{ font-size:10.5px;color:#94a3b8; }
+.bkp-nota{ margin:12px 0 0;font-size:12px;color:#64748b;line-height:1.5; }
+
+/* Celular: cada backup vira um bloco com rotulo e valor por linha. O
+   style.css da a toda tabela min-width:600px abaixo de 768px; aqui ela
+   deixa de ser grade, entao o minimo e desfeito. */
+@media (max-width:768px){
+  .bkp-card{ padding:14px; }
+  .bkp-topo .fluxo-btn{ width:100%; }
+  .bkp-tabela thead{ display:none; }
+  .bkp-tabela,.bkp-tabela tbody,.bkp-tabela tr,.bkp-tabela td{ display:block;width:100%;min-width:0; }
+  .bkp-tabela tr{ padding:8px 12px;border-bottom:1px solid #f1f5f9; }
+  .bkp-tabela tr:last-child{ border-bottom:0; }
+  .bkp-tabela td{ display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:4px 0;border-bottom:0;text-align:right; }
+  .bkp-tabela td::before{
+    content:attr(data-rotulo);flex:0 0 auto;text-align:left;
+    font-size:10.5px;font-weight:800;text-transform:uppercase;letter-spacing:.06em;color:#64748b;padding-top:2px;
+  }
+  .bkp-tabela td.aud-vazio{ display:block;text-align:center;padding:20px 4px; }
+  .bkp-tabela td.aud-vazio::before{ content:none; }
+  .bkp-tabela tr.bkp-alterado{ background:#fef2f2; }
+  .bkp-sit-wrap{ align-items:flex-end; }
+  .bkp-arq{ min-width:0;font-size:10.5px; }
+}
+
 /* Posiciona o indicador logo abaixo do usuário, na barra lateral */
 .sidebar-conexao{ padding:0 16px 12px;display:flex; }
 

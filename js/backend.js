@@ -566,6 +566,29 @@ const Backend = (() => {
     return {};
   }
 
+  // ── Backup do banco (Fase 7) ─────────────────────────────────
+  // Listar: AUDITOR e ADMIN. Gerar: só ADMIN. Sem plano B local: backup é
+  // arquivo do servidor, e a tela nunca mostra uma lista inventada.
+  //   listarBackups → null com a API fora do ar;
+  //   401/403       → erro de acesso (lerProtegido), sem dado substituto;
+  //   409 no POST   → erro com a mensagem do servidor (intervalo mínimo
+  //                   de 10 minutos entre backups manuais).
+  async function listarBackups() {
+    if (!(await estaOnline())) return null;
+    const r = await lerProtegido('/backup');
+    return r === FORA_DO_AR ? null : r;
+  }
+
+  async function gerarBackup() {
+    const semApi = () => Object.assign(
+      new Error(T('aud.bkp.offline', 'API fora do ar: a lista de backups vem só do servidor.')),
+      { foraDoAr: true });
+    if (!(await estaOnline())) throw semApi();
+    const r = await lerProtegido('/backup', { metodo: 'POST' });
+    if (r === FORA_DO_AR) throw semApi();
+    return r;
+  }
+
   // ── Dispositivos de campo (Fase 6) ───────────────────────────
   // O painel le o barramento de eventos; ele nunca escreve nele. Quem
   // escreve sao os aparelhos, por rota propria e com chave de dispositivo.
@@ -617,6 +640,7 @@ const Backend = (() => {
     listarEquipe, salvarMembro, removerMembro,
     consultarFila, atenderProximo, consultarPilha, desfazerUltima,
     consultarAuditoria, verificarIntegridade, acoesAuditadas,
+    listarBackups, gerarBackup,
     estatisticas, relatorioAnalitico, analisePreditiva, perguntarVigia, reanalisar, statusIa,
     anexarEvidencia, listarEvidencias, baixarEvidencia, removerEvidencia, exportarCsv,
     listarEventosIot, resumoIot,

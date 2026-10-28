@@ -1875,6 +1875,10 @@ document.addEventListener('DOMContentLoaded', () => {
   // Dark mode
   initDarkMode();
 
+  // Fase 7 | Aplica o idioma salvo ao carregar. Sem isto, quem recarregava
+  // com inglês escolhido via os rótulos fixos em português até clicar na bandeira.
+  if (typeof I18n !== 'undefined' && I18n.init) I18n.init();
+
   // Verifica protocolo na URL (link compartilhado)
   verificarProtocoloURL();
 

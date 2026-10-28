@@ -182,6 +182,34 @@
 [data-theme="dark"] #aud-table th    { background:#0f172a; color:#94a3b8; border-bottom-color:#334155; }
 [data-theme="dark"] #aud-table td    { color:#cbd5e1; border-bottom-color:#273549; }
 
+/* ---------- backups do banco (aba Auditoria) ---------- */
+[data-theme="dark"] .bkp-card        { background:#1e293b; border-color:#334155; }
+[data-theme="dark"] .bkp-card .aud-tabela-wrap { background:#172033; }
+[data-theme="dark"] .bkp-cab h4,
+[data-theme="dark"] .bkp-resumo b,
+[data-theme="dark"] .bkp-arq         { color:#e2e8f0; }
+[data-theme="dark"] .bkp-sub,
+[data-theme="dark"] .bkp-resumo,
+[data-theme="dark"] .bkp-nota        { color:#94a3b8; }
+[data-theme="dark"] .bkp-resumo .alt,
+[data-theme="dark"] .bkp-resumo .alt b { color:#fca5a5; }
+[data-theme="dark"] .bkp-resumo .sem,
+[data-theme="dark"] .bkp-resumo .sem b,
+[data-theme="dark"] .bkp-resumo .nao-suportado { color:#fcd34d; }
+[data-theme="dark"] .bkp-tabela th   { background:#0f172a; color:#94a3b8; border-bottom-color:#334155; }
+[data-theme="dark"] .bkp-tabela td   { color:#cbd5e1; border-bottom-color:#273549; }
+[data-theme="dark"] .bkp-tabela tr   { border-bottom-color:#273549; }
+[data-theme="dark"] .bkp-tabela tr.bkp-alterado,
+[data-theme="dark"] .bkp-tabela tr.bkp-alterado td { background:#2a1214; }
+[data-theme="dark"] .bkp-tabela .aud-vazio.negado { background:#2a1214; color:#fca5a5; }
+[data-theme="dark"] .bkp-tabela .aud-vazio.erro   { color:#fca5a5; }
+[data-theme="dark"] .bkp-sit.ok      { background:rgba(22,163,74,.16);  color:#4ade80; }
+[data-theme="dark"] .bkp-sit.alt     { background:rgba(220,38,38,.2);   color:#fca5a5; }
+[data-theme="dark"] .bkp-sit.sem     { background:rgba(217,119,6,.18);  color:#fcd34d; }
+[data-theme="dark"] .bkp-fonte       { color:#64748b; }
+[data-theme="dark"] .bkp-alerta.aviso{ background:#231d13; border-color:#78500a; color:#fcd34d; }
+[data-theme="dark"] .bkp-alerta.erro { background:#2a1214; border-color:#7f1d1d; color:#fca5a5; }
+
 /* ---------- fila, pilha e detalhe do caso ---------- */
 [data-theme="dark"] .fluxo-card,
 [data-theme="dark"] .fluxo-estrutura,
