@@ -1,0 +1,55 @@
+================================================================================
+ PROTEGE+ | Resultados do script 07 (Fase 7, Parte 3) | 27/10/2026
+================================================================================
+ Executado sobre a base de demonstracao (195 denuncias, 123 concluidas com
+ todas as variaveis). Validado no H2 2.2.224 com as mesmas funcoes de
+ agregacao (CORR, REGR_SLOPE, REGR_INTERCEPT, REGR_R2, REGR_COUNT, REGR_SXX,
+ REGR_SYY, REGR_SXY, PERCENTILE_CONT). Diferencas de dialeto na validacao:
+ DATEDIFF no lugar da subtracao de DATE, CASE no lugar do JOIN com
+ TIPO_DENUNCIA (tabela que existe so no modelo Oracle) e booleano no lugar
+ de NUMBER(1). CORR_S (Spearman do Oracle) nao existe no H2; o Spearman foi
+ conferido pela API Java.
+
+ Os numeros do banco batem com os da API (GET /api/stats/regressao).
+--------------------------------------------------------------------------------
+ 1. O QUE EXPLICA O TEMPO DE ATENDIMENTO (n = 123)
+--------------------------------------------------------------------------------
+ fator                     r Pearson   t       leitura          (API: p-valor)
+ Gravidade do tipo          -0,496    -6,28   SIGNIFICATIVO    p < 0,001
+ Urgencia da triagem        -0,251    -2,85   SIGNIFICATIVO    p = 0,005
+ Tamanho do relato           0,094     1,04   sem evidencia    p = 0,303
+ Score de confiabilidade    -0,027    -0,30   sem evidencia    p = 0,764
+ Denuncia anonima           -0,017    -0,19   sem evidencia    p = 0,852
+
+--------------------------------------------------------------------------------
+ 2. REGRESSAO SIMPLES: TEMPO = a + b x GRAVIDADE
+--------------------------------------------------------------------------------
+ a = 12,245   b = -1,583   R2 = 0,247   n = 123
+ erro-padrao de b = 0,2516   IC 95% de b: -2,08 a -1,08 dias
+ Leitura: cada ponto de gravidade encurta o atendimento em cerca de 1,6 dia.
+
+--------------------------------------------------------------------------------
+ 3. PRAZO POR GRAVIDADE (base para SLA)
+--------------------------------------------------------------------------------
+ gravidade  casos  tempo medio  p90 observado  SLA sugerido (90% cumprem)
+     5        76      4,40         8,23            9 dias
+     3        34      7,01        10,74           11 dias
+     2        13      9,92        15,10           16 dias
+
+--------------------------------------------------------------------------------
+ 4 e 5. DEMANDA E EQUIPE (periodo continuo 02/03 a 28/06/2026, 17 semanas)
+--------------------------------------------------------------------------------
+ inclinacao -0,235 denuncia/semana, p = 0,444: sem tendencia significativa
+ projecao pela media: 11,2 denuncias por semana
+ concluidas: 7,0 por semana com 3 pessoas = 2,33 por pessoa
+ equipe necessaria para acompanhar a demanda: 5 pessoas (hoje 3)
+
+--------------------------------------------------------------------------------
+ 6. CORRELACAO ENTRE FATORES
+--------------------------------------------------------------------------------
+ gravidade x urgencia  0,727   (forte: a urgencia das regras parte do tipo)
+ gravidade x score     0,243
+ urgencia x score      0,246
+ Por isso, na regressao multipla, a urgencia perde significancia quando a
+ gravidade entra no modelo: as duas carregam quase a mesma informacao.
+================================================================================

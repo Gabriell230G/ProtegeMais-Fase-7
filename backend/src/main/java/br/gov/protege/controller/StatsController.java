@@ -32,10 +32,13 @@ public class StatsController {
 
     private final DenunciaRepository repo;
     private final RelatorioService relatorio;
+    private final br.gov.protege.service.AnalisePreditivaService preditiva;
 
-    public StatsController(DenunciaRepository repo, RelatorioService relatorio) {
+    public StatsController(DenunciaRepository repo, RelatorioService relatorio,
+                           br.gov.protege.service.AnalisePreditivaService preditiva) {
         this.repo = repo;
         this.relatorio = relatorio;
+        this.preditiva = preditiva;
     }
 
     @Operation(summary = "Resumo do canal",
@@ -77,6 +80,22 @@ public class StatsController {
     @GetMapping("/analitico")
     public RelatorioAnaliticoResponse analitico() {
         return relatorio.gerar();
+    }
+
+    @Operation(summary = "Correlacao e regressao para decisao (Fase 7)",
+               description = """
+                       Correlacao de Pearson e de Spearman de cada fator com o tempo ate a conclusao,
+                       com p-valor e intervalo de 95%; regressao linear simples e multipla com teste t
+                       por coeficiente e teste F do modelo; tendencia do volume semanal com intervalo
+                       de predicao e dimensionamento da equipe pela capacidade observada. Cada
+                       conclusao em texto so afirma relacao quando o teste e significativo (p < 0,05).
+                       Resposta integralmente agregada, como o relatorio descritivo.
+                       """,
+               security = @SecurityRequirement(name = "bearerAuth"))
+    @ApiResponse(responseCode = "200", description = "Analise calculada")
+    @GetMapping("/regressao")
+    public br.gov.protege.dto.AnalisePreditivaResponse regressao() {
+        return preditiva.gerar();
     }
 
     private Map<String, Long> contarPor(List<Denuncia> lista, Function<Denuncia, String> chave) {
