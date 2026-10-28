@@ -364,6 +364,35 @@ tr.aud-negado td{ background:#fef2f2; }
 .aviso-file-det[hidden]{ display:none; }
 .aviso-file-nota{ opacity:.8; }
 
+/* ---------- Aviso de versao de demonstracao (sem API) ---------- */
+.aviso-demo{
+  position:fixed;left:18px;bottom:18px;z-index:9400;max-width:380px;
+  display:flex;gap:11px;align-items:flex-start;
+  background:#fff;border:1px solid #cbd5e1;border-left:4px solid #1A4DA0;border-radius:12px;
+  box-shadow:0 12px 32px rgba(15,23,42,.18);padding:12px 12px 12px 14px;
+  font-size:12.5px;line-height:1.45;color:#334155;animation:aviso-demo-entra .35s ease-out;
+}
+@keyframes aviso-demo-entra{ from{ opacity:0;transform:translateY(10px); } to{ opacity:1;transform:none; } }
+@media (prefers-reduced-motion: reduce){ .aviso-demo{ animation:none; } }
+.aviso-demo-ic{
+  flex:none;width:20px;height:20px;border-radius:50%;background:#1A4DA0;color:#fff;
+  font:700 12px/20px Georgia,serif;text-align:center;font-style:italic;
+}
+.aviso-demo-corpo{ display:flex;flex-direction:column;gap:4px;min-width:0; }
+.aviso-demo-corpo b{ color:#0f172a;font-size:13px; }
+.aviso-demo-link{
+  align-self:flex-start;margin-top:3px;font-weight:600;color:#1A4DA0;text-decoration:none;
+  border-bottom:1px solid rgba(26,77,160,.35);
+}
+.aviso-demo-link:hover{ border-bottom-color:#1A4DA0; }
+.aviso-demo-link::after{ content:' \2197'; }
+.aviso-demo-x{
+  flex:none;background:none;border:none;color:#64748b;font-size:19px;line-height:1;
+  cursor:pointer;padding:0 2px;margin-left:2px;
+}
+.aviso-demo-x:hover{ color:#0f172a; }
+@media (max-width:520px){ .aviso-demo{ left:10px;right:10px;bottom:10px;max-width:none; } }
+
 /* ---------- Ficha do caso (painel do órgão) ---------- */
 .det-overlay{
   display:none;position:fixed;inset:0;background:rgba(15,23,42,.65);

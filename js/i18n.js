@@ -288,6 +288,10 @@ const I18n = (() => {
       'conexao.offline':'modo local',
       'conexao.offline_dica':'A API está fora do ar. Os dados exibidos vêm do armazenamento deste navegador.',
       'conexao.dica':'Clique para verificar novamente',
+      'demo.aviso.titulo':'Versão de demonstração, sem servidor',
+      'demo.aviso.texto':'Tudo aqui roda no seu navegador, com dados de exemplo. O sistema completo (API Java, perfis, auditoria, estatística e dispositivos de campo) sobe em dois comandos.',
+      'demo.aviso.botao':'Como rodar o completo',
+      'demo.aviso.fechar':'Fechar aviso',
       // -- Chamada para a versão React do formulário --
       'react.titulo':'Versão em React deste formulário',
       'react.sub':'Mesmo cadastro, implementado como componente React consumindo a mesma API. Útil para comparar as duas abordagens de front-end.',
@@ -652,6 +656,10 @@ const I18n = (() => {
       'conexao.offline':'local mode',
       'conexao.offline_dica':'The API is down. The data shown comes from this browser storage.',
       'conexao.dica':'Click to check again',
+      'demo.aviso.titulo':'Demo version, no server',
+      'demo.aviso.texto':'Everything here runs in your browser, with sample data. The full system (Java API, roles, audit trail, statistics and field devices) starts with two commands.',
+      'demo.aviso.botao':'How to run the full system',
+      'demo.aviso.fechar':'Close notice',
       // -- Link to the React version of the form --
       'react.titulo':'React version of this form',
       'react.sub':'Same submission form, built as a React component consuming the same API. Useful to compare both front-end approaches.',

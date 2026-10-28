@@ -44,6 +44,8 @@ const Conexao = (() => {
   };
 
   function pintar(online) {
+    if (online === false) avisarModoDemo();
+    if (online === true) { const c = document.querySelector('.aviso-demo'); if (c) c.remove(); }
     if (!elemento) return;
     estado = online;
     const e = ESTILO[String(online)];
@@ -121,12 +123,59 @@ const Conexao = (() => {
     document.body.insertBefore(barra, document.body.firstChild);
   }
 
+  /**
+   * Aviso de versao de demonstracao (site servido por HTTP, mas sem a API).
+   *
+   * E o caso do site publicado no GitHub Pages: quem chega pelo README ve um
+   * sistema que funciona, mas so com o armazenamento do navegador. Sem este
+   * aviso, a pessoa avalia a demonstracao achando que e o produto inteiro.
+   * Aparece uma vez por sessao, no canto, e pode ser fechado.
+   */
+  const REPO_COMO_RODAR = 'https://github.com/Gabriell230G/ProtegeMais-Fase-7#como-executar';
+  let avisoDemoMostrado = false;
+
+  function avisarModoDemo() {
+    if (avisoDemoMostrado || location.protocol === 'file:') return;
+    try { if (sessionStorage.getItem('protege_aviso_demo') === 'fechado') return; } catch (_) {}
+    if (!document.body) return;
+    avisoDemoMostrado = true;
+
+    const card = document.createElement('aside');
+    card.className = 'aviso-demo';
+    card.setAttribute('role', 'status');
+    card.innerHTML =
+      '<span class="aviso-demo-ic" aria-hidden="true">i</span>'
+    + '<div class="aviso-demo-corpo">'
+    +   '<b data-i18n="demo.aviso.titulo"></b>'
+    +   '<span data-i18n="demo.aviso.texto"></span>'
+    +   '<a class="aviso-demo-link" target="_blank" rel="noopener noreferrer" data-i18n="demo.aviso.botao"></a>'
+    + '</div>'
+    + '<button type="button" class="aviso-demo-x" data-i18n="demo.aviso.fechar" data-i18n-prop="title">&times;</button>';
+    card.querySelector('.aviso-demo-link').href = REPO_COMO_RODAR;
+    card.querySelectorAll('[data-i18n]').forEach(el => {
+      const chave = el.getAttribute('data-i18n');
+      const prop = el.getAttribute('data-i18n-prop');
+      const valor = T(chave, chave);
+      if (prop === 'title') { el.title = valor; el.setAttribute('aria-label', valor); } else el.textContent = valor;
+    });
+    card.querySelector('.aviso-demo-x').addEventListener('click', () => {
+      card.remove();
+      try { sessionStorage.setItem('protege_aviso_demo', 'fechado'); } catch (_) {}
+    });
+    document.body.appendChild(card);
+  }
+
+  document.addEventListener('protege:idioma', () => {
+    const x = document.querySelector('.aviso-demo-x');
+    if (x) x.setAttribute('aria-label', T('demo.aviso.fechar', 'Fechar aviso'));
+  });
+
   document.addEventListener('DOMContentLoaded', () => {
     avisarAberturaLocal();
     setTimeout(() => instalar('sidebar-conexao'), 150);
   });
 
-  return { instalar, pintar };
+  return { instalar, pintar, avisarModoDemo };
 })();
 
 window.Conexao = Conexao;
