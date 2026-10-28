@@ -12,6 +12,10 @@
 <img src="docs/readme/selo-6.svg" alt="ataques: 11 de 11 bloqueados" height="26">
 <img src="docs/readme/selo-7.svg" alt="LGPD: nada pessoal fora do sistema" height="26">
 
+<br>
+
+<a href="https://github.com/Gabriell230G/ProtegeMais-Fase-7/actions/workflows/provas.yml"><img src="https://github.com/Gabriell230G/ProtegeMais-Fase-7/actions/workflows/provas.yml/badge.svg?branch=main" alt="Testes e provas no GitHub Actions" height="22"></a>
+
 <br><br>
 
 <a href="https://gabriell230g.github.io/ProtegeMais-Fase-7/"><img src="docs/readme/botao-site.svg" alt="Acessar o site" height="38"></a>
@@ -76,7 +80,7 @@ A pergunta da fase foi uma só: **o Protege+ merece a confiança de quem denunci
 | Pontos de injeção de script (XSS) que executavam | 44 | **0** |
 | Backup | não havia | **diário, verificado por hash** |
 
-As provas estão gravadas no repositório, cada uma com o roteiro que a produz: [`seguranca/resultados/`](seguranca/resultados/), [`infra/resultados/`](infra/resultados/) e [`blockchain/resultados/`](blockchain/resultados/).
+As provas estão gravadas no repositório, cada uma com o roteiro que a produz: [`seguranca/resultados/`](seguranca/resultados/), [`infra/resultados/`](infra/resultados/) e [`blockchain/resultados/`](blockchain/resultados/). E elas não ficam só no passado: a cada push, o [GitHub Actions](https://github.com/Gabriell230G/ProtegeMais-Fase-7/actions/workflows/provas.yml) roda de novo, numa máquina limpa, os testes Java, os testes do contrato, os 11 ataques contra a API e as 39 verificações da borda de rede.
 
 <br>
 
@@ -591,7 +595,7 @@ Cobrem as regras de negócio das fases anteriores (score, VigIA, fila, pilha, es
 
 Os valores esperados nos testes de estatística foram **calculados fora do programa**. Um teste que confere o programa contra a saída do próprio programa passa a fingir que a conta está certa exatamente quando ela deixa de estar.
 
-Além dos testes unitários, três roteiros testam o sistema rodando: [`seguranca/simular_ataques.py`](seguranca/simular_ataques.py), [`infra/testar-rede.sh`](infra/testar-rede.sh) e a demonstração em [`blockchain/`](blockchain/README.md).
+Além dos testes unitários, três roteiros testam o sistema rodando: [`seguranca/simular_ataques.py`](seguranca/simular_ataques.py), [`infra/testar-rede.sh`](infra/testar-rede.sh) e a demonstração em [`blockchain/`](blockchain/README.md). Os dois primeiros, os testes Java e os do contrato rodam a cada push no [GitHub Actions](https://github.com/Gabriell230G/ProtegeMais-Fase-7/actions/workflows/provas.yml) ([`.github/workflows/provas.yml`](.github/workflows/provas.yml)).
 
 </details>
 

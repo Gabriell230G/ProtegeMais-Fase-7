@@ -1,0 +1,135 @@
+# Protege+ | testes e provas automáticas a cada push.
+# Os mesmos roteiros descritos no documento técnico, rodando numa máquina
+# limpa do GitHub: testes Java, testes do contrato, os 11 ataques contra a
+# API real e as 39 verificações da borda de rede.
+name: Testes e provas
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: provas-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  java:
+    name: Testes Java
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: mvn clean test
+        working-directory: backend
+        run: mvn -B -ntp clean test
+      - name: Guardar o relatório dos testes
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-testes-java
+          path: backend/target/surefire-reports/
+          if-no-files-found: ignore
+
+  contrato:
+    name: Testes do contrato (Solidity)
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: npm
+          cache-dependency-path: blockchain/package-lock.json
+      - name: npm ci
+        working-directory: blockchain
+        run: npm ci --no-audit --no-fund
+      - name: npm test
+        working-directory: blockchain
+        run: npm test
+
+  ataques:
+    name: 11 ataques contra a API
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: Gerar o executável
+        working-directory: backend
+        run: mvn -B -ntp clean package -DskipTests
+      - name: Subir a API (modo demonstração)
+        working-directory: backend
+        run: |
+          nohup java -jar target/protege-backend-1.0.0.jar > api.log 2>&1 &
+          for i in $(seq 1 90); do
+            curl -s -o /dev/null http://127.0.0.1:8080/api/vigia/status && exit 0
+            sleep 2
+          done
+          cat api.log; exit 1
+      - name: Atacar
+        run: python3 seguranca/simular_ataques.py
+      - name: Guardar o relatório
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-ataques
+          path: |
+            seguranca/resultados/simulacao-*
+            backend/api.log
+
+  rede:
+    name: 39 verificações de rede
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    env:
+      PROTEGE_PROXY_CONFIAVEL: 'true'
+      CORS_ORIGENS: https://localhost:8443
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+          cache: maven
+          cache-dependency-path: backend/pom.xml
+      - name: nginx
+        run: command -v nginx || (sudo apt-get update -q && sudo apt-get install -y -q nginx)
+      - name: Gerar o executável
+        working-directory: backend
+        run: mvn -B -ntp clean package -DskipTests
+      - name: Subir a API atrás do proxy
+        working-directory: backend
+        run: |
+          nohup java -jar target/protege-backend-1.0.0.jar > api.log 2>&1 &
+          for i in $(seq 1 90); do
+            curl -s -o /dev/null http://127.0.0.1:8080/api/vigia/status && exit 0
+            sleep 2
+          done
+          cat api.log; exit 1
+      - name: Testar a borda
+        run: PATH="$PATH:/usr/sbin" bash infra/testar-rede.sh
+      - name: Guardar o relatório
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: relatorio-rede
+          path: |
+            infra/resultados/rede-*
+            backend/api.log

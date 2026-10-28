@@ -115,7 +115,7 @@ case "$CIF" in ECDHE-*) ok "Troca de chaves com sigilo futuro (ECDHE)" "cifra: $
                 *) falha "Troca de chaves com sigilo futuro (ECDHE)" "cifra: ${CIF:-?}";; esac
 confere "Certificado confere com a AC e com o nome localhost" "0" \
   "$(curl -s -o /dev/null -w '%{ssl_verify_result}' --cacert "$PKI/ac-servidor.crt" $HTTPS/)"
-curl -s -o /dev/null --max-time 5 $HTTPS/ 2>/dev/null; R=$?
+curl -s -o /dev/null --max-time 5 --cacert "$PKI/ac-dispositivos.crt" $HTTPS/ 2>/dev/null; R=$?  # confia so em outra AC
 confere "Cliente sem a AC recusa a conexao (impede servidor falso)" "60" "$R"
 
 # ---------- 2. Cabecalhos e superficie ---------------------------------------
