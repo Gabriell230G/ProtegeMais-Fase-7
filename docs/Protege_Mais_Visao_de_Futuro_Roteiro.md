@@ -32,7 +32,7 @@ Para o visual, use as cores do projeto: azul `#1A4DA0`, laranja `#F5A623`, verde
   - A senha do ADMIN estava no JavaScript público ➜ nenhuma senha no cliente
   - O segredo dos tokens estava no repositório ➜ segredo sorteado; em produção, a API não sobe com segredo fraco
   - As fotos guardavam o GPS da vítima ➜ metadados removidos antes do hash
-- **Rodapé com números:** testes 136 ➜ 218 · XSS: 44 pontos ➜ 0 · backup: não havia ➜ diário, verificado por hash
+- **Rodapé com números:** testes 136 ➜ 217 · XSS: 44 pontos ➜ 0 · backup: não havia ➜ diário, verificado por hash
 
 ### Slide 4. Tríade CIA e políticas
 
@@ -92,7 +92,7 @@ Tabela 3 × 2:
 
 ### Slide 10. Entrega e próximos passos
 
-- **Números:** 93 classes · 44 endpoints · 218 + 21 testes · 11 ataques · 39 verificações de rede · 1 smart contract
+- **Números:** 93 classes · 44 endpoints · 217 + 21 testes · 11 ataques · 39 verificações de rede · 1 smart contract
 - **Próximos passos:** score de risco FONAR · login gov.br com segundo fator · ancoragem horária na RBB · avaliação com usuárias reais
 - **Links:** repositório, site e vídeo (QR code do repositório)
 - **Frase final:** "Primeiro o ataque, depois o texto."
@@ -113,7 +113,7 @@ Tabela 3 × 2:
 
 ### 0:45 a 1:15 · Slides 3 e 4
 
-🎤 "Comecei olhando o sistema como um atacante olharia. Achei 26 falhas. A pior: a senha do administrador estava no JavaScript público. Outra: as fotos de evidência guardavam o GPS de onde a vítima estava. Tudo foi corrigido, e cada correção ganhou um teste: passamos de 136 para 218. Cada controle está ligado a um pilar da tríade: confidencialidade protege a vida, integridade protege a prova, disponibilidade protege a emergência."
+🎤 "Comecei olhando o sistema como um atacante olharia. Achei 26 falhas. A pior: a senha do administrador estava no JavaScript público. Outra: as fotos de evidência guardavam o GPS de onde a vítima estava. Tudo foi corrigido, e cada correção ganhou um teste: passamos de 136 para 217. Cada controle está ligado a um pilar da tríade: confidencialidade protege a vida, integridade protege a prova, disponibilidade protege a emergência."
 
 ### 1:15 a 1:50 · Demonstração 1: ataques reais (Slide 5 antes ou depois)
 

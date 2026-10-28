@@ -11,7 +11,7 @@
 [![Oracle](https://img.shields.io/badge/Oracle_19c-F80000?style=for-the-badge&logo=oracle&logoColor=white)](database/01_ddl_oracle.sql)
 [![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](formulario-react.html)
 
-[![Testes](https://img.shields.io/badge/testes-218_Java_+_21_Solidity-4CAF50?style=flat-square&logo=junit5&logoColor=white)](#-testes)
+[![Testes](https://img.shields.io/badge/testes-217_Java_+_21_Solidity-4CAF50?style=flat-square&logo=junit5&logoColor=white)](#-testes)
 [![Ataques](https://img.shields.io/badge/ataques_simulados-11_bloqueados-CC092F?style=flat-square&logo=hackthebox&logoColor=white)](seguranca/)
 [![Rede](https://img.shields.io/badge/verificações_de_rede-39_de_39-009639?style=flat-square&logo=letsencrypt&logoColor=white)](infra/)
 [![Estatística](https://img.shields.io/badge/estatística-correlação_·_regressão-9B7BE0?style=flat-square&logo=databricks&logoColor=white)](#-parte-3-estatística-para-decidir)
@@ -103,7 +103,7 @@ A pergunta da fase foi uma só: **o Protege+ merece a confiança de quem denunci
 |:--|--:|--:|
 | Classes Java de produção | 79 | **93** |
 | Endpoints REST | 38 | **44** |
-| Testes Java | 136 | **218** |
+| Testes Java | 136 | **217** |
 | Testes do contrato inteligente | – | **21** |
 | Ataques executados contra a API | 0 | **11** |
 | Verificações de rede | 0 | **39** |
@@ -251,7 +251,7 @@ Você precisa apenas de um **JDK 17 ou superior** (testado também com o 21). O 
 
 ```powershell
 cd backend
-.\build.cmd clean test     # Windows: roda os 218 testes
+.\build.cmd clean test     # Windows: roda os 217 testes
 .\build.cmd run            # sobe a API em http://localhost:8080
 ```
 
@@ -556,7 +556,7 @@ cd backend
 
 <div align="center">
 
-![Testes Java](https://img.shields.io/badge/218_testes_Java-0_falhas-4CAF50?style=for-the-badge&logo=junit5&logoColor=white)
+![Testes Java](https://img.shields.io/badge/217_testes_Java-0_falhas-4CAF50?style=for-the-badge&logo=junit5&logoColor=white)
 ![Testes Solidity](https://img.shields.io/badge/21_testes_do_contrato-100%25_das_linhas-363636?style=for-the-badge&logo=solidity&logoColor=white)
 
 </div>
@@ -598,7 +598,7 @@ Além dos testes unitários, três roteiros testam o sistema rodando: [`seguranc
         │   ├── security/     JWT, RBAC, CORS, limites, chave de dispositivo
         │   ├── service/      ... BackupService, FluxoStatus, AnalisePreditivaService
         │   └── util/         Inferencia (estatística), mascaramento, metadados, LogSeguro
-        └── test/java/...     29 classes, 218 testes JUnit
+        └── test/java/...     29 classes, 217 testes JUnit
 ```
 
 </details>
