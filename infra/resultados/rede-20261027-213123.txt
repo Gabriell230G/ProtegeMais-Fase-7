@@ -1,0 +1,87 @@
+PROTEGE+ | Teste da borda de rede (Parte 2) | 27/10/2026 21:31
+nginx 1.24.0 (Ubuntu) na frente da API em 127.0.0.1:8081
+
+--- 1. Confidencialidade em transito (TLS)
+  [OK]     HTTP simples e redirecionado para HTTPS
+           obtido: 301 https://localhost:8443/
+  [OK]     TLSv1.3 aceito
+           obtido: TLSv1.3
+  [OK]     TLSv1.2 aceito
+           obtido: TLSv1.2
+  [OK]     TLS 1.1 recusado
+           alert protocol version
+  [OK]     Troca de chaves com sigilo futuro (ECDHE)
+           cifra: ECDHE-ECDSA-AES256-GCM-SHA384
+  [OK]     Certificado confere com a AC e com o nome localhost
+           obtido: 0
+  [OK]     Cliente sem a AC recusa a conexao (impede servidor falso)
+           obtido: 60
+
+--- 2. Integridade da pagina e superficie exposta
+  [OK]     Cabecalho Strict-Transport-Security
+  [OK]     Cabecalho Content-Security-Policy
+  [OK]     Cabecalho X-Content-Type-Options
+  [OK]     Cabecalho X-Frame-Options
+  [OK]     Cabecalho Referrer-Policy
+  [OK]     Versao do servidor escondida
+           server: nginx
+  [OK]     Pagina aponta para a API no mesmo endereco
+           obtido: 1
+  [OK]     Nao serve /backend/pom.xml
+           obtido: 404
+  [OK]     Nao serve /database/01_ddl_oracle.sql
+           obtido: 404
+  [OK]     Nao serve /.git/config
+           obtido: 404
+  [OK]     Nao serve /blockchain/package.json
+           obtido: 404
+  [OK]     Nao serve /infra/pki/saida/servidor.key
+           obtido: 404
+  [OK]     Nao serve /seguranca/simular_ataques.py
+           obtido: 404
+  [OK]     Nao serve /simulador-iot.html
+           obtido: 404
+  [OK]     Nao serve /h2-console
+           obtido: 404
+  [OK]     Nao serve /swagger-ui/index.html
+           obtido: 404
+
+--- 3. Aparelhos de campo: certificado + chave
+  [OK]     Sem certificado: barrado no proxy, nem chega a API
+           obtido: 403 proxy
+  [OK]     Certificado pirata (CN copiado de aparelho real, outra AC): barrado
+           obtido: 403
+  [OK]     Certificado valido com chave errada: a API recusa
+           obtido: 401
+  [OK]     Certificado valido e chave certa: aceito
+           obtido: 201
+  [OK]     Painel continua lendo /api/iot/resumo sem certificado (rota de pessoa, com login)
+           obtido: 401
+
+--- 4. Rastreabilidade: o IP que a trilha grava
+  [OK]     Login pela borda funciona
+  [OK]     Pagina do proprio endereco publico pode chamar a API (CORS)
+           obtido: 401
+  [OK]     Site de terceiros nao usa a sessao do servidor publico (CORS)
+           obtido: 403
+  [OK]     Login forjando X-Forwarded-For: 6.6.6.6 fica registrado com o IP real
+           obtido: 127.0.0.2
+
+--- 5. Disponibilidade: abuso barrado na borda
+  [OK]     Rajada de denuncias da mesma origem: a 4a e barrada no proxy
+           obtido: 201 201 201 429
+  [OK]     JSON de 400 KB: barrado no proxy
+           obtido: 413
+  [OK]     Evidencia de 1 MB passa pela borda (a API responde: protocolo inexistente)
+           obtido: 404
+  [OK]     Arquivo de 7 MB como evidencia: barrado no proxy
+           obtido: 413
+  [OK]     API fora do ar: resposta clara em JSON, e nao uma pagina travada
+           obtido: 503 proxy
+  [OK]     Resposta da queda em menos de 4 s
+           16 ms
+  [OK]     Conexao lenta de proposito (slowloris) derrubada
+           em 10 s
+
+RESULTADO: 39 verificacoes OK, 0 falhas
+Relatorio: infra/resultados/rede-20261027-213123.txt

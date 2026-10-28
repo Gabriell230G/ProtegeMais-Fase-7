@@ -162,4 +162,24 @@ class AuditoriaServiceTest {
         assertNotEquals(ancorado, e.ultimo().getHash(),
                 "so a comparacao com o hash guardado fora do servidor revela o corte");
     }
+
+    @Test
+    @DisplayName("Fase 7: atras do proxy confiavel a trilha grava o IP real, e sem ele ignora o cabecalho")
+    void ipAtrasDoProxy() {
+        org.springframework.mock.web.MockHttpServletRequest req = new org.springframework.mock.web.MockHttpServletRequest();
+        req.setRemoteAddr("127.0.0.1");                      // o proxy
+        req.addHeader("X-Forwarded-For", "198.51.100.23");   // quem se conectou ao proxy
+        org.springframework.web.context.request.RequestContextHolder.setRequestAttributes(
+                new org.springframework.web.context.request.ServletRequestAttributes(req));
+        try {
+            servico.registrar(AuditoriaService.CONSULTA_SENSIVEL, "Denuncia", "1");
+            assertEquals("127.0.0.1", banco.get(0).getOrigemIp(), "sem proxy confiavel o cabecalho e ignorado");
+
+            org.springframework.test.util.ReflectionTestUtils.setField(servico, "confiarEmProxy", true);
+            servico.registrar(AuditoriaService.CONSULTA_SENSIVEL, "Denuncia", "1");
+            assertEquals("198.51.100.23", banco.get(1).getOrigemIp());
+        } finally {
+            org.springframework.web.context.request.RequestContextHolder.resetRequestAttributes();
+        }
+    }
 }

@@ -1,0 +1,26 @@
+PROTEGE+ | Painel completo pela borda HTTPS | 27/10/2026 21:31
+Navegador Chromium (Playwright) em https://localhost:8443, login de ADMIN pela tela.
+
+Protocolo da pagina: https
+Abas abertas: resumo, backlog, status-d, kanban, equipe, mapa, dispositivos,
+              reincidencia, estatistica, auditoria
+Violacoes da Content-Security-Policy: 0
+Erros de JavaScript na pagina: 0
+
+Chamadas a API, todas pelo mesmo endereco (/api), sem CORS entre dominios:
+  200 POST /api/auth/login              200 GET /api/iot/resumo
+  200 GET  /api/vigia/status            200 GET /api/iot/eventos
+  200 GET  /api/equipe                  200 GET /api/reincidencia/parametros
+  200 GET  /api/denuncias               200 GET /api/reincidencia/focos
+  200 GET  /api/stats                   200 GET /api/stats/regressao
+  200 GET  /api/fluxo/pilha             200 GET /api/stats/analitico
+  200 GET  /api/fluxo/fila              200 GET /api/auditoria/acoes
+                                        200 GET /api/auditoria
+
+Achados desta verificacao, ja corrigidos:
+  - O login pela borda voltava 403: o navegador manda a origem publica
+    (https://localhost:8443) e ela nao estava em CORS_ORIGENS. Em producao a
+    variavel recebe o dominio publico; o teste de rede agora confere os dois
+    lados (origem propria aceita, site de terceiros recusado).
+  - A pagina consultava a API do IBGE (estados e cidades), fora da politica
+    de conteudo. Incluida em connect-src.

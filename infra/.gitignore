@@ -1,0 +1,4 @@
+# Chaves privadas e certificados gerados: cada instalacao gera os seus.
+pki/saida/
+# Pasta de trabalho do nginx de teste.
+nginx/.execucao/

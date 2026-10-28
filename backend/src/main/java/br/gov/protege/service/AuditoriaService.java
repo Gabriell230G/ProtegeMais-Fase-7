@@ -2,10 +2,12 @@ package br.gov.protege.service;
 
 import br.gov.protege.model.AuditoriaLog;
 import br.gov.protege.repository.AuditoriaLogRepository;
+import br.gov.protege.security.RateLimitFilter;
 import br.gov.protege.util.LogSeguro;
 import jakarta.servlet.http.HttpServletRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
@@ -56,6 +58,14 @@ public class AuditoriaService {
     public static final String GENESE = "0".repeat(64);
 
     private final AuditoriaLogRepository repo;
+
+    /**
+     * Fase 7 | Mesmo criterio do limite de requisicoes: atras do proxy
+     * reverso (infra/nginx), getRemoteAddr seria sempre o do proxy e a
+     * trilha gravaria 127.0.0.1 para todo mundo.
+     */
+    @Value("${protege.proxy-confiavel:false}")
+    private boolean confiarEmProxy;
 
     /** Atributo da requisicao onde os servicos deixam o complemento do detalhe. */
     static final String ATRIBUTO_DETALHE = AuditoriaService.class.getName() + ".detalhe";
@@ -228,10 +238,12 @@ public class AuditoriaService {
     /**
      * Fase 7 | A trilha grava o endereco real da conexao. O X-Forwarded-For
      * e escrito pelo proprio cliente: gravar o valor dele deixaria quem age
-     * de ma-fe escolher o IP que aparece na prova contra ele.
+     * de ma-fe escolher o IP que aparece na prova contra ele. So com o nosso
+     * proxy na frente (protege.proxy-confiavel=true) vale o endereco que ele
+     * acrescenta, o ultimo da lista, como no RateLimitFilter.
      */
     private String ipDe(HttpServletRequest req) {
-        return truncar(req.getRemoteAddr(), 45);
+        return truncar(RateLimitFilter.origem(req, confiarEmProxy), 45);
     }
 
     private String truncar(String s, int max) {
