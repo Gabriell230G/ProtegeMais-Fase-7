@@ -3,7 +3,7 @@ const fs = require("fs");
 const path = require("path");
 const hre = require("hardhat");
 
-const API = (process.env.PROTEGE_API || "http://localhost:8080").replace(/\/+$/, "");
+const API = (process.env.PROTEGE_API || "http://127.0.0.1:8080").replace(/\/+$/, "");
 
 // A rotina de ancoragem so le: por isso usa a conta de AUDITOR, nao a de ADMIN.
 // Em producao as contas de demonstracao nao existem: informe as variaveis.

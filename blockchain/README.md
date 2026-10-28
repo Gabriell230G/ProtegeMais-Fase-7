@@ -98,15 +98,16 @@ $env:ARQUIVO="C:\caminho\foto.jpg"; npm run provar        # prova uma evidência
 $env:EVIDENCIA_ID="2"; npm run provar                     # e confere se é a #2
 ```
 
-A rotina usa a conta de **auditor** da demonstração, porque só precisa ler. Em produção, informe `PROTEGE_EMAIL` e `PROTEGE_SENHA` (e `PROTEGE_API` se a API não estiver em `localhost:8080`).
+A rotina usa a conta de **auditor** da demonstração, porque só precisa ler. Em produção, informe `PROTEGE_EMAIL` e `PROTEGE_SENHA` (e `PROTEGE_API` se a API não estiver em `127.0.0.1:8080`).
 
 Para provar uma evidência, use o arquivo baixado do sistema. A API remove os metadados (EXIF) na entrada, e o hash ancorado é o do arquivo já limpo.
 
 ### Exercício C no seu computador
 
-1. Com tudo rodando, gere um backup pelo painel (aba Backup, como ADMIN).
+1. Com tudo rodando, entre como ADMIN e gere um backup na aba Auditoria (card "Backups do banco").
 2. Faça qualquer coisa que gere trilha (abra alguns casos) e rode `npm run ancorar`.
-3. Pare a API (Ctrl+C no Terminal 2) e restaure o backup: `.\restaurar-backup.ps1`.
+3. Pare a API (Ctrl+C no Terminal 2) e restaure o backup, na pasta backend:
+   `.\restaurar-backup.cmd data\backups\protege-AAAAMMDD-HHMMSS-mmm.zip` (o nome do arquivo que você gerou).
 4. Suba a API de novo e rode `npm run verificar`: o alerta aparece.
 
 O nó local esquece tudo quando é fechado. Se reiniciar o Terminal 1, rode `npm run implantar` de novo: os registros do contrato anterior são guardados numa subpasta de `ancoragens\localhost`.
