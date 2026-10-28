@@ -25,7 +25,7 @@ Os slides estão prontos, com a fala de cada um nas notas do apresentador (a mes
 
 ---
 
-## Parte B. Roteiro do vídeo (alvo: 4min45s, cerca de 650 palavras)
+## Parte B. Roteiro do vídeo (alvo: 4min45s, cerca de 640 palavras)
 
 **Como o roteiro funciona.** Três ideias da pesquisa sobre grandes oradores e sobre atenção em vídeo:
 
@@ -47,7 +47,7 @@ Os slides estão prontos, com a fala de cada um nas notas do apresentador (a mes
 
 🖥️ Slide 2, com destaque no número 1.571.
 
-🎤 E ela não é exceção: em 2025, o Brasil registrou 1.571 feminicídios, mais de quatro por dia. [pausa] Eu sou o Gabriel, e este é o Protege+, um canal de denúncia para o poder público. A pergunta desta fase foi uma só: esse canal merece confiança? Vou responder com três provas: um ataque, os números e a blockchain. [pausa]
+🎤 E ela não é exceção: em 2025, o Brasil registrou 1.571 feminicídios, mais de quatro por dia. [pausa] Então, nesta fase, eu fiz uma pergunta só ao canal que construí: ele merece a confiança da Ana? Vou responder com três provas: um ataque, os números e a blockchain. [pausa]
 
 **Um canal que protege tem que provar o que faz:
 não basta prometer, tem que mostrar que é capaz.**
