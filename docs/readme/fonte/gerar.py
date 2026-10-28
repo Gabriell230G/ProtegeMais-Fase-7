@@ -124,7 +124,7 @@ def botoes():
 
 SECOES = {'visao': 'bussola', 'fase': 'estrela', 'seguranca': 'escudo', 'redes': 'rede', 'estatistica': 'grafico', 'blockchain': 'bloco',
           'anteriores': 'relogio', 'executar': 'play', 'usuarios': 'pessoas', 'arquitetura': 'camadas', 'endpoints': 'tomada',
-          'banco': 'banco', 'testes': 'frasco', 'estrutura': 'pasta', 'docs': 'doc', 'roadmap': 'bandeira', 'funcoes': 'faisca'}
+          'banco': 'banco', 'testes': 'frasco', 'estrutura': 'pasta', 'docs': 'doc', 'roadmap': 'bandeira', 'funcoes': 'faisca', 'produto': 'olho'}
 
 
 def icones_secao():

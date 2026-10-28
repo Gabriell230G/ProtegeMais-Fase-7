@@ -25,7 +25,7 @@
 
 <br><br>
 
-**[Visão geral](#visao-geral)** · **[Fase 7](#fase-7)** · **[Segurança](#parte-1)** · **[Redes](#parte-2)** · **[Estatística](#parte-3)** · **[Blockchain](#parte-4)** · **[Como executar](#como-executar)** · **[Visão técnica](#visao-tecnica)** · **[Roadmap](#roadmap)**
+**[Visão geral](#visao-geral)** · **[Telas](#telas)** · **[Fase 7](#fase-7)** · **[Segurança](#parte-1)** · **[Redes](#parte-2)** · **[Estatística](#parte-3)** · **[Blockchain](#parte-4)** · **[Como executar](#como-executar)** · **[Visão técnica](#visao-tecnica)** · **[Roadmap](#roadmap)**
 
 <sub>Vídeos anteriores: <a href="https://youtu.be/FHOxDr-g8I8">Fase 6</a> · <a href="https://youtu.be/DoenYynHA6E">Fase 5</a> · <a href="https://youtu.be/bCIv81vYzPs">Atividade 4</a></sub>
 
@@ -55,6 +55,33 @@ Desenvolvido para o **HackGov / Enterprise Challenge FIAP**, em parceria com a *
 
 > [!TIP]
 > **Para avaliar em dois minutos.** O [site publicado](https://gabriell230g.github.io/ProtegeMais-Fase-7/) roda **sem servidor**, com a etiqueta `modo local` e o botão **Entrar em modo demonstração** (125 denúncias carregadas no navegador). Para ver o produto completo, com segurança, estatística, auditoria e dispositivos de campo, suba a API seguindo [Como executar](#como-executar): são dois comandos e menos de cinco minutos.
+
+<br>
+
+<a id="telas"></a>
+
+## <img src="docs/readme/ic-produto.svg" width="30" align="top"> Por dentro do produto
+
+Telas reais do sistema rodando com a API, capturadas com o perfil ADMIN sobre a base de demonstração.
+
+<table>
+<tr>
+<td width="50%" valign="top"><a href="docs/img/telas/01-portal-cidada.png"><img src="docs/img/telas/01-portal-cidada.png" alt="Portal da cidadã: Denunciar sem login. O botão vermelho do topo esconde a página na hora." width="100%"></a><p><b>Portal da cidadã</b><br>Denunciar sem login. O botão vermelho do topo esconde a página na hora.</p></td>
+<td width="50%" valign="top"><a href="docs/img/telas/02-formulario.png"><img src="docs/img/telas/02-formulario.png" alt="Fazer denúncia: Três níveis de anonimato, com o que se ganha e o que se perde em cada um." width="100%"></a><p><b>Fazer denúncia</b><br>Três níveis de anonimato, com o que se ganha e o que se perde em cada um.</p></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="docs/img/telas/03-painel-vigia.png"><img src="docs/img/telas/03-painel-vigia.png" alt="Painel e VigIA: Indicadores e recomendações de ação. Nenhum relato vai para a IA." width="100%"></a><p><b>Painel e VigIA</b><br>Indicadores e recomendações de ação. Nenhum relato vai para a IA.</p></td>
+<td width="50%" valign="top"><a href="docs/img/telas/04-fila-kanban.png"><img src="docs/img/telas/04-fila-kanban.png" alt="Fila e Kanban: Urgência, score e antiguidade decidem quem é atendido primeiro." width="100%"></a><p><b>Fila e Kanban</b><br>Urgência, score e antiguidade decidem quem é atendido primeiro.</p></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="docs/img/telas/05-estatistica.png"><img src="docs/img/telas/05-estatistica.png" alt="Relatório estatístico: Correlação e regressão viram conclusões com evidência e decisão." width="100%"></a><p><b>Relatório estatístico</b><br>Correlação e regressão viram conclusões com evidência e decisão.</p></td>
+<td width="50%" valign="top"><a href="docs/img/telas/06-auditoria.png"><img src="docs/img/telas/06-auditoria.png" alt="Trilha de auditoria: Consultas e recusas registradas, com a cadeia SHA-256 conferida." width="100%"></a><p><b>Trilha de auditoria</b><br>Consultas e recusas registradas, com a cadeia SHA-256 conferida.</p></td>
+</tr>
+<tr>
+<td width="50%" valign="top"><a href="docs/img/telas/07-dispositivos.png"><img src="docs/img/telas/07-dispositivos.png" alt="Dispositivos de campo: Pânico, tornozeleira e totem, com a decisão do servidor em cada evento." width="100%"></a><p><b>Dispositivos de campo</b><br>Pânico, tornozeleira e totem, com a decisão do servidor em cada evento.</p></td>
+<td width="50%" valign="top"><a href="docs/img/telas/08-focos.png"><img src="docs/img/telas/08-focos.png" alt="Focos de reincidência: Cadeias de denúncias achadas por grafo, separando foco de fluxo contínuo." width="100%"></a><p><b>Focos de reincidência</b><br>Cadeias de denúncias achadas por grafo, separando foco de fluxo contínuo.</p></td>
+</tr>
+</table>
 
 <br>
 
