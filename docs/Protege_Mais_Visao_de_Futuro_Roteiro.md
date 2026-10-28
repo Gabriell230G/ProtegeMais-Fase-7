@@ -8,7 +8,7 @@ O mesmo vídeo e os mesmos slides servem ao relatório final do Enterprise Chall
 
 ## Parte A. Os 10 slides
 
-Os slides estão prontos, com a fala de cada um nas notas do apresentador. Para a entrega, exporte em PDF.
+Os slides estão prontos, com a fala de cada um nas notas do apresentador (a mesma da Parte B). Para a entrega, exporte em PDF.
 
 | # | Slide | Mensagem |
 |---|---|---|
@@ -25,94 +25,94 @@ Os slides estão prontos, com a fala de cada um nas notas do apresentador. Para 
 
 ---
 
-## Parte B. Roteiro do vídeo, com rima (alvo: 4min45s)
+## Parte B. Roteiro do vídeo (alvo: 4min45s, cerca de 650 palavras)
 
-**Como a rima funciona aqui.** Cada bloco é falado de forma natural, com os números, e termina num **fecho de duas linhas que rimam** (em negrito). A rima fica só no fecho porque é ali que a ideia precisa grudar; se o roteiro inteiro rimasse, os números iam soar forçados e quem avalia perderia a informação técnica.
+**Como o roteiro funciona.** Três ideias da pesquisa sobre grandes oradores e sobre atenção em vídeo:
 
-**Como falar o fecho.** Faça uma pausa curta antes, fale um pouco mais devagar e olhe para a câmera. Não cante: é uma frase de efeito, não um rap.
+- ➜ **Uma pessoa antes do número.** O vídeo abre com a Ana, uma personagem fictícia (a legenda deixa isso claro), e ela volta no meio e no fim. Sem cena de violência: o medo dela é o endereço vazar, que é exatamente o que o sistema resolve.
+- ➜ **Rima só nas três viradas.** A pergunta (abertura), o buraco (meio) e a prova (clímax). Rima em todo bloco vira trilha sonora e rouba tempo das pausas.
+- ➜ **Um limite dito por você, depois das provas e com o próximo passo.** Para um avaliador atento, isso aumenta a confiança.
 
-**Legenda:** 🎤 fala · 🖥️ o que aparece na tela · ⏱️ tempo acumulado.
+**Como falar.** "[pausa]" é um silêncio de 1 segundo; "[pausa longa]", de 2. Nos fechos em negrito: pausa antes, fala mais lenta, olho na lente. Decore de verdade só três trechos: o gancho (0:00), o momento do registro 13 (3:30) e as duas últimas frases.
 
-### ⏱️ 0:00 a 0:20 · Slide 1, capa
+**Legenda:** 🎤 fala · 🖥️ o que aparece na tela.
 
-🎤 Oi, eu sou o Gabriel Vasconcellos Gomes, RM 561601, e este é o Protege+, um canal de denúncia de violência doméstica para o poder público. Nesta fase, a pergunta foi uma só: esse sistema merece confiança? Porque…
+### 0:00 a 0:15 · Slide 1 (capa)
+
+🖥️ Rosto na câmera sobre a capa. Legenda fixa: "Ana é uma personagem fictícia".
+
+🎤 Pense na Ana, uma personagem criada para este vídeo. Ela quer denunciar quem a ameaça, mas tem medo de uma coisa: que o endereço dela vaze. Aqui, um vazamento não é um erro de TI: é o endereço da Ana na mão de quem a ameaça.
+
+### 0:15 a 0:50 · Slide 2 (problema)
+
+🖥️ Slide 2, com destaque no número 1.571.
+
+🎤 E ela não é exceção: em 2025, o Brasil registrou 1.571 feminicídios, mais de quatro por dia. [pausa] Eu sou o Gabriel, e este é o Protege+, um canal de denúncia para o poder público. A pergunta desta fase foi uma só: esse canal merece confiança? Vou responder com três provas: um ataque, os números e a blockchain. [pausa]
 
 **Um canal que protege tem que provar o que faz:
 não basta prometer, tem que mostrar que é capaz.**
 
-### ⏱️ 0:20 a 0:45 · Slide 2, o ponto de partida
+### 0:50 a 1:08 · Slide 3 (26 falhas)
 
-🎤 Em 2025, o Brasil registrou 1.571 feminicídios e mais de 132 mil descumprimentos de medida protetiva. Num canal assim, um vazamento não é só um erro de TI: é o endereço de uma vítima na mão de quem a ameaça.
+🎤 Comecei olhando o sistema como um atacante olharia, e achei 26 falhas. A pior: a senha do administrador estava no JavaScript público. Outra: as fotos de evidência guardavam o GPS de onde a Ana estava. Tudo foi corrigido, e cada correção ganhou um teste que avisa se a falha voltar.
 
-**Aqui, cada dado que vaza pode custar uma vida,
-por isso cada linha de código tem que deixar a vítima protegida.**
+### 1:08 a 1:18 · Slide 4 (tríade CIA)
 
-### ⏱️ 0:45 a 1:05 · Slide 3, 26 falhas corrigidas
+🎤 A confidencialidade protege a vida de quem denuncia. A integridade protege a prova. A disponibilidade protege a hora da emergência.
 
-🎤 Comecei olhando o sistema como um atacante olharia, e achei 26 falhas. A pior: a senha do administrador estava no JavaScript público, à vista de qualquer um. Outra: as fotos de evidência guardavam o GPS do lugar onde a vítima estava. Tudo foi corrigido, e cada correção ganhou um teste: de 136 fomos para 217.
+### 1:18 a 1:55 · Slide 5 e demonstração 1 (ataques reais)
 
-**Cada porta que eu fechei ganhou um teste pra vigiar:
-se alguém abrir de novo, o teste falha e vai avisar.**
+🖥️ Terminal com `py seguranca\simular_ataques.py`, selo "2x" no canto quando acelerar, zoom no "11/11". Volte ao Slide 5 no fecho.
 
-### ⏱️ 1:05 a 1:25 · Slide 4, tríade CIA
-
-🎤 Cada controle protege um pilar da tríade. Confidencialidade protege a vida de quem denuncia. Integridade protege a prova. Disponibilidade protege a hora da emergência: se tudo cair, os números 190 e 180 continuam na tela.
-
-**Sigilo pra quem fala, prova que não se altera,
-e socorro na tela mesmo quando o sistema não opera.**
-
-### ⏱️ 1:25 a 1:55 · Slide 5 e demonstração 1, ataques reais
-
-🖥️ Terminal com `py seguranca\simular_ataques.py` rodando (acelere na edição) e, no fim, o relatório. Volte para o Slide 5 no fecho.
-
-🎤 Mas defesa só vale depois de atacada. Este roteiro faz onze ataques contra a API de verdade: token falso de administrador, chute de protocolo pra achar a vítima, ransomware no backup. Onze de onze, bloqueados. Só que um exercício mostrou um limite: quando eu restauro um backup antigo, os últimos registros da trilha somem, e a verificação interna continua dizendo que está tudo intacto.
+🎤 Mas defesa só vale depois de atacada. Este roteiro faz onze ataques de verdade: token falso de administrador, chute de protocolo para achar quem denunciou, ransomware no backup. Onze de onze, bloqueados. [pausa] Só que um exercício mostrou um limite: quando eu restauro um backup antigo, os últimos registros da trilha somem, e a verificação interna continua dizendo que está tudo intacto. [pausa]
 
 **Onze ataques, onze barrados, mas eu achei um buraco no caminho:
 quem guarda a trilha não pode atestar a trilha sozinho.**
 
-### ⏱️ 1:55 a 2:25 · Slide 6, redes
+### 1:55 a 2:20 · Slide 6 (redes)
 
-🎤 Na rede, separei o sistema em zonas: só o proxy fica exposto à internet; a API e o banco ficam lá dentro. O proxy exige HTTPS, e cada botão de pânico e cada tornozeleira tem um certificado próprio: um certificado pirata é recusado. Se a API cair, a pessoa recebe em 16 milissegundos os números 190 e 180. São 39 verificações, todas passando, e o teste ainda achou cinco defeitos que só lendo a configuração eu não tinha achado.
+🖥️ Slide 6 e um clipe de 5 segundos do site com a API parada mostrando o 190 e o 180.
 
-**Uma porta só pra rua, e crachá pra cada aparelho:
-quem chega com crachá falso já leva o sinal vermelho.**
+🎤 Na rede, separei o sistema em zonas: só o proxy fica exposto à internet; a API e o banco ficam lá dentro. Cada botão de pânico e cada tornozeleira tem um crachá digital próprio, e crachá falso é barrado na porta. Se a API cair, em 16 milissegundos a tela mostra o 190 e o 180. São 39 verificações, todas passando.
 
-### ⏱️ 2:25 a 3:05 · Slide 7 e demonstração 2, painel
+### 2:20 a 2:47 · Slide 7 e demonstração 2 (painel)
 
-🖥️ Navegador: login como ADMIN ➜ aba **Estatística** (role pelos cartões, pelas correlações, pela regressão e pela projeção da equipe) ➜ aba **Auditoria** (card de backups).
+🖥️ Navegador, login como ADMIN ➜ aba **Estatística**. Rosto pequeno no canto. Zoom nos cartões de conclusão.
 
-🎤 O relatório estatístico agora ajuda a decidir. A gravidade do caso explica o prazo: cada ponto de gravidade encurta o atendimento em um dia e meio, com p menor que 0,001. O score de confiabilidade não prevê nada, então a recomendação é trocar por um score de risco baseado no formulário oficial, o FONAR. E a demanda projetada pede cinco pessoas, onde hoje tem três. Aqui na auditoria, os backups aparecem com o hash conferido.
+🎤 No painel, a estatística vira decisão. A gravidade do caso explica o prazo: cada ponto de gravidade encurta o atendimento em um dia e meio. Já o score de confiabilidade não prevê nada, então a recomendação é trocar por um score de risco baseado no formulário oficial, o FONAR. E a demanda projetada pede cinco pessoas, onde hoje tem três.
 
-**Número que não decide é só desenho no painel:
-aqui cada achado vira uma ordem no papel.**
+### 2:47 a 3:17 · Slide 8 (por que blockchain)
 
-### ⏱️ 3:05 a 3:35 · Slide 8, por que blockchain
+🎤 Lembra do buraco? Quem guarda a trilha não pode ser quem atesta que ela está completa. Comparei log interno, Diário Oficial e carimbo de tempo: só a blockchain dá uma lista pública, em ordem, que nunca volta atrás. Então escrevi um contrato em Solidity que guarda a impressão digital da trilha fora do servidor. Na blockchain não vai nome, nem relato, nem endereço: só essa impressão digital, e dela ninguém volta para o dado.
 
-🎤 Lembra do buraco? Quem guarda a trilha não pode ser quem atesta que ela está completa. Comparei log interno, Diário Oficial e carimbo de tempo: só a blockchain dá uma lista pública, em ordem, que nunca volta atrás. Então escrevi um contrato em Solidity que guarda a impressão digital da trilha fora do servidor. E a foto entra misturada com um segredo, pro agressor não descobrir que ela virou prova.
+### 3:17 a 4:00 · Demonstração 3 e Slide 9 (exercício C)
 
-**Na blockchain não vai nome, nem relato, nem endereço:
-vai só a impressão digital, e dela ninguém volta pro começo.**
+🖥️ Terminal: `npm run provar` com a foto original e depois com a editada. Depois, o trecho gravado do exercício C. No fim, "intacta" e "registro 13 não existe mais" lado a lado. Sem o rosto no canto.
 
-### ⏱️ 3:35 a 4:20 · Demonstração 3 e Slide 9, exercício C
-
-🖥️ Terminal:
-1. `npm run ancorar` ➜ checkpoint ancorado
-2. `npm run provar` com a foto original ➜ "é a evidência, sem alteração"; com a foto editada ➜ "NÃO é a evidência"
-3. O trecho já gravado do exercício C: restaurar o backup ➜ `npm run verificar` ➜ alerta em vermelho
-
-Termine no Slide 9.
-
-🎤 Olha a foto: a original é provada. Troquei um pixel, e ela é recusada. Agora, o exercício de antes: gero um backup, uma atendente abre três casos, a rotina ancora, e eu restauro o backup. A verificação interna diz: intacta. A blockchain diz: o registro 13 não existe mais.
+🎤 Olha a foto: a original é provada. Troquei um pixel, e ela é recusada. [pausa] Agora, o exercício de antes: gero um backup, uma atendente abre três casos, a rotina ancora, e eu restauro o backup. A verificação interna diz: intacta. [pausa] A blockchain diz: o registro 13 não existe mais. [pausa longa]
 
 **As três consultas sumiram do servidor, mas não da memória:
 o servidor esqueceu, a blockchain guardou a história.**
 
-### ⏱️ 4:20 a 4:50 · Slide 10, visão de futuro
+### 4:00 a 4:12 · O limite
 
-🎤 Pra frente, o Protege+ pode virar serviço: uma empresa pública como a PRODESP opera, e vários órgãos usam, dividindo o custo. Os próximos passos são testar com usuárias reais, login gov.br com segundo fator, o score de risco e a ancoragem na Rede Blockchain Brasil. Nas fases anteriores, o texto prometia mais do que o código entregava. Nesta, a ordem foi outra.
+🖥️ Rosto na câmera, Slide 9 ao fundo.
 
-**Primeiro o ataque, depois o texto. Primeiro a prova, depois a promessa.
-Proteger quem denuncia é a única meta que interessa.** Obrigado.
+🎤 Um limite, para ser honesto: hoje essa blockchain roda na minha máquina, em ambiente de teste. Levar a ancoragem para a Rede Blockchain Brasil é o próximo passo.
+
+### 4:12 a 4:45 · Slide 10 (visão de futuro)
+
+🎤 Pra frente, o Protege+ pode virar serviço: uma empresa pública como a PRODESP opera, e vários órgãos dividem o custo. Antes, vem o teste com usuárias reais. Com isso, quando a Ana denunciar, o endereço dela não vaza, a foto dela vira prova que ninguém altera e, se tudo cair, o 180 continua na tela.
+
+🖥️ Rosto na câmera, olhando para a lente.
+
+🎤 Nas fases anteriores, o texto prometia mais do que o código entregava. Nesta, a ordem foi outra. [pausa] **Primeiro o ataque, depois o texto. Primeiro a prova, depois a promessa.** [pausa] Obrigado.
+
+### 4:45 a 4:52 · Cartão final, em silêncio
+
+🖥️ "Precisa de ajuda? Ligue 180. Emergência: 190." e os links do código e do site. Repita o mesmo texto na descrição do vídeo no YouTube.
+
+**Se passar de 4min45s**, corte nesta ordem: "a API e o banco ficam lá dentro" (redes), "Comparei log interno, Diário Oficial e carimbo de tempo" (blockchain) e "uma empresa pública como a PRODESP opera" (futuro). Nunca corte o gancho, o momento do registro 13 nem as duas últimas frases.
 
 ---
 
