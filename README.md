@@ -27,7 +27,7 @@
 
 **[Visão geral](#visao-geral)** · **[Telas](#telas)** · **[Fase 7](#fase-7)** · **[Segurança](#parte-1)** · **[Redes](#parte-2)** · **[Estatística](#parte-3)** · **[Blockchain](#parte-4)** · **[Como executar](#como-executar)** · **[Visão técnica](#visao-tecnica)** · **[Roadmap](#roadmap)**
 
-<sub>Vídeos anteriores: <a href="https://youtu.be/FHOxDr-g8I8">Fase 6</a> · <a href="https://youtu.be/DoenYynHA6E">Fase 5</a> · <a href="https://youtu.be/bCIv81vYzPs">Atividade 4</a></sub>
+<sub>Vídeos anteriores: <a href="https://youtu.be/FHOxDr-g8I8">Fase 6</a> · <a href="https://youtu.be/DoenYynHA6E">Fase 5</a> · <a href="https://youtu.be/v8w3lwsyLNM">Atividade 3 (NEXT)</a> · <a href="https://youtu.be/bCIv81vYzPs">Atividade 4</a></sub>
 
 </div>
 
@@ -721,7 +721,7 @@ O que ainda **não** está resolvido está declarado no fim de cada Parte do doc
 
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="docs/readme/linha-tempo-dark.svg">
-  <img src="docs/readme/linha-tempo-light.svg" alt="Linha do tempo: HackGov F1 16/03, F2 29/03, F3 13/05, F4 21/05, F5 13/09, F6 14/09; Enterprise Challenge A1 16/04, A2 18/05, A4 13/09; agora, 03/11, Fase 7 e Atividade 5; próximos passos: testar com usuárias, login gov.br e Rede Blockchain Brasil" width="100%">
+  <img src="docs/readme/linha-tempo-light.svg" alt="Linha do tempo: HackGov F1 16/03, F2 29/03, F3 13/05, F4 21/05, F5 13/09, F6 14/09; Enterprise Challenge A1 16/04, A2 18/05, A3 28/07, A4 13/09; agora, 03/11, Fase 7 e Atividade 5; próximos passos: testar com usuárias, login gov.br e Rede Blockchain Brasil" width="100%">
 </picture>
 
 <details>
@@ -736,6 +736,7 @@ O que ainda **não** está resolvido está declarado no fim de cada Parte do doc
 | 13/05 | HackGov Fase 3 | Modelo de dados (normalização, Oracle) e visual próximo do gov.br |
 | 18/05 | Enterprise Challenge, Atividade 2 | 1ª mentoria EGESP; score, painel analítico e anonimato total |
 | 21/05 | HackGov Fase 4 | Funções do navegador: GPS, áudio, QR Code, React |
+| 28/07 | Enterprise Challenge, Atividade 3 (NEXT) | Pitch, documentação executiva e primeira API Java com login, banco na nuvem e VigIA |
 | 13/09 | HackGov Fase 5 e EC, Atividade 4 | API Java com Spring Boot, perfis, trilha de auditoria, VigIA com Gemini |
 | 14/09 | HackGov Fase 6 | Dispositivos de campo (IoT), SQL avançado, focos de reincidência |
 | **03/11** | **Visão de Futuro e EC, Atividade 5** | **26 falhas corrigidas, ataques simulados, rede, correlação e regressão, blockchain** |

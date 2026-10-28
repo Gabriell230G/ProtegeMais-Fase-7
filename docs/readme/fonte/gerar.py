@@ -440,7 +440,7 @@ def linha_tempo(T):
         c.append(f'<line x1="{X(10, 3):.1f}" y1="{y}" x2="{X(3, 11):.1f}" y2="{y}" stroke="{cor}" stroke-width="4" stroke-linecap="round" '
                  f'stroke-dasharray="{L:.0f}" stroke-dashoffset="{L:.0f}" opacity=".45">{desenha(L, .1, 1.8)}</line>')
     hk = [(16, 3, 'F1', 0), (29, 3, 'F2', 0), (13, 5, 'F3', 0), (21, 5, 'F4', 1), (13, 9, 'F5', 0), (14, 9, 'F6', 1)]
-    ec = [(16, 4, 'A1', 0), (18, 5, 'A2', 0), (13, 9, 'A4', 0)]
+    ec = [(16, 4, 'A1', 0), (18, 5, 'A2', 0), (28, 7, 'A3', 0), (13, 9, 'A4', 0)]
     k = 0
     for lst, y, cor, cima in [(hk, yH, T['azul'], True), (ec, yE, T['am'], False)]:
         for d, m, tag, niv in lst:
@@ -471,7 +471,7 @@ def linha_tempo(T):
             continue
         p += f'<circle cx="{nx + 26}" cy="{127 + j * 40}" r="5" fill="none" stroke="{T["azul"]}" stroke-width="2"/>' + texto(t, nx + 40, 132 + j * 40, 15, 500, T['sec'])
     c.append(g_surge(p, 1.8, .6))
-    return svg(W, H, ''.join(c), 'Linha do tempo: HackGov F1 16/03, F2 29/03, F3 13/05, F4 21/05, F5 13/09, F6 14/09; Enterprise Challenge A1 16/04, A2 18/05, A4 13/09; agora, 03/11, Fase 7 e Atividade 5; próximos passos: testar com usuárias, login gov.br e Rede Blockchain Brasil')
+    return svg(W, H, ''.join(c), 'Linha do tempo: HackGov F1 16/03, F2 29/03, F3 13/05, F4 21/05, F5 13/09, F6 14/09; Enterprise Challenge A1 16/04, A2 18/05, A3 28/07, A4 13/09; agora, 03/11, Fase 7 e Atividade 5; próximos passos: testar com usuárias, login gov.br e Rede Blockchain Brasil')
 
 
 if __name__ == '__main__':
