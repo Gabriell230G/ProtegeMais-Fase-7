@@ -6,27 +6,27 @@
 
 [![Java](https://img.shields.io/badge/Java-17-ED8B00?style=for-the-badge&logo=openjdk&logoColor=white)](https://openjdk.org/projects/jdk/17/)
 [![Spring Boot](https://img.shields.io/badge/Spring_Boot-3.3.4-6DB33F?style=for-the-badge&logo=springboot&logoColor=white)](https://spring.io/projects/spring-boot)
-[![Spring Security](https://img.shields.io/badge/JWT_%2B_BCrypt-0F2F6B?style=for-the-badge&logo=springsecurity&logoColor=white)](#segurança-e-privacidade)
+[![Solidity](https://img.shields.io/badge/Solidity-0.8.28-363636?style=for-the-badge&logo=solidity&logoColor=white)](blockchain/contracts/AncoraProtege.sol)
+[![nginx](https://img.shields.io/badge/nginx-TLS_1.3_·_mTLS-009639?style=for-the-badge&logo=nginx&logoColor=white)](infra/nginx/protege.conf)
 [![Oracle](https://img.shields.io/badge/Oracle_19c-F80000?style=for-the-badge&logo=oracle&logoColor=white)](database/01_ddl_oracle.sql)
-[![H2](https://img.shields.io/badge/H2_embutido-1E5FA8?style=for-the-badge&logo=databricks&logoColor=white)](#1-backend-api-java)
 [![React](https://img.shields.io/badge/React_18-61DAFB?style=for-the-badge&logo=react&logoColor=black)](formulario-react.html)
 
-[![Testes](https://img.shields.io/badge/testes-136_passando-4CAF50?style=flat-square&logo=junit5&logoColor=white)](#-testes)
-[![Endpoints](https://img.shields.io/badge/API-38_endpoints-3B8DE0?style=flat-square&logo=swagger&logoColor=white)](#-endpoints)
-[![IoT](https://img.shields.io/badge/IoT-3_origens_·_1_barramento-E4572E?style=flat-square&logo=mqtt&logoColor=white)](#-dispositivos-de-campo-iot)
-[![SQL](https://img.shields.io/badge/SQL-ROLLUP_·_LAG_·_RANK-F80000?style=flat-square&logo=postgresql&logoColor=white)](#-banco-de-dados)
-[![Estruturas](https://img.shields.io/badge/estruturas-árvore_·_grafo_·_BFS-9B7BE0?style=flat-square&logo=thealgorithms&logoColor=white)](#-focos-de-reincidência-estruturas-de-dados)
-[![Auditoria](https://img.shields.io/badge/auditoria-SHA--256_encadeada-F5B93B?style=flat-square&logo=googleauthenticator&logoColor=black)](#segurança-e-privacidade)
-[![LGPD](https://img.shields.io/badge/LGPD-minimização_aplicada-9B7BE0?style=flat-square&logo=gnuprivacyguard&logoColor=white)](#segurança-e-privacidade)
+[![Testes](https://img.shields.io/badge/testes-218_Java_+_21_Solidity-4CAF50?style=flat-square&logo=junit5&logoColor=white)](#-testes)
+[![Ataques](https://img.shields.io/badge/ataques_simulados-11_bloqueados-CC092F?style=flat-square&logo=hackthebox&logoColor=white)](seguranca/)
+[![Rede](https://img.shields.io/badge/verificações_de_rede-39_de_39-009639?style=flat-square&logo=letsencrypt&logoColor=white)](infra/)
+[![Estatística](https://img.shields.io/badge/estatística-correlação_·_regressão-9B7BE0?style=flat-square&logo=databricks&logoColor=white)](#-parte-3-estatística-para-decidir)
+[![Blockchain](https://img.shields.io/badge/blockchain-trilha_ancorada-F5B93B?style=flat-square&logo=ethereum&logoColor=black)](blockchain/)
+[![Endpoints](https://img.shields.io/badge/API-44_endpoints-3B8DE0?style=flat-square&logo=swagger&logoColor=white)](#-endpoints)
+[![LGPD](https://img.shields.io/badge/LGPD-nada_pessoal_fora_do_sistema-6E4BF0?style=flat-square&logo=gnuprivacyguard&logoColor=white)](#-segurança-e-privacidade)
 
 <br>
 
-[![Site publicado](https://img.shields.io/badge/▶_Acessar_o_site-1E5FA8?style=for-the-badge)](https://gabriell230g.github.io/ProtegeMais-Fase-6/)
-[![Vídeo Fase 6](https://img.shields.io/badge/▶_Vídeo_·_Fase_6-CC092F?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/FHOxDr-g8I8)
-[![Documentação](https://img.shields.io/badge/📄_Documento_técnico-111827?style=for-the-badge)](docs/Protege_Mais_Fase6_Documento.pdf)
-[![Apresentação](https://img.shields.io/badge/📊_Apresentação-111827?style=for-the-badge)](docs/Protege_Mais_Fase6_Apresentacao.pdf)
+[![Site publicado](https://img.shields.io/badge/▶_Acessar_o_site-1E5FA8?style=for-the-badge)](https://gabriell230g.github.io/ProtegeMais-Fase-7/)
+[![Vídeo](https://img.shields.io/badge/▶_Vídeo_·_Visão_de_Futuro-CC092F?style=for-the-badge&logo=youtube&logoColor=white)](https://youtu.be/XXXXXXXX)
+[![Documento](https://img.shields.io/badge/📄_Documento_técnico-111827?style=for-the-badge)](docs/Protege_Mais_Visao_de_Futuro_Documento.pdf)
+[![Relatório EC](https://img.shields.io/badge/📊_Relatório_Final_EGESP-111827?style=for-the-badge)](docs/Protege_Mais_EC_Atividade5_Relatorio_Final.pdf)
 
-<sub>Entregas anteriores: <a href="https://youtu.be/DoenYynHA6E">vídeo da Fase 5</a> · <a href="https://youtu.be/bCIv81vYzPs">vídeo da Atividade 4</a></sub>
+<sub>Vídeos anteriores: <a href="https://youtu.be/FHOxDr-g8I8">Fase 6</a> · <a href="https://youtu.be/DoenYynHA6E">Fase 5</a> · <a href="https://youtu.be/bCIv81vYzPs">Atividade 4</a></sub>
 
 </div>
 
@@ -34,88 +34,168 @@
 
 > ### 🕑 Para avaliar em dois minutos
 >
-> O site publicado roda **sem servidor**, então mostra apenas 5 denúncias de demonstração e exibe a etiqueta `modo local`.
-> Para ver o produto completo, com as **190 denúncias**, os **106 eventos de dispositivos de campo**, os focos de
-> reincidência e a trilha de auditoria, suba o backend seguindo a seção [Como executar](#-como-executar). São dois
-> comandos e menos de cinco minutos.
+> O site publicado roda **sem servidor** e mostra a etiqueta `modo local`, com o botão **Entrar em modo demonstração**
+> (125 denúncias carregadas no navegador). Para ver o produto completo, com segurança, estatística, auditoria e
+> dispositivos de campo, suba a API seguindo [Como executar](#-como-executar): são dois comandos e menos de cinco minutos.
 >
-> **Sem instalar nada:** a tela de login tem o botão **Entrar em modo demonstração** (ou a conta `offline@protege.gov.br` / `offline123`),
-> que carrega 125 denúncias direto no navegador. Kanban, backlog, mapa e ficha do caso funcionam. Relatório estatístico,
-> trilha de auditoria, dispositivos de campo e focos de reincidência continuam exigindo a API, porque são calculados no servidor.
->
-> **Para ver o IoT em funcionamento** sem ter os aparelhos: abra [`simulador-iot.html`](simulador-iot.html) com a API no ar.
-> Ele aciona botão de pânico, move uma tornozeleira contra um perímetro real e registra em um totem público.
->
-> O documento técnico completo e as apresentações estão em [`docs/`](docs/).
+> **As provas desta fase estão gravadas no repositório**, cada uma com o roteiro que a produz:
+> [`seguranca/resultados/`](seguranca/resultados/) (11 ataques), [`infra/resultados/`](infra/resultados/) (39 verificações de rede)
+> e [`blockchain/resultados/`](blockchain/resultados/) (ancoragem, prova de evidência e exercício de restauração).
 
 <br>
 
-Plataforma para registro e gestão de denúncias de violência, abuso e violação de direitos, com **canal anônimo para o cidadão** e **painel inteligente para o gestor público**: Kanban, equipe, mapa com k-anonimato, relatório estatístico, trilha de auditoria, o copiloto de IA **VigIA** e, desde a Fase 6, um **barramento de dispositivos de campo** e a **detecção de focos de reincidência**.
+Plataforma para registro e gestão de denúncias de violência, abuso e violação de direitos, com **canal anônimo para o cidadão** e **painel inteligente para o gestor público**: fila priorizada, Kanban, mapa com k-anonimato, estatística que sugere decisões, trilha de auditoria ancorada em blockchain, o copiloto de IA **VigIA** e dispositivos de campo (botão de pânico, tornozeleira e totem).
 
-Desenvolvido para o **Enterprise Challenge FIAP / HackGov**, em parceria com a **EGESP**. Este repositório é a entrega de código da **Fase 6** da disciplina, e acumula as entregas das fases anteriores e da Atividade 4 do Enterprise Challenge.
+Desenvolvido para o **HackGov / Enterprise Challenge FIAP**, em parceria com a **EGESP** (Escola de Governo do Estado de São Paulo). Este repositório é a entrega de código da **Atividade Visão de Futuro** e da **Atividade 5 do Enterprise Challenge**, e acumula as fases anteriores.
 
 ---
 
-## 🆕 O que a Fase 6 acrescenta
+## 🆕 O que esta fase acrescenta
 
-Até a Fase 5 o sistema inteiro repousava sobre um pressuposto que nunca havia sido examinado: **alguém abre o canal, lê o formulário, escolhe o tipo, escreve o relato e envia.** Esse pressuposto exclui, por construção, três situações em que o canal é mais necessário: quem não pode digitar porque está em risco agora, quem não deveria precisar denunciar porque já existe uma medida protetiva com distância fixada, e quem não tem aparelho, ou tem um aparelho vigiado por quem convive com a vítima.
+A pergunta da fase foi uma só: **o Protege+ merece a confiança de quem denuncia e de quem fiscaliza?** No começo, a resposta honesta era "ainda não": a senha do administrador estava no JavaScript público e o segredo dos tokens estava no repositório. A regra adotada foi **primeiro o ataque, depois o texto**: nenhuma defesa conta como pronta antes de ser atacada, e o resultado fica gravado.
 
 <table>
 <tr>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
-#### 📡 IoT
+#### 🛡️ Segurança
 
-Três origens de campo, **um barramento só**.
-
-- Botão de pânico, tornozeleira e totem público
-- Uma tabela com discriminador de origem
-- O aparelho relata, **o servidor decide**
-- Simulador para operar sem o hardware
+- **26 falhas** corrigidas
+- Políticas de autenticação, criptografia, backup e acesso
+- **11 ataques** reais, 11 bloqueados
+- Backup verificado por hash
 
 </td>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
-#### 🗃️ SQL avançado
+#### 🌐 Redes
 
-Seis consultas que **auditam decisões**.
-
-- `ROLLUP` com `GROUPING`, `RANK`, `SUM OVER`, `LAG`
-- Subconsulta correlacionada no `HAVING`
-- Portáveis entre Oracle e H2, diferenças anotadas
-- Resultados reapurados e versionados
+- Topologia por zonas
+- Borda nginx com **TLS 1.3**
+- **Certificado por aparelho** (TLS mútuo)
+- **39 verificações**, 0 falhas
 
 </td>
-<td width="33%" valign="top">
+<td width="25%" valign="top">
 
-#### 🧮 Estruturas de dados
+#### 📈 Estatística
 
-Focos de reincidência em **O(k log k)**.
+- Pearson, Spearman, p-valor e IC
+- Regressão simples e múltipla
+- Projeção de demanda e **equipe necessária**
+- Conclusões com decisão sugerida
 
-- Árvore balanceada, ordenação, busca binária
-- Grafo com busca em largura iterativa
-- Só arestas consecutivas: `k-1` em vez de `k(k-1)/2`
-- Distingue **surto** de **demanda constante**
+</td>
+<td width="25%" valign="top">
+
+#### ⛓️ Blockchain
+
+- Contrato **AncoraProtege**
+- Trilha e evidências fora do servidor
+- **Nada pessoal** na cadeia
+- Pega o corte que a cadeia interna não vê
 
 </td>
 </tr>
 </table>
 
-| Indicador | Fase 5 | Fase 6 |
+| Indicador | Fase 6 | Fase 7 |
 |:--|--:|--:|
-| Classes Java de produção | 63 | **79** |
-| Endpoints REST | 31 | **38** |
-| Testes automatizados | 81 | **136** |
-| Tabelas no modelo físico | 12 | **15** |
-| Restrições CHECK | 30 | **45** |
-| Telas no painel do órgão | 8 | **10** |
-| Scripts SQL versionados | 3 | **5** |
-
-O que sustenta a fase não é o crescimento de 25% nas classes de produção. É o crescimento de 68% na suíte de testes.
+| Classes Java de produção | 79 | **93** |
+| Endpoints REST | 38 | **44** |
+| Testes Java | 136 | **218** |
+| Testes do contrato inteligente | – | **21** |
+| Ataques executados contra a API | 0 | **11** |
+| Verificações de rede | 0 | **39** |
+| Pontos de injeção de script (XSS) que executavam | 44 | **0** |
+| Backup | não havia | **diário, verificado por hash** |
 
 ---
 
-## 📡 Dispositivos de campo (IoT)
+## 🛡️ Parte 1: segurança da informação
+
+### A revisão
+
+Uma revisão feita como um atacante faria, em quatro passadas independentes (API, front-end, banco e scripts, compilação), encontrou **26 falhas**. As mais graves:
+
+| Como estava | Risco | Agora |
+|---|---|---|
+| Senha do ADMIN no `backend.js` público, com login automático | Qualquer visitante operava como administrador | Nenhuma senha no cliente; a troca de perfil da demonstração é pedida ao servidor e auditada |
+| Segredo do JWT com valor padrão no repositório | Forjar token de qualquer perfil | `GuardiaoDeSegredos`: sorteado na demonstração; em produção a API **não sobe** com segredo fraco |
+| 44 pontos do front-end inseriam dados sem escape | Script de terceiro rodando no painel do gestor | `escHtml`, `escAttr`, `jsArg` em todos os módulos; 0 execuções no teste |
+| Protocolo sequencial (`#2026-0045`) | Descobrir casos pela consulta pública | `#ANO-XXXX-XXXX-XXXX` com `SecureRandom`, cerca de 59 bits |
+| Fotos guardadas com EXIF/GPS | A foto revela onde a vítima estava | Metadados removidos antes do hash |
+| Relato inteiro enviado ao Gemini, com a chave na URL | Dado sensível fora do sistema | Não sai por padrão (mascarado se ligado); chave no cabeçalho; tempo limite |
+
+A lista completa, com as 26, está na seção 2.2 do [documento técnico](docs/Protege_Mais_Visao_de_Futuro_Documento.pdf).
+
+### O ataque simulado
+
+[`seguranca/simular_ataques.py`](seguranca/simular_ataques.py) roda **11 ataques contra a API real**, escritos a partir de quem ameaça um canal de denúncia: o agressor que quer saber se foi denunciado, achar a vítima e apagar o rastro. Resultado: **11 bloqueados, 0 falhas** ([relatório](seguranca/resultados/simulacao-20261027-203427.md)).
+
+Dois exercícios com o servidor parado completam a simulação. **A:** um funcionário altera a trilha direto no banco, e a verificação aponta o registro adulterado. **B:** o banco é perdido e restaurado do backup em 10 segundos, com o hash conferido. O exercício B revelou o limite que motivou a Parte 4: **restaurar um backup corta o fim da trilha, e a verificação interna continua dizendo "intacta"**. Detalhes em [`seguranca/`](seguranca/README.md).
+
+---
+
+## 🌐 Parte 2: redes de comunicação
+
+<div align="center">
+<img src="docs/img/rede-topologia.png" alt="Topologia de rede em zonas: internet, DMZ, aplicação, dados e gestão" width="62%">
+</div>
+
+Cada zona só conversa com a vizinha: a internet só alcança o proxy, o proxy só alcança a API, e só a API alcança o banco. A borda foi **implementada e testada de verdade** em [`infra/`](infra/README.md):
+
+- HTTPS obrigatório, TLS 1.2/1.3 com sigilo futuro; TLS 1.1 recusado pelo servidor
+- HSTS, política de conteúdo (CSP) e cabeçalhos de segurança; código, banco e chaves nunca servidos
+- **Certificado próprio para cada aparelho de campo** (TLS mútuo): um certificado "pirata", com o nome de um aparelho real copiado, é recusado no proxy
+- Limites contra abuso e conexão lenta (slowloris) na borda; API fora do ar responde em milissegundos com os telefones **190** e **180**
+
+O teste ([`infra/testar-rede.sh`](infra/testar-rede.sh)) fez **39 verificações, 0 falhas**, e achou **5 defeitos** que a leitura da configuração não tinha achado, um deles no próprio back-end: atrás de um proxy, a trilha gravaria o IP do proxy para todo mundo.
+
+---
+
+## 📈 Parte 3: estatística para decidir
+
+A aba **Estatística** do painel ganhou uma seção de correlação e regressão calculada no servidor (`GET /api/stats/regressao`). Cada conclusão vem com a evidência e a decisão que ela sustenta.
+
+<div align="center">
+<img src="docs/img/estatistica-decisoes.png" alt="Cartões de conclusão da análise de correlação e regressão" width="88%">
+</div>
+
+| Achado | Evidência | Decisão sugerida |
+|---|---|---|
+| A gravidade do tipo explica o prazo | r = −0,50; p < 0,001; cada ponto encurta 1,6 dia | Manter a fila por gravidade; SLA por tipo de 9, 11 e 16 dias |
+| O score de confiabilidade não prevê nada | r = −0,03; p = 0,76 | Trocar por score de risco baseado no FONAR (Lei 14.149/2021) |
+| Denunciar anonimamente não atrasa | r = −0,02; p = 0,85 | Manter o anonimato como padrão |
+| A demanda pede 5 pessoas; a equipe tem 3 | 11,2 denúncias/semana; 2,33 casos por pessoa | Reforçar a equipe antes de a fila crescer |
+
+O cálculo (distribuições t e F, correlação, regressão por mínimos quadrados) é próprio, em [`util/Inferencia.java`](backend/src/main/java/br/gov/protege/util/Inferencia.java), e conferido no teste contra o **quarteto de Anscombe**. As mesmas respostas saem direto do banco em [`07_estatistica_fase7.sql`](database/07_estatistica_fase7.sql), com `CORR`, `CORR_S` e `REGR_*` do Oracle, e os resultados batem com os da API.
+
+---
+
+## ⛓️ Parte 4: blockchain
+
+> **Quem guarda a trilha não pode ser quem atesta que ela está completa.**
+
+O contrato [`AncoraProtege.sol`](blockchain/contracts/AncoraProtege.sol) guarda, fora do servidor, a impressão digital da trilha de auditoria e das evidências. Ele só acrescenta e nunca volta atrás: um servidor restaurado de um backup antigo não consegue "reancorar" o passado.
+
+<div align="center">
+<img src="docs/img/blockchain-fluxo.png" alt="Fluxo de ancoragem e verificação" width="88%">
+</div>
+
+- **Nada pessoal vai para a cadeia.** Só hashes e contadores. Cada foto entra como `sha256(hash do arquivo + sal)`: sem o sal, quem tem uma cópia da foto não descobre que ela virou prova.
+- **Papéis separados.** O gestor autoriza e contesta; a rotina de ancoragem só acrescenta; qualquer pessoa confere de graça.
+- **21 testes**, 100% das linhas cobertas, incluindo privacidade, restauração de backup e chave de servidor comprometida.
+- **Exercício C** ([resultado](blockchain/resultados/demonstracao-20261027.txt)): depois de restaurar um backup, a verificação interna diz "cadeia intacta" e a blockchain diz **"o registro 13 NÃO EXISTE MAIS"**. A mesma foto com **um pixel** trocado é recusada como prova.
+
+Rede indicada para produção: a **Rede Blockchain Brasil** (BNDES e TCU, Hyperledger Besu). Como rodar: [`blockchain/README.md`](blockchain/README.md).
+
+---
+
+## 🗂️ Das fases anteriores
+
+
+### 📡 Dispositivos de campo (IoT, Fase 6)
 
 Três aparelhos, três regras distintas, **uma tabela só**. A decisão de usar um discriminador de origem em vez de três tabelas paralelas segue o padrão *Single Table Inheritance* (FOWLER, 2002): a pergunta do gestor, "o que chegou de campo hoje?", atravessa as três origens, e uma quarta origem amanhã é uma linha, não uma migração de esquema.
 
@@ -133,7 +213,7 @@ A distância é calculada por **Haversine** sobre o raio médio da Terra, e não
 
 ---
 
-## 🧮 Focos de reincidência (estruturas de dados)
+### 🧮 Focos de reincidência (estruturas de dados, Fase 6)
 
 Um `GROUP BY` responde quantas denúncias um município teve. Ele **não** responde se elas formam uma cadeia. Agrupar por chave junta janeiro com dezembro no mesmo balde; agrupar por mês corta a cadeia que atravessa a virada do mês. O vínculo é relacional, não categórico, e por isso é um problema de grafo.
 
@@ -153,7 +233,7 @@ O detalhe que muda o custo está na montagem do grafo: dentro de um grupo já or
 
 A busca em largura é **iterativa, e não recursiva**: uma cadeia de 10 mil denúncias encadeadas derrubaria a pilha de chamadas.
 
-### O achado: foco não é o mesmo que volume
+#### O achado: foco não é o mesmo que volume
 
 A tela ficou pronta e mostrou um agrupamento de **49 denúncias** de violência em Barueri no topo da lista. O algoritmo estava certo, elas formam mesmo uma cadeia. Só que aquilo não era um surto: era **tudo que o município produz naquele tipo**. Um foco pede operação pontual; demanda constante pede equipe permanente. São respostas diferentes, e a tela estava chamando as duas de foco.
 
@@ -163,51 +243,56 @@ A correção foi nomear o que o algoritmo encontrou: cobertura de **70% ou mais*
 
 ## 🚀 Como executar
 
-Você precisa apenas de um **JDK 17 ou superior**. O Maven é baixado automaticamente na primeira execução.
+Você precisa apenas de um **JDK 17 ou superior** (testado também com o 21). O Maven é baixado automaticamente na primeira execução.
 
-> 💡 Use **duas janelas de terminal**: uma para a API e outra para o servidor de arquivos. Se as duas forem a mesma janela, o segundo comando derruba o primeiro.
+> 💡 Use **janelas de terminal separadas** para a API e para o servidor de arquivos. Se as duas forem a mesma janela, o segundo comando derruba o primeiro.
 
 ### 1. Backend (API Java)
 
-```bash
+```powershell
 cd backend
-.\build.cmd clean test     # Windows, roda os 136 testes
+.\build.cmd clean test     # Windows: roda os 218 testes
 .\build.cmd run            # sobe a API em http://localhost:8080
 ```
 
-No Linux ou macOS, use o Maven diretamente:
-
-```bash
-cd backend
-mvn clean test
-mvn spring-boot:run
-```
+No Linux ou macOS, use o Maven direto: `mvn clean test` e `mvn spring-boot:run`.
 
 <details>
 <summary>Gerar o executável</summary>
 
-```bash
+```powershell
 .\build.cmd clean package -DskipTests
 java -jar target\protege-backend-1.0.0.jar
 ```
 
 </details>
 
-O banco padrão é o **H2 embutido**, criado automaticamente em `backend/data/`. Não exige instalação, serviço nem credencial, e é o que permite executar o projeto logo após descompactar.
+**Modo demonstração (padrão).** Sobe sem configurar nada. Os segredos (JWT e chave dos aparelhos) são **sorteados a cada execução**, a chave dos aparelhos é gravada em `backend/data/iot-chave.txt` para colar no simulador, e a API escuta só em `127.0.0.1`. O banco é o **H2 embutido**, criado em `backend/data/` com a carga de demonstração.
 
 > ⚠️ Se você já tinha executado uma versão anterior, apague `backend/data/` antes de subir: o H2 não recarrega a carga de demonstração sobre um banco que já existe.
 
+**Modo produção** (`PROTEGE_DEMO=false`). A API **se recusa a subir** sem `JWT_SECRET`, `ADMIN_SENHA` e `PROTEGE_IOT_CHAVE` fortes, não cria contas nem casos de demonstração, apaga contas de demonstração herdadas e desliga o Swagger e o console do H2.
+
+| Variável | Para quê |
+|---|---|
+| `PROTEGE_DEMO` | `true` (padrão) ou `false` |
+| `JWT_SECRET`, `ADMIN_SENHA`, `PROTEGE_IOT_CHAVE` | Segredos de produção |
+| `GEMINI_API_KEY` | Liga o Gemini no VigIA (opcional; sem ela, valem as regras) |
+| `PROTEGE_PROXY_CONFIAVEL`, `CORS_ORIGENS` | Rodar atrás do proxy de [`infra/`](infra/README.md) |
+| `BACKUP_DIR`, `BACKUP_RETENCAO`, `BACKUP_CRON` | Backup (padrão: `./data/backups`, 7 cópias, diário às 02:30) |
+| `H2_CONSOLE` | `true` liga o console do banco, só na máquina local |
+
 | Recurso | Endereço |
 |---|---|
-| 📘 Documentação da API | <http://localhost:8080/swagger-ui.html> |
-| 🗄️ Console do banco | <http://localhost:8080/h2-console> · JDBC `jdbc:h2:file:./data/protege` · usuário `sa`, sem senha |
+| 📘 Documentação da API (modo demonstração) | <http://localhost:8080/swagger-ui.html> |
+| 🗄️ Console do banco (com `H2_CONSOLE=true`) | <http://localhost:8080/h2-console> · JDBC `jdbc:h2:file:./data/protege` · usuário `sa` |
 
 ### 2. Front-end (portal, painel e simulador)
 
 Sirva por HTTP. Abrir o `index.html` com duplo clique faz o navegador bloquear as chamadas por CORS.
 
-```bash
-python -m http.server 5500
+```powershell
+py -m http.server 5500
 ```
 
 | Tela | Endereço |
@@ -216,23 +301,34 @@ python -m http.server 5500
 | Formulário em React | <http://localhost:5500/formulario-react.html> |
 | Simulador de dispositivos | <http://localhost:5500/simulador-iot.html> |
 
-> ⚠️ **A porta importa.** A API aceita apenas `5500`, `5501`, `3000` e `8080` em `localhost`. Em outra porta o navegador bloqueia por CORS. O Live Server do VS Code já usa a 5500.
+> ⚠️ **A porta importa.** A API aceita apenas `5500`, `5501`, `3000` e `8080` em `localhost` (ou o que estiver em `CORS_ORIGENS`).
 
-O front detecta o backend sozinho: se a API estiver no ar, usa o banco; se não, cai para o `localStorage`. O modo ativo não fica implícito, a **etiqueta de conexão** no alto da barra lateral mostra `API conectada` ou `modo local` e é clicável para verificar de novo.
+A **etiqueta de conexão** no alto da barra lateral mostra `API conectada` ou `modo local`. Com a API no ar, o painel nunca mostra dados locais no lugar de uma recusa: um 401 ou 403 aparece como aviso de acesso.
 
-### 3. IA (VigIA com Gemini), opcional
+### 3. Backup e restauração
 
-```bash
-export GEMINI_API_KEY="sua_chave"     # $env:GEMINI_API_KEY no Windows
+O backup diário é automático. Como ADMIN, também dá para gerar um na aba **Auditoria** (card *Backups do banco*), que lista cada cópia com o hash conferido. Para restaurar, **com a API parada**:
+
+```powershell
+cd backend
+.\restaurar-backup.cmd data\backups\protege-AAAAMMDD-HHMMSS-mmm.zip
 ```
 
-Sem a chave, o VigIA continua funcionando por regras explicáveis. Cada análise declara sua origem (`GEMINI` ou `REGRAS`), para que a decisão automatizada seja auditável.
+O roteiro confere o SHA-256 contra o manifesto antes de restaurar e devolve o banco original se algo falhar.
+
+### 4. Os roteiros de prova
+
+| O que | Onde | Como |
+|---|---|---|
+| 11 ataques contra a API | [`seguranca/`](seguranca/README.md) | `py seguranca\simular_ataques.py`, com a API no ar |
+| Borda de rede (39 verificações) | [`infra/`](infra/README.md) | `bash infra/testar-rede.sh` (Linux ou WSL, com nginx) |
+| Contrato e ancoragem | [`blockchain/`](blockchain/README.md) | `npm install`, `npm test`; `npm run no` e depois `implantar`, `ancorar`, `verificar` |
 
 ---
 
 ## 👥 Usuários de demonstração
 
-Criados automaticamente na primeira execução. Existem quatro para que a **segregação de acesso possa ser verificada**, e não apenas descrita.
+Criados automaticamente **só no modo demonstração**. Existem quatro para que a **segregação de acesso possa ser verificada**, e não apenas descrita.
 
 | | E-mail | Senha | Perfil | Vê identificação | Vê auditoria |
 |:---:|---|---|---|:---:|:---:|
@@ -240,9 +336,9 @@ Criados automaticamente na primeira execução. Existem quatro para que a **segr
 | 🏛️ | `gestor@protege.gov.br` | `gestor123` | GESTOR | ✅ | ❌ |
 | 👁️ | `atendente@protege.gov.br` | `atendente123` | ATENDENTE | ❌ | ❌ |
 | 🔎 | `auditor@protege.gov.br` | `auditor123` | AUDITOR | ❌ | ✅ |
-| 👁️ | `offline@protege.gov.br` | `offline123` | demonstração **sem servidor** | local | local |
+| 💻 | `offline@protege.gov.br` | `offline123` | demonstração **sem servidor** | local | local |
 
-O gestor **não** consulta a trilha de auditoria: quem opera o sistema não fiscaliza o próprio uso dele.
+O gestor **não** consulta a trilha de auditoria (quem opera não fiscaliza o próprio uso), e o auditor **não** lê relatos (quem fiscaliza não opera). Logado como ADMIN, o painel troca de perfil sem senha: o pedido vai ao servidor e fica na trilha.
 
 ---
 
@@ -250,25 +346,40 @@ O gestor **não** consulta a trilha de auditoria: quem opera o sistema não fisc
 
 | Camada | Tecnologia | Por quê |
 |---|---|---|
-| Front-end | HTML, CSS e JavaScript, React via CDN no formulário | Leve, sem build. Integra APIs públicas (IBGE para estados e cidades, OpenStreetMap para geolocalização) |
+| Front-end | HTML, CSS e JavaScript, React via CDN no formulário, Chart.js, Leaflet | Leve, sem build. Integra IBGE (estados e cidades) e OpenStreetMap |
 | Back-end | **Java 17 + Spring Boot 3.3.4** | Padrão de mercado para APIs corporativas e governamentais |
-| Banco (demo) | **H2 embutido** | Zero instalação: o projeto roda ao ser descompactado |
-| Banco (produção) | **PostgreSQL / Supabase**, modelo físico em **Oracle** | Scripts DDL, carga e consultas em `database/` |
-| Dispositivos | REST sobre HTTPS, com cabeçalho `X-Device-Key` | Sem broker MQTT: três origens de baixa frequência não justificam a infraestrutura, e a decisão está declarada no documento |
-| Segurança | Spring Security, JWT, BCrypt e RBAC | Perfis reais no token, CORS por lista de origens, limite de requisições por IP |
-| Auditoria | Trilha encadeada por SHA-256 | Alteração em qualquer registro invalida a cadeia e é detectada |
-| IA | Google Gemini com *fallback* por regras | Sem a chave, o sistema continua funcionando e explicando suas decisões |
-| Documentação | Swagger / OpenAPI 3 | O botão *Authorize* permite executar as rotas protegidas pelo navegador |
+| Banco | **H2** (demonstração), **PostgreSQL** (produção), modelo físico em **Oracle** | Roda ao ser descompactado; scripts em `database/` |
+| Borda de rede | **nginx** com TLS 1.2/1.3 e TLS mútuo | Único ponto exposto à internet; [`infra/`](infra/README.md) |
+| Dispositivos | REST com chave por aparelho e, na borda, certificado por aparelho | Sem broker MQTT: três origens de baixa frequência não justificam a infraestrutura |
+| Segurança | Spring Security, JWT, BCrypt, RBAC, guardião de segredos | Perfis relidos do banco a cada requisição; limites por origem real |
+| Auditoria | Trilha encadeada por SHA-256 e **ancorada em blockchain** | Alteração no meio é detectada pela cadeia; corte no fim, pela blockchain |
+| Blockchain | **Solidity 0.8.28**, OpenZeppelin, Hardhat | Contrato só acrescenta; nada pessoal na cadeia |
+| IA | Google Gemini com plano B por regras | O relato não sai por padrão; a IA só sobe a urgência, nunca baixa |
+| Documentação | Swagger / OpenAPI 3 | O botão *Authorize* executa as rotas protegidas pelo navegador |
 
 ---
 
 ## 🔌 Endpoints
 
-São **38 mapeamentos**. **17** deles estão anotados com `@Auditavel` e alimentam a trilha, inclusive as tentativas recusadas.
+São **44 mapeamentos**. **18** deles estão anotados com `@Auditavel` e alimentam a trilha, inclusive as tentativas recusadas.
 🔒 indica que a rota exige o cabeçalho `Authorization: Bearer <token>`.
 
 <details open>
-<summary><b>Dispositivos de campo, novo na Fase 6</b></summary>
+<summary><b>Novos nesta fase</b></summary>
+
+| Método | Rota | Perfil | Descrição |
+|---|---|---|---|
+| `GET` | `/api/stats/regressao` | 🔒 todos | Correlação, regressão simples e múltipla, tendência, equipe necessária e conclusões |
+| `GET` | `/api/backup` | ADMIN, AUDITOR | Backups com o hash registrado e a situação (íntegro ou alterado) |
+| `POST` | `/api/backup` | ADMIN | Backup manual. **409** se o último tem menos de 10 minutos |
+| `POST` | `/api/auth/demo/perfil` | ADMIN, só em demonstração | Troca de perfil sem senha no cliente. **Auditada** |
+| `GET` | `/api/auditoria/ancoragem/estado` | AUDITOR, ADMIN | Hash do último registro, total e hashes das evidências novas, para a blockchain. **Auditada** |
+| `GET` | `/api/auditoria/ancoragem/registro/{id}` | AUDITOR, ADMIN | Hash atual de um registro já ancorado |
+
+</details>
+
+<details>
+<summary><b>Dispositivos de campo</b></summary>
 
 | Método | Rota | Acesso | Descrição |
 |---|---|---|---|
@@ -278,9 +389,9 @@ São **38 mapeamentos**. **17** deles estão anotados com `@Auditavel` e aliment
 | `GET` | `/api/iot/eventos` | 🔒 | Eventos do barramento, com a decisão do servidor em cada linha. **Leitura auditada** |
 | `GET` | `/api/iot/resumo` | 🔒 | Contadores por origem |
 | `GET` | `/api/reincidencia/focos` | 🔒 | Agrupamentos da janela, já classificados em foco ou fluxo contínuo. **Leitura auditada** |
-| `GET` | `/api/reincidencia/parametros` | 🔒 | Os limiares em vigor, para que a tela não os repita por conta própria |
+| `GET` | `/api/reincidencia/parametros` | 🔒 | Os limiares em vigor |
 
-Chave ausente ou inválida devolve **401** nas três rotas de `POST`. Elas são públicas por desenho: um aparelho em campo não faz login. A autenticação é por chave de integração, comparada em **tempo constante** para não vazar o prefixo correto pelo tempo de resposta. O documento declara, na seção 4.10.1, que isso **não** substitui certificado por aparelho.
+A chave do aparelho é conferida **antes** de ler o corpo e comparada em tempo constante. Atrás da borda de rede, cada aparelho também precisa de **certificado próprio** (TLS mútuo, [`infra/`](infra/README.md)): sem ele, a requisição para no proxy.
 
 </details>
 
@@ -372,12 +483,12 @@ Chave ausente ou inválida devolve **401** nas três rotas de `POST`. Elas são 
 Denunciar sem se expor.
 
 - Três níveis de anonimato, do total ao identificado
-- Protocolo e código seguro para acompanhar
-- Evidência em arquivo ou relato em áudio
+- Protocolo imprevisível para acompanhar, sem login
+- Evidência em arquivo (sem GPS escondido) ou relato em áudio
 - Fluxo de emergência com geolocalização
 - **Botão de pânico físico**, sem tela e sem formulário
 - **Totem público**, para quem não tem aparelho
-- Saída imediata, **Modo Seguro**, PT/EN e VLibras
+- Saída rápida (SHIFT 3 vezes), **Modo Seguro**, PT/EN e VLibras
 
 </td>
 <td width="50%" valign="top">
@@ -386,85 +497,75 @@ Denunciar sem se expor.
 
 Decidir com informação.
 
-- Quatro perfis com permissões distintas
+- Quatro perfis com permissões distintas, decididas no servidor
 - Kanban, fila de priorização e ações reversíveis
-- Mapa por município e relatório estatístico
-- **Dispositivos de campo**, com a decisão do servidor em cada linha
-- **Focos de reincidência**, separando surto de demanda constante
-- Trilha de auditoria com verificação de integridade
+- **Estatística que sugere decisões**, com p-valor e intervalo de confiança
+- Mapa por município com k-anonimato
+- Dispositivos de campo e focos de reincidência
+- Trilha de auditoria **ancorada em blockchain** e backups verificados
 - **VigIA**, que lê o acervo e recomenda ação
 
 </td>
 </tr>
 </table>
 
-<details>
-<summary><b>Relatório estatístico</b></summary>
-
-<br>
-
-Aba própria no painel, com seis gráficos alimentados por `/api/stats/analitico`. Cada gráfico vem acompanhado da **leitura do que ele mostra**, gerada a partir dos próprios números e não de frases fixas: um gráfico sem leitura transfere para o gestor o trabalho de interpretar, que é justamente o que o painel deveria estar fazendo por ele.
-
-</details>
-
-### Segurança e privacidade
+### 🔐 Segurança e privacidade
 
 | | Medida | Onde |
 |:---:|---|---|
-| 🔐 | Senha em **BCrypt**, nunca em texto puro | `SecurityConfig` |
-| 🎫 | **JWT** com perfil real e validade de 8 horas | `JwtService`, `JwtAuthFilter` |
-| 🚦 | Limite de requisições por origem | `RateLimitFilter` |
-| 🧾 | Trilha de auditoria **encadeada por SHA-256**, com gênese de 64 zeros | `AuditoriaService` |
-| 🙈 | Mascaramento por perfil, decidido **no servidor** | `MascaraUtil`, `DenunciaMapper` |
-| 🗑️ | Exclusão apenas lógica, com motivo obrigatório e anonimização | `DenunciaService` |
+| 🔑 | Segredos fortes obrigatórios em produção; sorteados na demonstração | `GuardiaoDeSegredos` |
+| 🔐 | Senha em **BCrypt**; login com o mesmo tempo para e-mail existente ou não | `SecurityConfig`, `AuthController` |
+| 🎫 | **JWT** de 8 h; usuário e perfil relidos do banco a cada requisição | `JwtService`, `JwtAuthFilter` |
+| 🚦 | Limites por **origem real** (não pelo cabeçalho do cliente) e por tamanho de corpo | `RateLimitFilter`, `LimiteCorpoFilter` |
+| 🧭 | Status só anda pelos caminhos previstos; relato imutável | `FluxoStatus`, `EdicaoDoCaso` |
+| 🖼️ | Metadados (EXIF/GPS) removidos de toda foto antes do hash | `MetadadosUtil` |
+| 🧾 | Trilha **encadeada por SHA-256**, ancorada em blockchain | `AuditoriaService`, `blockchain/` |
+| 💾 | Backup diário com SHA-256 na trilha e no manifesto | `BackupService` |
+| 🙈 | Mascaramento por perfil decidido **no servidor**; coordenada aproximada para atendente | `MascaraUtil`, `DenunciaMapper` |
+| 🧯 | Escape de toda saída no front-end (0 de 44 injeções executam) | `js/storage-guard.js` |
+| 🤖 | Relato não vai para a IA por padrão; a IA nunca rebaixa a urgência | `VigiaService` |
+| 📟 | Chave sorteada por execução e certificado por aparelho na borda | `ChaveDispositivoFilter`, `infra/pki/` |
 | 🗺️ | **k-anonimato** no mapa: município com menos de 3 denúncias não é detalhado | `mapa-gestor.js` |
-| 🔑 | Chave de dispositivo comparada em **tempo constante**, por XOR acumulado | `EventoIotService` |
-| 📏 | Perímetro de medida protetiva **nunca trafega**: nem raio, nem centro, nem distância | `EventoIotService`, `IotController` |
 
 ---
 
 ## 🗄️ Banco de dados
 
-A pasta `database/` traz o modelo físico completo em Oracle, com **15 tabelas**, **45 restrições CHECK**, 8 UNIQUE, 10 chaves estrangeiras e 15 índices.
+A pasta `database/` traz o modelo físico completo em Oracle, com **15 tabelas**, as restrições de cada fase e as consultas analíticas.
 
 | Arquivo | Conteúdo |
 |---|---|
-| `01_ddl_oracle.sql` | Modelo das fases anteriores: 12 tabelas, 30 CHECK, 13 índices e comentários bloco a bloco |
+| `01_ddl_oracle.sql` | Modelo das fases anteriores: 12 tabelas, 30 CHECK, 13 índices |
 | `02_dml_carga.sql` | Domínios, equipe, servidores e denúncias geradas deterministicamente |
-| `03_consultas.sql` | Consultas analíticas do relatório e consultas de auditoria |
-| `04_ddl_fase6.sql` | **3 tabelas novas**: `evento_iot`, `zona_exclusao` e `ponto_totem`, com 15 CHECK que expressam regra de negócio |
-| `05_consultas_fase6.sql` | **6 consultas** com `ROLLUP`, `GROUPING`, `RANK`, `SUM OVER`, `LAG`, CTE e subconsulta correlacionada |
-| `05_resultados_fase6.txt` | O resultado de cada consulta sobre a base de demonstração, reapurado |
-| `gerar_carga_fase6.py` | Gerador determinístico da carga (`random.seed(561601)`), que **reproduz as regras do `ScoreService` e do `VigiaService`** em vez de inventar valores |
-
-As consultas são **portáveis entre Oracle e H2**, e as duas diferenças que existem (subtração de datas e tipo booleano) estão anotadas no próprio arquivo.
-
-As tabelas novas **não** referenciam `DENUNCIA` por chave estrangeira: elas guardam o protocolo como texto. É a decisão mais discutível da fase, e está defendida por escrito na seção 4.4.3 do documento.
+| `03_consultas.sql` | Consultas analíticas do relatório e de auditoria |
+| `04_ddl_fase6.sql` | 3 tabelas da Fase 6: `evento_iot`, `zona_exclusao` e `ponto_totem` |
+| `05_consultas_fase6.sql` | 6 consultas com `ROLLUP`, `GROUPING`, `RANK`, `SUM OVER`, `LAG` e subconsulta correlacionada |
+| `06_ddl_fase7.sql` | Restrições da Fase 7: formato do protocolo novo e as ações `BACKUP` e `TROCA_PERFIL_DEMO` |
+| `07_estatistica_fase7.sql` | **Correlação e regressão no banco**: `CORR`, `CORR_S`, `REGR_*`, `PERCENTILE_CONT`, tendência semanal e equipe |
+| `05_resultados_fase6.txt`, `07_resultados_fase7.txt` | Resultados conferidos sobre a base de demonstração |
+| `gerar_carga_fase6.py` | Gerador determinístico da carga (`random.seed(561601)`) |
 
 ---
 
 ## 🧪 Testes
 
-```bash
+```powershell
 cd backend
 .\build.cmd clean test
 ```
 
 <div align="center">
 
-![Testes](https://img.shields.io/badge/136_testes-0_falhas-4CAF50?style=for-the-badge&logo=junit5&logoColor=white)
-![Classes](https://img.shields.io/badge/14_classes_de_teste-3B8DE0?style=for-the-badge)
+![Testes Java](https://img.shields.io/badge/218_testes_Java-0_falhas-4CAF50?style=for-the-badge&logo=junit5&logoColor=white)
+![Testes Solidity](https://img.shields.io/badge/21_testes_do_contrato-100%25_das_linhas-363636?style=for-the-badge&logo=solidity&logoColor=white)
 
 </div>
 
-Cobrem: regras do score, classificação de urgência do VigIA, ordenação da fila de prioridade, comportamento LIFO da pilha, detecção de adulteração da trilha de auditoria, toda a estatística descritiva do relatório, a detecção de tipo de arquivo pela assinatura, a higienização de nomes contra *path traversal*, a neutralização de injeção de fórmula em CSV e, desde esta fase, as **regras das três origens de IoT** (35 testes) e o **algoritmo de focos** (19 testes).
+Cobrem as regras de negócio das fases anteriores (score, VigIA, fila, pilha, estatística descritiva, IoT, focos de reincidência) e, desta fase: os segredos obrigatórios em produção, o limite por origem real, a máquina de estados do caso, a imutabilidade do relato, a remoção de metadados, a privacidade do VigIA, o backup verificado, o IP real atrás do proxy, a estatística inferencial (conferida contra o quarteto de Anscombe) e o estado da trilha para a ancoragem.
 
-Os valores esperados nos testes de estatística foram **calculados à mão** e estão documentados no cabeçalho de cada classe. Um teste que confere o programa contra a saída do próprio programa passa a fingir que a conta está certa exatamente quando ela deixa de estar.
+Os valores esperados nos testes de estatística foram **calculados fora do programa**. Um teste que confere o programa contra a saída do próprio programa passa a fingir que a conta está certa exatamente quando ela deixa de estar.
 
-Dois testes existem por causa de defeitos reais desta fase:
-
-- **`ContextoSobeTest`**, que sobe o contexto do Spring e executa o `data.sql`. Ele nasceu do achado mais incômodo da fase: **116 testes passavam e a aplicação não subia**, porque um mapeamento inválido só falha na inicialização do Hibernate, e nenhum teste unitário chegava lá.
-- Um teste de varredura de coordenadas que ganhou **controle positivo**: ele contamina o texto de propósito e exige que a varredura recuse, para que um teste que passa por não encontrar nada não seja confundido com um teste que funciona.
+Além dos testes unitários, três roteiros testam o sistema rodando: [`seguranca/simular_ataques.py`](seguranca/simular_ataques.py), [`infra/testar-rede.sh`](infra/testar-rede.sh) e a demonstração em [`blockchain/`](blockchain/README.md).
 
 ---
 
@@ -479,46 +580,25 @@ Dois testes existem por causa de defeitos reais desta fase:
 ├── formulario-react.html       mesmo formulário em React 18 (CDN, sem build)
 ├── simulador-iot.html          instrumento de teste dos três dispositivos
 ├── search.html                 tela-disfarce do Modo Seguro
-├── css/                        10 folhas de estilo
-│   ├── style.css               base do portal
-│   ├── kanban.css              painel do servidor
-│   ├── painel-api.css          etiqueta de conexão, fila, pilha e auditoria
-│   ├── dispositivos.css        tela de eventos de campo
-│   ├── reincidencia.css        tela de focos
-│   ├── tema-escuro.css         tema escuro, extraído do index para ser reaproveitado
-│   └── anonimato · emergencia · lgpd · panico
-├── js/                         30 módulos
-│   ├── backend.js              ponte com a API (JWT e fallback localStorage)
-│   ├── dispositivos.js         eventos de campo e a decisão do servidor
-│   ├── reincidencia.js         focos e fluxos contínuos
-│   ├── fluxo.js                fila de priorização e pilha de desfazer
-│   ├── auditoria.js            consulta da trilha e verificação de integridade
-│   ├── estatistica.js          relatório estatístico com gráficos e leitura de cada um
-│   ├── detalhe.js              ficha do caso: relato, anexos, editar e excluir
-│   ├── mapa-gestor.js          mapa com k-anonimato
-│   └── ...                     vigia · kanban · emergencia · panico · chatbot · i18n · lgpd
-├── docs/                       entrega: documentos técnicos e apresentações
-├── wireframes/                 12 telas desenhadas na Fase 3, com LEIA-ME
-├── diagramas/                  modelo lógico e físico
-├── database/                   modelo físico Oracle e as consultas da Fase 6
+├── css/                        folhas de estilo (regressao.css é desta fase)
+├── js/                         30 módulos; storage-guard.js traz o escape contra XSS
+├── docs/                       documento, relatório, roteiro e imagens desta entrega
+├── wireframes/ · diagramas/    telas e modelos das fases anteriores
+├── database/                   modelo físico Oracle e consultas (06 e 07 são desta fase)
+├── seguranca/                  simulação de ataques, exercícios e resultados   ← Parte 1
+├── infra/                      borda nginx, autoridade certificadora e teste    ← Parte 2
+├── blockchain/                 contrato, testes, rotinas e resultados          ← Parte 4
 └── backend/
     ├── build.cmd / build.ps1   bootstrap: baixa o Maven se necessário
-    ├── pom.xml
+    ├── restaurar-backup.cmd    restauração com conferência de hash
     └── src/
-        ├── main/java/br/gov/protege/      79 classes
-        │   ├── audit/        @Auditavel e o interceptador da trilha
-        │   ├── config/       OpenAPI
-        │   ├── controller/   11 controladores, 38 rotas, tratamento de erros
-        │   ├── dto/          contratos de entrada e saída
-        │   ├── exception/    exceções de domínio
-        │   ├── mapper/       entidade para resposta, por perfil
-        │   ├── model/        entidades JPA, inclusive o barramento de eventos
-        │   ├── repository/   Spring Data JPA
-        │   ├── security/     JWT, RBAC, CORS, limite de requisições
-        │   ├── service/      score, IA, fila, pilha, auditoria, estatística,
-        │   │                 EventoIotService e ReincidenciaService
-        │   └── util/         mascaramento, assinatura de arquivo e nomes seguros
-        └── test/java/...     14 classes, 136 testes JUnit
+        ├── main/java/br/gov/protege/      93 classes
+        │   ├── config/       guardião de segredos, OpenAPI
+        │   ├── controller/   13 controladores, 44 rotas
+        │   ├── security/     JWT, RBAC, CORS, limites, chave de dispositivo
+        │   ├── service/      ... BackupService, FluxoStatus, AnalisePreditivaService
+        │   └── util/         Inferencia (estatística), mascaramento, metadados, LogSeguro
+        └── test/java/...     29 classes, 218 testes JUnit
 ```
 
 </details>
@@ -529,14 +609,14 @@ Dois testes existem por causa de defeitos reais desta fase:
 
 | Arquivo | O que é |
 |---|---|
-| [`docs/Protege_Mais_Fase6_Documento.pdf`](docs/Protege_Mais_Fase6_Documento.pdf) | **Documento técnico da Fase 6**, 82 páginas: IoT, IA, SQL avançado e estruturas de dados |
-| [`docs/Protege_Mais_Fase6_Apresentacao.pdf`](docs/Protege_Mais_Fase6_Apresentacao.pdf) | Apresentação da Fase 6, 10 slides |
-| [`docs/Protege_Mais_Fase6_Apresentacao.html`](docs/Protege_Mais_Fase6_Apresentacao.html) | A mesma apresentação, navegável, com o roteiro do apresentador embutido (tecla `N`) |
-| [`docs/Protege_Mais_Fase6_Roteiro_do_Pitch.md`](docs/Protege_Mais_Fase6_Roteiro_do_Pitch.md) | Roteiro do vídeo, bloco a bloco, com marcação de tempo |
+| [`docs/Protege_Mais_Visao_de_Futuro_Documento.pdf`](docs/Protege_Mais_Visao_de_Futuro_Documento.pdf) | **Documento técnico da Atividade Visão de Futuro**: segurança, redes, estatística e blockchain ([.docx](docs/Protege_Mais_Visao_de_Futuro_Documento.docx)) |
+| [`docs/Protege_Mais_EC_Atividade5_Relatorio_Final.pdf`](docs/Protege_Mais_EC_Atividade5_Relatorio_Final.pdf) | **Relatório Final do Enterprise Challenge EGESP**: conceito, metodologia, custos e viabilidade ([.docx](docs/Protege_Mais_EC_Atividade5_Relatorio_Final.docx)) |
+| [`docs/Protege_Mais_Visao_de_Futuro_Roteiro.md`](docs/Protege_Mais_Visao_de_Futuro_Roteiro.md) | Conteúdo dos slides e roteiro do vídeo |
+| [`seguranca/`](seguranca/README.md), [`infra/`](infra/README.md), [`blockchain/`](blockchain/README.md) | Cada parte com o próprio README e os resultados gravados |
 
-Os documentos e apresentações das entregas anteriores ficam no repositório daquelas fases. Os vídeos de pitch são entregas diferentes do mesmo produto: [Fase 6](https://youtu.be/FHOxDr-g8I8), [Fase 5](https://youtu.be/DoenYynHA6E) e [Atividade 4](https://youtu.be/bCIv81vYzPs).
+Os documentos das entregas anteriores ficam no repositório daquelas fases ([Fase 6](https://github.com/Gabriell230G/ProtegeMais-Fase-6)).
 
-O documento da Fase 6 declara, nas seções **4.12**, **5.11** e **6.2**, o que ainda **não** está resolvido no sistema: não há modo offline no aparelho, a chave é por integração e não por aparelho, e o volume da base não permite concluir sobre a calibragem da janela de repique. Um documento de segurança que só relata acertos não permite avaliar risco.
+O que ainda **não** está resolvido está declarado no fim de cada Parte do documento técnico: segundo fator de autenticação, cifra de verdade no armazenamento do navegador, montagem física da topologia de produção, adesão à Rede Blockchain Brasil e, principalmente, avaliação com usuárias reais.
 
 ---
 
@@ -551,10 +631,10 @@ O documento da Fase 6 declara, nas seções **4.12**, **5.11** e **6.2**, o que 
 
 <br>
 
-<sub>Projeto acadêmico desenvolvido para o Enterprise Challenge FIAP, em parceria com a EGESP · 2026</sub>
+<sub>Projeto acadêmico desenvolvido para o HackGov e o Enterprise Challenge FIAP, em parceria com a EGESP · 2026</sub>
 
 <br><br>
 
-**O canal deixou de esperar que a vítima digitasse. Agora ele também escuta o campo.**
+**Primeiro o ataque, depois o texto.**
 
 </div>
