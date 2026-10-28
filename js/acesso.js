@@ -62,7 +62,7 @@ const Acesso = (() => {
       label: 'Auditor',
       verIdentidade: false,
       retroceder: false, atribuir: false, pilha: false, excluir: false,
-      abas: ['resumo','auditoria'],
+      abas: ['resumo','estatistica','auditoria'],   // Fase 7: só agregados, sem caso individual
       role: 'AUDITOR', email: 'auditor@protege.gov.br',
       aviso: '🔎 Perfil Auditor — fiscaliza o uso do sistema, sem ver o relato das denúncias.',
     },

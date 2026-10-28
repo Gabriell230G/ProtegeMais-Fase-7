@@ -1,0 +1,340 @@
+/* =====================================================================
+   regressao.css  .  Fase 7 | Correlação e regressão (aba Estatística)
+
+   Cores como variáveis do bloco: o modo escuro troca só os valores, e o
+   JavaScript lê as mesmas variáveis para pintar os gráficos do Chart.js
+   (o canvas não herda CSS). Diverging: azul = relação positiva,
+   laranja = negativa, cinza neutro no zero.
+   ===================================================================== */
+
+.reg-secao{
+  --reg-card:#ffffff; --reg-fundo:#f8fafc; --reg-borda:#e2e8f0; --reg-borda-suave:#f1f5f9;
+  --reg-tinta:#0f172a; --reg-texto:#334155; --reg-sub:#64748b; --reg-fraco:#94a3b8;
+  --reg-pos:#2563eb; --reg-neg:#ea580c; --reg-neutro:#f1f5f9; --reg-ns:#cbd5e1;
+  --reg-ic:#0f172a;
+  --reg-ponto:rgba(29,78,216,.34); --reg-ponto-borda:rgba(29,78,216,.85); --reg-reta:#0f172a;
+  --reg-barra:#1d4ed8; --reg-prev:#0f172a;
+  --reg-proj:#c2410c; --reg-proj-faixa:rgba(234,88,12,.16); --reg-proj-fundo:rgba(234,88,12,.05);
+  --reg-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,"Liberation Mono",monospace;
+
+  --nv-destaque:#1d4ed8; --nv-destaque-bg:#eff6ff; --nv-destaque-bd:#bfdbfe;
+  --nv-alerta:#b91c1c;   --nv-alerta-bg:#fef2f2;   --nv-alerta-bd:#fecaca;
+  --nv-atencao:#b45309;  --nv-atencao-bg:#fffbeb;  --nv-atencao-bd:#fde68a;
+  --nv-positivo:#047857; --nv-positivo-bg:#ecfdf5; --nv-positivo-bd:#a7f3d0;
+  --nv-info:#0e7490;     --nv-info-bg:#ecfeff;     --nv-info-bd:#a5f3fc;
+
+  margin-bottom:34px;
+}
+[data-theme="dark"] .reg-secao{
+  --reg-card:#1e293b; --reg-fundo:#0f172a; --reg-borda:#334155; --reg-borda-suave:#2b3a52;
+  --reg-tinta:#f1f5f9; --reg-texto:#cbd5e1; --reg-sub:#94a3b8; --reg-fraco:#64748b;
+  --reg-pos:#3b82f6; --reg-neg:#f97316; --reg-neutro:#253349; --reg-ns:#475569;
+  --reg-ic:#e2e8f0;
+  --reg-ponto:rgba(96,165,250,.38); --reg-ponto-borda:rgba(147,197,253,.9); --reg-reta:#f8fafc;
+  --reg-barra:#3b82f6; --reg-prev:#e2e8f0;
+  --reg-proj:#fb923c; --reg-proj-faixa:rgba(251,146,60,.2); --reg-proj-fundo:rgba(251,146,60,.07);
+
+  --nv-destaque:#93c5fd; --nv-destaque-bg:rgba(59,130,246,.12);  --nv-destaque-bd:rgba(96,165,250,.38);
+  --nv-alerta:#fca5a5;   --nv-alerta-bg:rgba(239,68,68,.11);     --nv-alerta-bd:rgba(248,113,113,.36);
+  --nv-atencao:#fcd34d;  --nv-atencao-bg:rgba(245,158,11,.11);   --nv-atencao-bd:rgba(251,191,36,.34);
+  --nv-positivo:#6ee7b7; --nv-positivo-bg:rgba(16,185,129,.11);  --nv-positivo-bd:rgba(52,211,153,.34);
+  --nv-info:#67e8f9;     --nv-info-bg:rgba(6,182,212,.10);       --nv-info-bd:rgba(34,211,238,.32);
+}
+
+/* ── Cabeçalho do bloco ─────────────────────────────────────── */
+.reg-cabeca{ margin-bottom:16px; }
+.reg-selo{
+  display:inline-block;font-size:11px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--nv-destaque);background:var(--nv-destaque-bg);border:1px solid var(--nv-destaque-bd);
+  border-radius:999px;padding:3px 10px;margin-bottom:9px;
+}
+.reg-cabeca h3{ margin:0;font-size:20px;line-height:1.3;color:var(--reg-tinta); }
+.reg-sub{ margin:6px 0 0;font-size:13px;line-height:1.55;color:var(--reg-sub);max-width:860px; }
+.reg-meta{ margin-top:8px;font-size:12px;color:var(--reg-sub); }
+.reg-meta b{ color:var(--reg-tinta); }
+.reg-ponto{ margin:0 8px;color:var(--reg-fraco); }
+.reg-meta:empty{ display:none; }
+
+.est-aviso.offline{
+  background:var(--nv-info-bg);border-color:var(--nv-info-bd);color:var(--reg-texto);
+  border-left:4px solid var(--nv-info);
+}
+
+.reg-bloco{
+  margin:22px 0 12px;font-size:12px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;
+  color:var(--reg-sub);display:flex;align-items:center;gap:12px;
+}
+.reg-bloco::after{ content:"";flex:1;height:1px;background:var(--reg-borda); }
+.reg-conteudo > .reg-bloco:first-child{ margin-top:4px; }
+
+/* ── 1. Cartões de conclusão ────────────────────────────────── */
+.reg-insights{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px; }
+.reg-insight{
+  --nv:var(--nv-info); --nv-bg:var(--nv-info-bg); --nv-bd:var(--nv-info-bd);
+  position:relative;background:var(--reg-card);border:1px solid var(--reg-borda);
+  border-top:4px solid var(--nv);border-radius:12px;padding:16px 18px 16px;
+  display:flex;flex-direction:column;gap:10px;min-width:0;
+}
+.reg-insight.nv-destaque{ --nv:var(--nv-destaque); --nv-bg:var(--nv-destaque-bg); --nv-bd:var(--nv-destaque-bd); }
+.reg-insight.nv-alerta  { --nv:var(--nv-alerta);   --nv-bg:var(--nv-alerta-bg);   --nv-bd:var(--nv-alerta-bd); }
+.reg-insight.nv-atencao { --nv:var(--nv-atencao);  --nv-bg:var(--nv-atencao-bg);  --nv-bd:var(--nv-atencao-bd); }
+.reg-insight.nv-positivo{ --nv:var(--nv-positivo); --nv-bg:var(--nv-positivo-bg); --nv-bd:var(--nv-positivo-bd); }
+.reg-insight.nv-info    { --nv:var(--nv-info);     --nv-bg:var(--nv-info-bg);     --nv-bd:var(--nv-info-bd); }
+.reg-insight.heroi{ grid-column:1 / -1;background:linear-gradient(180deg,var(--nv-bg),var(--reg-card) 70%); }
+.reg-insight.heroi h5{ font-size:17.5px; }
+
+.reg-nivel{
+  align-self:flex-start;display:inline-flex;align-items:center;gap:6px;
+  font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--nv);
+}
+.reg-nivel::before{ content:"";width:8px;height:8px;border-radius:50%;background:var(--nv); }
+.reg-insight h5{ margin:0;font-size:15px;line-height:1.35;color:var(--reg-tinta);font-family:"Sora",sans-serif; }
+.reg-insight-texto{ margin:0;font-size:13px;line-height:1.6;color:var(--reg-texto); }
+
+.reg-evid{
+  display:flex;flex-wrap:wrap;align-items:baseline;gap:4px 8px;
+  padding-top:9px;border-top:1px dashed var(--reg-borda);
+}
+.reg-evid span{ font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--reg-sub); }
+.reg-evid code{
+  font-family:var(--reg-mono);font-size:11.5px;line-height:1.55;color:var(--reg-texto);
+  background:none;padding:0;word-break:break-word;
+}
+
+.reg-decisao{
+  margin-top:auto;background:var(--nv-bg);border:1px solid var(--nv-bd);border-left:4px solid var(--nv);
+  border-radius:8px;padding:10px 12px;
+}
+.reg-decisao span{ display:block;font-size:10.5px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--nv);margin-bottom:3px; }
+.reg-decisao p{ margin:0;font-size:13.5px;line-height:1.5;font-weight:600;color:var(--reg-tinta); }
+.reg-insight.heroi .reg-decisao p{ font-size:14.5px; }
+
+.reg-vazio{ font-size:13px;color:var(--reg-sub);margin:0; }
+.reg-indisp{ font-style:italic;font-weight:400;color:var(--reg-fraco); }
+
+/* ── Grades e cartões de evidência ──────────────────────────── */
+.reg-grade{ display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:16px;margin-bottom:16px; }
+.reg-grade-reg{ grid-template-columns:minmax(0,1fr) minmax(0,1.3fr); }
+.reg-card{ min-width:0; }
+.reg-secao .est-card{ background:var(--reg-card);border-color:var(--reg-borda); }
+.reg-secao .est-card h4{ margin-bottom:4px;color:var(--reg-tinta); }
+.reg-card-sub{ margin:0 0 14px;font-size:12px;line-height:1.5;color:var(--reg-sub); }
+.reg-card-sub:empty{ display:none; }
+.reg-nota{ margin:12px 0 0;padding-top:10px;border-top:1px solid var(--reg-borda-suave);font-size:11.5px;line-height:1.55;color:var(--reg-sub); }
+.reg-nota:empty{ display:none; }
+.reg-nota b{ color:var(--reg-texto); }
+
+/* ── 2. Correlação com o tempo (barras divergentes) ─────────── */
+.reg-corr-linha{ padding:10px 0 11px;border-bottom:1px solid var(--reg-borda-suave); }
+.reg-corr-linha:first-child{ padding-top:2px; }
+.reg-corr-topo{ display:flex;justify-content:space-between;align-items:baseline;gap:10px; }
+.reg-corr-nome{ font-size:13px;font-weight:600;color:var(--reg-tinta);cursor:help; }
+.reg-corr-r{ font-size:12px;color:var(--reg-sub);white-space:nowrap; }
+.reg-corr-r b{ font-size:14px;color:var(--reg-tinta);font-variant-numeric:tabular-nums; }
+
+.reg-corr-trilho{
+  position:relative;height:18px;margin:7px 0 6px;border-radius:4px;background:var(--reg-fundo);
+}
+.reg-corr-guia{ position:absolute;top:0;bottom:0;width:1px;background:var(--reg-borda); }
+.reg-corr-zero{ position:absolute;left:50%;top:-3px;bottom:-3px;width:2px;margin-left:-1px;background:var(--reg-sub);border-radius:1px; }
+.reg-corr-barra{ position:absolute;top:3px;bottom:3px;border-radius:3px;background:var(--reg-ns); }
+.reg-corr-linha.neg .reg-corr-barra{ background:var(--reg-neg); }
+.reg-corr-linha.pos .reg-corr-barra{ background:var(--reg-pos); }
+.reg-corr-ic{
+  position:absolute;top:50%;height:2px;margin-top:-1px;background:var(--reg-ic);opacity:.7;
+}
+.reg-corr-ic::before,.reg-corr-ic::after{
+  content:"";position:absolute;top:-4px;width:2px;height:10px;background:var(--reg-ic);
+}
+.reg-corr-ic::before{ left:-1px; } .reg-corr-ic::after{ right:-1px; }
+.reg-corr-linha.ns .reg-corr-ic,.reg-corr-linha.nd .reg-corr-ic{ opacity:.45; }
+
+.reg-corr-det{
+  display:flex;flex-wrap:wrap;gap:3px 12px;font-size:11.5px;color:var(--reg-sub);
+  font-variant-numeric:tabular-nums;
+}
+.reg-corr-leitura{ margin-top:3px;font-size:11.5px;color:var(--reg-texto);font-style:italic; }
+.reg-corr-linha.ns .reg-corr-leitura{ color:var(--reg-sub); }
+.reg-grego{ font-family:Georgia,"Times New Roman",serif;font-size:1.12em;font-style:italic;line-height:1; }
+.reg-sig{ font-weight:700; }
+.reg-sig.sim{ color:var(--reg-tinta); }
+.reg-sig.nao{ color:var(--reg-fraco);font-weight:600; }
+
+.reg-corr-eixo{ position:relative;height:16px;margin-top:8px;font-size:10.5px;color:var(--reg-sub);font-variant-numeric:tabular-nums; }
+.reg-corr-eixo span{ position:absolute;transform:translateX(-50%);white-space:nowrap; }
+.reg-corr-eixo span:first-child{ transform:none; }
+.reg-corr-eixo span:last-child{ transform:translateX(-100%); }
+.reg-corr-direcao{ display:flex;justify-content:space-between;gap:10px;margin-top:2px;font-size:11px;font-weight:600;color:var(--reg-sub); }
+
+/* ── 3. Matriz de Pearson ───────────────────────────────────── */
+.reg-matriz-wrap{ overflow-x:auto;-webkit-overflow-scrolling:touch; }
+.reg-secao table{ min-width:0; }
+.reg-matriz{ width:100%;border-collapse:separate;border-spacing:3px;font-variant-numeric:tabular-nums; }
+.reg-secao .reg-matriz th{
+  font-size:11px;font-weight:600;color:var(--reg-sub);padding:4px 6px;white-space:nowrap;cursor:help;
+  background:none;border:none;text-transform:none;letter-spacing:0;
+}
+.reg-matriz thead th{ text-align:center;vertical-align:bottom; }
+.reg-matriz tbody th{ text-align:right; }
+.reg-secao .reg-matriz td{
+  --a:0;
+  min-width:46px;height:38px;padding:0 4px;text-align:center;font-size:12px;font-weight:600;
+  border-radius:6px;border:none;color:var(--reg-tinta);cursor:default;
+  background:color-mix(in srgb, var(--reg-pos) calc(var(--a) * 100%), var(--reg-neutro));
+}
+.reg-secao .reg-matriz td.neg{ background:color-mix(in srgb, var(--reg-neg) calc(var(--a) * 100%), var(--reg-neutro)); }
+.reg-secao .reg-matriz td.forte{ color:#fff; }
+.reg-secao .reg-matriz td.diag{ background:var(--reg-fundo);color:var(--reg-fraco);font-weight:500;
+  box-shadow:inset 0 0 0 1px var(--reg-borda); }
+.reg-secao .reg-matriz td.nd{ background:repeating-linear-gradient(135deg,var(--reg-neutro) 0 5px,var(--reg-fundo) 5px 10px);
+  color:var(--reg-fraco);font-weight:500;font-style:italic; }
+
+.reg-escala{ display:flex;align-items:center;gap:8px;margin-top:12px;font-size:11px;color:var(--reg-sub);font-variant-numeric:tabular-nums; }
+.reg-escala i{ flex:1;height:8px;border-radius:4px;background:linear-gradient(90deg,var(--reg-neg),var(--reg-neutro)); }
+.reg-escala i.pos{ background:linear-gradient(90deg,var(--reg-neutro),var(--reg-pos)); }
+
+/* ── Chips de estatística (R², n, p...) ─────────────────────── */
+.reg-chips,.reg-stats{ display:flex;flex-wrap:wrap;align-items:center;gap:6px;margin-bottom:12px; }
+.reg-chip{
+  display:inline-flex;align-items:baseline;gap:6px;padding:4px 9px;border-radius:7px;
+  background:var(--reg-fundo);border:1px solid var(--reg-borda);font-size:11.5px;color:var(--reg-sub);
+  font-variant-numeric:tabular-nums;
+}
+.reg-chip b{ color:var(--reg-tinta);font-size:12.5px; }
+.reg-chip small{ font-size:11px;font-weight:500;color:var(--reg-sub); }
+.reg-eq{
+  display:inline-block;font-family:var(--reg-mono);font-size:12px;color:var(--reg-tinta);
+  background:var(--nv-destaque-bg);border:1px solid var(--nv-destaque-bd);border-radius:7px;padding:4px 9px;
+  word-break:break-word;
+}
+.reg-canvas{ height:270px; }
+
+/* ── 5. Tabela da regressão múltipla ────────────────────────── */
+.reg-tabela-wrap{ overflow-x:auto;-webkit-overflow-scrolling:touch;margin:0 -2px; }
+.reg-tabela{ width:100%;border-collapse:collapse;font-size:12.5px;font-variant-numeric:tabular-nums; }
+.reg-secao .reg-tabela th,.reg-secao .reg-tabela td{
+  padding:9px 8px;border-bottom:1px solid var(--reg-borda-suave);text-align:left;vertical-align:middle;
+  color:var(--reg-texto);background:none;
+}
+.reg-secao .reg-tabela thead th{
+  font-size:11px;font-weight:700;letter-spacing:0;text-transform:none;color:var(--reg-sub);
+  border-bottom:1px solid var(--reg-borda);line-height:1.3;vertical-align:bottom;
+}
+.reg-secao .reg-tabela tbody th{
+  font-size:12.5px;font-weight:600;letter-spacing:0;text-transform:none;color:var(--reg-tinta);min-width:130px;
+}
+.reg-var-nome{ display:block;margin-bottom:4px; }
+.reg-secao .reg-tabela .num{ text-align:right;white-space:nowrap; }
+.reg-secao .reg-tabela tr.ns td{ color:var(--reg-sub); }
+.reg-secao .reg-tabela tr.base th,.reg-secao .reg-tabela tr.base td{ color:var(--reg-sub);font-weight:500; }
+.reg-secao .reg-tabela tbody tr:hover td,.reg-secao .reg-tabela tbody tr:hover th{ background:var(--reg-fundo); }
+.reg-badge{
+  display:inline-block;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:700;white-space:nowrap;
+}
+.reg-badge.sim{ color:var(--nv-positivo);background:var(--nv-positivo-bg);border:1px solid var(--nv-positivo-bd); }
+.reg-badge.nao{ color:var(--reg-sub);background:var(--reg-fundo);border:1px solid var(--reg-borda); }
+.reg-badge.base{ color:var(--reg-fraco);font-weight:600;padding:0;font-size:10.5px; }
+
+.reg-eq-det{ margin-top:12px;font-size:12px;color:var(--reg-sub); }
+.reg-eq-det summary{ cursor:pointer;font-weight:600;color:var(--nv-destaque); }
+.reg-eq-det .reg-eq{ display:block;margin-top:8px;line-height:1.6; }
+
+/* ── 6. Volume semanal e dimensionamento ────────────────────── */
+.reg-semanal{ margin-bottom:16px; }
+.reg-semanal h4{ margin-bottom:12px !important; }
+.reg-tend{ font-size:11.5px;font-weight:700;padding:4px 9px;border-radius:999px; }
+.reg-tend.nao{ color:var(--reg-sub);background:var(--reg-fundo);border:1px dashed var(--reg-borda); }
+.reg-tend.sim{ color:var(--nv-atencao);background:var(--nv-atencao-bg);border:1px solid var(--nv-atencao-bd); }
+.reg-semanal-grade{ display:grid;grid-template-columns:minmax(0,1fr) 270px;gap:18px;align-items:stretch; }
+.reg-canvas-semanal{ height:300px; }
+
+.reg-equipe{
+  background:var(--reg-fundo);border:1px solid var(--reg-borda);border-radius:12px;padding:14px 16px;
+  display:flex;flex-direction:column;gap:10px;
+}
+.reg-equipe h5{ margin:0;font-size:13px;color:var(--reg-tinta);font-family:"Sora",sans-serif; }
+.reg-equipe dl{ margin:0;display:flex;flex-direction:column;gap:7px; }
+.reg-equipe-lin{ display:flex;justify-content:space-between;align-items:baseline;gap:10px; }
+.reg-equipe-lin dt{ font-size:12px;color:var(--reg-sub); }
+.reg-equipe-lin dd{ margin:0;text-align:right;font-variant-numeric:tabular-nums;line-height:1.2; }
+.reg-equipe-lin dd b{ font-size:15px;color:var(--reg-tinta); }
+.reg-equipe-lin dd small{ display:block;font-size:10.5px;color:var(--reg-fraco); }
+.reg-equipe-comp{
+  display:flex;align-items:center;justify-content:space-around;gap:8px;padding:10px 6px;
+  border-top:1px solid var(--reg-borda);border-bottom:1px solid var(--reg-borda);
+}
+.reg-equipe-comp div{ display:flex;flex-direction:column;align-items:center; }
+.reg-equipe-comp div span{ font-size:10.5px;font-weight:700;letter-spacing:.04em;text-transform:uppercase;color:var(--reg-sub); }
+.reg-equipe-comp div b{ font-size:28px;line-height:1.1;color:var(--reg-tinta);font-family:"Sora",sans-serif; }
+.reg-equipe-comp.falta div:last-child b{ color:var(--nv-alerta); }
+.reg-seta{ font-size:20px;color:var(--reg-fraco); }
+.reg-pessoas{ display:flex;flex-wrap:wrap;justify-content:center;gap:6px; }
+.reg-pessoas i{ width:16px;height:16px;border-radius:50%;background:var(--reg-tinta);opacity:.8; }
+.reg-pessoas i.falta{ background:none;border:2px dashed var(--nv-alerta);opacity:1; }
+.reg-pessoas i.sobra{ background:var(--nv-positivo);opacity:1; }
+.reg-equipe-ver{ margin:0;font-size:12px;line-height:1.45;font-weight:600;text-align:center; }
+.reg-equipe-ver.falta{ color:var(--nv-alerta); }
+.reg-equipe-ver.ok{ color:var(--nv-positivo); }
+
+/* ── 7. Avisos de método ────────────────────────────────────── */
+.reg-avisos{
+  background:var(--reg-fundo);border:1px solid var(--reg-borda);border-radius:10px;padding:12px 16px;
+}
+.reg-avisos h5{ margin:0 0 6px;font-size:11px;font-weight:700;letter-spacing:.05em;text-transform:uppercase;color:var(--reg-sub); }
+.reg-avisos ul{ margin:0;padding-left:18px; }
+.reg-avisos li{ font-size:12px;line-height:1.6;color:var(--reg-sub); }
+
+/* ── Divisor para o relatório descritivo ────────────────────── */
+.est-divisor{ margin:8px 0 16px;padding-top:22px;border-top:2px solid #e2e8f0; }
+.est-divisor h3{ margin:0;font-size:18px;color:#0f172a; }
+.est-divisor p{ margin:4px 0 0;font-size:13px;color:#64748b; }
+[data-theme="dark"] .est-divisor{ border-top-color:#334155; }
+[data-theme="dark"] .est-divisor h3{ color:#f1f5f9; }
+[data-theme="dark"] .est-divisor p{ color:#94a3b8; }
+
+/* Em tela estreita a tabela de coeficientes vira uma lista de cartões:
+   cada valor ganha o próprio rótulo (data-rot) e nada exige rolagem. */
+@media (max-width:560px){
+  .reg-secao .reg-tabela thead{ display:none; }
+  .reg-secao .reg-tabela,.reg-secao .reg-tabela tbody{ display:block; }
+  .reg-secao .reg-tabela tr{
+    display:grid;grid-template-columns:1fr 1fr;gap:6px 14px;padding:11px 2px;
+    border-bottom:1px solid var(--reg-borda-suave);
+  }
+  .reg-secao .reg-tabela th,.reg-secao .reg-tabela td{ display:block;padding:0;border:none; }
+  .reg-secao .reg-tabela tbody th{ grid-column:1 / -1;min-width:0; }
+  .reg-secao .reg-tabela .num{ text-align:left; }
+  .reg-secao .reg-tabela td::before{
+    content:attr(data-rot);display:block;font-size:10.5px;font-weight:600;color:var(--reg-fraco);margin-bottom:1px;
+  }
+  .reg-secao .reg-tabela tbody tr:hover td,.reg-secao .reg-tabela tbody tr:hover th{ background:none; }
+  .reg-chip.periodo{ flex-wrap:wrap;row-gap:0; }
+}
+
+/* ── Responsivo ─────────────────────────────────────────────── */
+@media (max-width:1180px){
+  .reg-grade,.reg-grade-reg{ grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:900px){
+  .reg-semanal-grade{ grid-template-columns:minmax(0,1fr); }
+}
+@media (max-width:720px){
+  .reg-insights{ grid-template-columns:minmax(0,1fr); }
+  .reg-matriz{ border-spacing:2px; }
+  .reg-secao .reg-matriz td{ min-width:38px;height:32px;font-size:11px; }
+  .reg-secao .reg-matriz th{ font-size:10.5px;padding:3px 3px; }
+  .reg-cabeca h3{ font-size:17px; }
+  .reg-insight{ padding:14px 14px; }
+  .reg-canvas{ height:240px; }
+  .reg-canvas-semanal{ height:260px; }
+}
+
+/* Depois do bloco de 720px de propósito: em 390px a matriz precisa
+   caber inteira, sem rolagem lateral. */
+@media (max-width:560px){
+  /* Matriz: cabeçalhos de coluna na vertical para as 7 colunas caberem */
+  .reg-secao .reg-matriz{ border-spacing:2px; }
+  .reg-secao .reg-matriz thead th{ writing-mode:vertical-rl;transform:rotate(180deg);text-align:left;padding:4px 0;height:74px; }
+  .reg-secao .reg-matriz tbody th{ white-space:normal;line-height:1.15;max-width:52px;padding:0 3px 0 0; }
+  .reg-secao .reg-matriz td{ min-width:0;width:32px;height:30px;font-size:10.5px;padding:0 1px; }
+}

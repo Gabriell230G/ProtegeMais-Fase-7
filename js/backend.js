@@ -392,6 +392,20 @@ const Backend = (() => {
     return r === FORA_DO_AR ? null : r;
   }
 
+  /**
+   * Fase 7 | Correlacao, regressao e projecao de demanda (Parte 3).
+   *
+   * Mesmo contrato do relatorio descritivo: null com a API fora do ar (nao
+   * ha plano B local, uma regressao sobre as poucas denuncias guardadas
+   * neste navegador nao teria valor estatistico) e erro de acesso em
+   * 401/403, sem dado substituto.
+   */
+  async function analisePreditiva() {
+    if (!(await estaOnline())) return null;
+    const r = await lerProtegido('/stats/regressao');
+    return r === FORA_DO_AR ? null : r;
+  }
+
   // ── Evidencias (arquivos anexados) ───────────────────────────
 
   /**
@@ -603,7 +617,7 @@ const Backend = (() => {
     listarEquipe, salvarMembro, removerMembro,
     consultarFila, atenderProximo, consultarPilha, desfazerUltima,
     consultarAuditoria, verificarIntegridade, acoesAuditadas,
-    estatisticas, relatorioAnalitico, perguntarVigia, reanalisar, statusIa,
+    estatisticas, relatorioAnalitico, analisePreditiva, perguntarVigia, reanalisar, statusIa,
     anexarEvidencia, listarEvidencias, baixarEvidencia, removerEvidencia, exportarCsv,
     listarEventosIot, resumoIot,
     listarFocos, parametrosReincidencia,

@@ -22,6 +22,7 @@
   <link rel="stylesheet" href="./css/painel-api.css">
   <link rel="stylesheet" href="./css/dispositivos.css">
   <link rel="stylesheet" href="./css/reincidencia.css">
+  <link rel="stylesheet" href="./css/regressao.css">
   <link rel="stylesheet" href="./css/tema-escuro.css">
 </head>
 <body>
@@ -856,13 +857,87 @@
           <div>
             <h3 data-i18n="est.titulo">📈 Relatório estatístico do canal</h3>
             <div class="kanban-sub" data-i18n="est.sub">
-              Estatística descritiva sobre o tempo de atendimento e o score de confiabilidade.
-              Todo o cálculo acontece no servidor: média, mediana, desvio-padrão, quartis,
-              outliers e correlação vêm prontos da API, para que a tela e o relatório impresso
-              nunca discordem. Cada gráfico traz a leitura do que ele mostra.
+              Duas camadas, ambas calculadas no servidor. Primeiro, correlação e regressão
+              transformadas em decisões. Depois, a estatística descritiva do tempo de atendimento:
+              média, mediana, desvio-padrão, quartis e outliers. Tela e relatório impresso nunca discordam.
             </div>
           </div>
           <button class="fluxo-btn secundario" onclick="Estatistica.carregar()" data-i18n="fluxo.atualizar">Atualizar</button>
+        </div>
+
+        <!-- Fase 7 | Correlação e regressão (GET /api/stats/regressao) -->
+        <section class="reg-secao" id="reg-secao" aria-labelledby="reg-titulo">
+          <header class="reg-cabeca">
+            <span class="reg-selo" data-i18n="reg.selo">Fase 7 · Análise preditiva</span>
+            <h3 id="reg-titulo" data-i18n="reg.titulo">Correlação e regressão: o que os dados dizem para decidir</h3>
+            <p class="reg-sub" data-i18n="reg.sub">
+              Quais fatores aceleram ou atrasam o atendimento, quanto cada um pesa e quanta demanda vem
+              nas próximas semanas. Cada conclusão traz a evidência estatística e a decisão que ela sustenta.
+            </p>
+            <div class="reg-meta" id="reg-meta"></div>
+          </header>
+
+          <div class="est-aviso" id="reg-aviso" role="status">Calculando a análise no servidor…</div>
+
+          <div class="reg-conteudo" id="reg-conteudo" hidden>
+            <h4 class="reg-bloco" data-i18n="reg.bloco.decisoes">Conclusões e decisões sugeridas</h4>
+            <div class="reg-insights" id="reg-insights"></div>
+
+            <h4 class="reg-bloco" data-i18n="reg.bloco.evidencias">As evidências por trás das conclusões</h4>
+            <div class="reg-grade">
+              <div class="est-card reg-card">
+                <h4 data-i18n="reg.g.corr">Correlação de cada fator com o tempo até a conclusão</h4>
+                <p class="reg-card-sub" data-i18n="reg.g.corr_sub">Barra: r de Pearson. Traço: intervalo de confiança de 95%. Em cinza, as relações sem significância estatística (p ≥ 0,05).</p>
+                <div class="reg-corr" id="reg-corr"></div>
+              </div>
+              <div class="est-card reg-card">
+                <h4 data-i18n="reg.g.matriz">Matriz de correlação de Pearson</h4>
+                <p class="reg-card-sub" data-i18n="reg.g.matriz_sub">Cada célula mostra o r entre duas variáveis. Azul: andam juntas. Laranja: quando uma sobe, a outra desce.</p>
+                <div class="reg-matriz-wrap" id="reg-matriz"></div>
+                <div class="reg-escala" aria-hidden="true">
+                  <span>−1</span><i></i><span>0</span><i class="pos"></i><span>+1</span>
+                </div>
+                <div id="reg-matriz-leitura"></div>
+              </div>
+            </div>
+
+            <div class="reg-grade reg-grade-reg">
+              <div class="est-card reg-card">
+                <h4 data-i18n="reg.g.simples">Regressão linear simples</h4>
+                <p class="reg-card-sub" id="reg-simples-desc"></p>
+                <div class="reg-chips" id="reg-simples-chips"></div>
+                <div class="est-canvas reg-canvas"><canvas id="reg-dispersao" role="img" aria-label="Dispersão com reta de regressão"></canvas></div>
+                <p class="reg-nota" id="reg-simples-nota"></p>
+              </div>
+              <div class="est-card reg-card">
+                <h4 data-i18n="reg.g.multipla">Regressão linear múltipla</h4>
+                <p class="reg-card-sub" id="reg-multipla-desc"></p>
+                <div class="reg-stats" id="reg-multipla-stats"></div>
+                <div class="reg-tabela-wrap" id="reg-multipla-tabela"></div>
+                <details class="reg-eq-det">
+                  <summary data-i18n="reg.ver_equacao">Ver a equação completa</summary>
+                  <code class="reg-eq" id="reg-multipla-eq"></code>
+                </details>
+              </div>
+            </div>
+
+            <div class="est-card reg-card reg-semanal">
+              <h4 data-i18n="reg.g.semanal">Volume semanal de denúncias e projeção para as próximas semanas</h4>
+              <div class="reg-chips" id="reg-semanal-chips"></div>
+              <div class="reg-semanal-grade">
+                <div class="est-canvas reg-canvas-semanal"><canvas id="reg-semanal" role="img" aria-label="Denúncias por semana com projeção"></canvas></div>
+                <aside class="reg-equipe" id="reg-equipe"></aside>
+              </div>
+              <p class="reg-nota" id="reg-semanal-obs"></p>
+            </div>
+
+            <div class="reg-avisos" id="reg-avisos"></div>
+          </div>
+        </section>
+
+        <div class="est-divisor">
+          <h3 data-i18n="est.descritiva">Estatística descritiva do atendimento</h3>
+          <p data-i18n="est.descritiva_sub">Como o tempo de atendimento se distribui hoje, com a leitura de cada gráfico.</p>
         </div>
 
         <div class="est-aviso oculto" id="est-aviso"></div>
