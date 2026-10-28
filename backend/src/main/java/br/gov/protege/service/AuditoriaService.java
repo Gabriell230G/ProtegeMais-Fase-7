@@ -174,31 +174,41 @@ public class AuditoriaService {
      * (o hashAnterior nao corresponde ao hash do antecessor).
      */
     public Map<String, Object> verificarIntegridade() {
-        List<AuditoriaLog> todos = repo.findAllByOrderByIdAsc();
+        EstadoCadeia e = estadoDaCadeia();
         Map<String, Object> out = new LinkedHashMap<>();
-        out.put("totalDeRegistros", todos.size());
+        out.put("totalDeRegistros", e.total());
+        out.put("integra", e.integra());
+        if (!e.integra()) out.put("rompidoNoRegistro", e.rompidoNoRegistro());
+        out.put("motivo", e.motivo());
+        return out;
+    }
+
+    /**
+     * Fase 7 | Fotografia da cadeia em uma unica leitura: o total, o ultimo
+     * elo e o resultado da verificacao saem do mesmo conjunto de registros.
+     * E o que a ancoragem em blockchain registra fora do servidor (Parte 4).
+     */
+    public record EstadoCadeia(int total, AuditoriaLog ultimo, boolean integra,
+                               Long rompidoNoRegistro, String motivo) {}
+
+    public EstadoCadeia estadoDaCadeia() {
+        List<AuditoriaLog> todos = repo.findAllByOrderByIdAsc();
 
         String esperado = GENESE;
         for (AuditoriaLog r : todos) {
             if (!esperado.equals(r.getHashAnterior())) {
-                out.put("integra", false);
-                out.put("rompidoNoRegistro", r.getId());
-                out.put("motivo", "O elo anterior nao corresponde: registro removido ou inserido na cadeia");
-                return out;
+                return new EstadoCadeia(todos.size(), null, false, r.getId(),
+                        "O elo anterior nao corresponde: registro removido ou inserido na cadeia");
             }
             String recalculado = sha256(r.conteudoParaHash());
             if (!recalculado.equals(r.getHash())) {
-                out.put("integra", false);
-                out.put("rompidoNoRegistro", r.getId());
-                out.put("motivo", "O conteudo do registro foi alterado apos a gravacao");
-                return out;
+                return new EstadoCadeia(todos.size(), null, false, r.getId(),
+                        "O conteudo do registro foi alterado apos a gravacao");
             }
             esperado = r.getHash();
         }
-
-        out.put("integra", true);
-        out.put("motivo", "Cadeia intacta: todos os elos conferem");
-        return out;
+        AuditoriaLog ultimo = todos.isEmpty() ? null : todos.get(todos.size() - 1);
+        return new EstadoCadeia(todos.size(), ultimo, true, null, "Cadeia intacta: todos os elos conferem");
     }
 
     // ------------------------------------------------------------------

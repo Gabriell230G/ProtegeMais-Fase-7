@@ -1,0 +1,113 @@
+================================================================================
+ PROTEGE+ | Parte 4: ancoragem em blockchain | execucao registrada em 27/10/2026
+================================================================================
+ Rede local Hardhat (chainId 31337) + API do Protege+ em modo demonstracao.
+ A foto usada e sintetica, gerada para o teste; nenhum dado real.
+
+--------------------------------------------------------------------------------
+ ETAPA 1. Implantar o contrato, ancorar e verificar
+--------------------------------------------------------------------------------
+ Antes: uma denuncia anonima com a mesma foto anexada duas vezes (evidencias 1 e 2).
+
+AncoraProtege implantado
+  rede       localhost
+  contrato   0x5FbDB2315678afecb367f032d93F642f64180aa3
+  gestor     0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266
+  ancorador  0x70997970C51812dc3A010C7d01b50e0d17dc79C8
+  gas        1112475
+
+
+Ancoragem da trilha de auditoria do Protege+
+
+  [OK]     Checkpoint #0 ancorado no bloco 2 (27/10/2026, 21:11:18)
+           trilha: 1 registros, ultimo #1, hash 42d7a10b5da91fc9...
+           evidencias: 2 no lote, raiz Merkle 0x4c41adcc6bb3df54...
+           gas: 162452  transacao: 0x7fc262c10176aa927ce31a6dd40e326f84fdb05b7f408323f9bc5dd58556c123
+
+
+Verificacao da trilha contra a blockchain
+
+  [OK]     #0  27/10/2026, 21:11:18  registro 1 presente, hash confere
+
+  [OK]     Trilha completa: tudo o que foi ancorado continua la (3 registros hoje).
+
+
+--------------------------------------------------------------------------------
+ ETAPA 2. Provar uma evidencia (foto baixada do sistema) e recusar uma editada
+--------------------------------------------------------------------------------
+ A editada e a mesma foto com UM pixel trocado.
+
+Prova de evidencia: evidencia-2-baixada.jpg
+           SHA-256 do arquivo: 77f89a8148ff1e7b45adf8653863b0b3dd1eab663a0a1d81c7dfcbaa8eef7a0e
+
+  [OK]     E a evidencia #1, sem nenhuma alteracao.
+  [OK]     Ancorada no checkpoint #0, bloco 2, em 27/10/2026, 21:11:18.
+           O contrato conferiu a prova Merkle. Para apresentar a terceiros (juizo, MP):
+             sal          6aef37cbd21f588705e7e425f64f63baef4e20b8d2c7872038598b90a26a3adf
+             compromisso  0x445b981cd9112a1c3628fbd83a63398cd2dfef4dbcca8b5c7dead2434b37adda
+             prova        1 hashes   transacao 0x7fc262c10176aa927ce31a6dd40e326f84fdb05b7f408323f9bc5dd58556c123
+           O mesmo arquivo tambem foi entregue como evidencia #2.
+
+
+Prova de evidencia: evidencia-2-editada.jpg
+           SHA-256 do arquivo: 3ca2a9888d44e1d8efff0053191a8cda359b7727b21d77470b42a413cd46bf64
+
+  [ALERTA] O arquivo NAO e a evidencia #2 ancorada em 27/10/2026, 21:11:18.
+           entregue:     77f89a8148ff1e7b45adf8653863b0b3dd1eab663a0a1d81c7dfcbaa8eef7a0e
+           apresentado:  3ca2a9888d44e1d8efff0053191a8cda359b7727b21d77470b42a413cd46bf64
+           Qualquer alteracao, ate um pixel ou um metadado, muda o hash.
+
+--------------------------------------------------------------------------------
+ ETAPA 3. Exercicio C: restauracao de backup antigo
+--------------------------------------------------------------------------------
+[21:12:04] EXERCICIO C: restauracao de backup antigo contra a ancoragem em blockchain
+[21:12:04] 1. Backup gerado pelo ADMIN
+   arquivo protege-20261027-211204-674.zip | sha256 81915a538bc79846...
+[21:12:04] 2. Depois do backup, uma atendente abre tres casos (consultas sensiveis que entram na trilha)
+   GET /api/denuncias/3 -> 200
+   GET /api/denuncias/7 -> 200
+   GET /api/denuncias/11 -> 200
+   trilha: 12 registros, integra = True
+[21:12:05] 3. Rotina de ancoragem roda (checkpoint cobre as consultas da atendente)
+
+Ancoragem da trilha de auditoria do Protege+
+
+  [OK]     Checkpoint #0 anterior confere com a trilha (registro 1).
+  [OK]     Checkpoint #1 ancorado no bloco 3 (27/10/2026, 21:12:05)
+           trilha: 13 registros, ultimo #13, hash a75bea4c52d50f97...
+           evidencias: 0 no lote
+           gas: 110891  transacao: 0x21ad067c29a375172c2c147b4c3e4a9e6e3e6232209ff05c8f11647c80653746
+
+[21:12:14] 4. Incidente: o banco e perdido e a equipe restaura o ultimo backup (API parada)
+[21:12:15]    hash do backup confere com o manifesto: restaurando protege-20261027-211204-674.zip
+[21:12:34] 5. API de volta. A verificacao INTERNA da cadeia nao ve problema nenhum:
+   trilha: 8 registros, integra = True | Cadeia intacta: todos os elos conferem
+[21:12:35] 6. A rotina de ancoragem tenta rodar de novo:
+
+Ancoragem da trilha de auditoria do Protege+
+
+  [ALERTA] O checkpoint #1 (registro 13, 27/10/2026, 21:12:05) nao confere mais.
+           A trilha foi cortada ou alterada desde a ultima ancoragem. Nada foi ancorado.
+           Rode npm run verificar para o diagnostico completo.
+
+[21:12:36] 7. Verificacao independente contra a blockchain:
+
+Verificacao da trilha contra a blockchain
+
+  [OK]     #0  27/10/2026, 21:11:18  registro 1 presente, hash confere
+  [ALERTA] #1  27/10/2026, 21:12:05  o registro 13 NAO EXISTE MAIS na trilha
+               Ancorado com 13 registros; hoje a trilha tem 10.
+               A trilha foi cortada depois da ancoragem (backup antigo restaurado ou registros apagados).
+
+  [ALERTA] 1 checkpoint(s) nao conferem. A trilha atual NAO e a mesma que foi ancorada.
+
+
+--------------------------------------------------------------------------------
+ CONCLUSAO
+--------------------------------------------------------------------------------
+ Depois da restauracao a cadeia interna continua integra (8 registros), porque o
+ corte foi no fim. As tres consultas sensiveis da atendente sumiram da trilha
+ sem deixar marca no servidor. A blockchain guardava o hash do registro 13 e
+ acusou o corte; a rotina de ancoragem se recusou a carimbar a trilha cortada.
+ O conteudo dos registros perdidos nao volta pela blockchain (ela guarda so o
+ hash): volta de um backup mais recente ou da replica (Parte 2).

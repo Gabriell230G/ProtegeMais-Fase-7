@@ -135,4 +135,31 @@ class AuditoriaServiceTest {
         assertEquals(0, banco.get(0).getDataHora().getNano() % 1_000_000,
                 "precisao acima de milissegundos se perde na coluna TIMESTAMP e quebraria o hash");
     }
+
+    @Test
+    @DisplayName("Fase 7: o estado para ancoragem traz o ultimo elo da cadeia")
+    void estadoParaAncoragem() {
+        tresEventos();
+        AuditoriaService.EstadoCadeia e = servico.estadoDaCadeia();
+
+        assertTrue(e.integra());
+        assertEquals(3, e.total());
+        assertEquals(3L, e.ultimo().getId());
+        assertEquals(banco.get(2).getHash(), e.ultimo().getHash());
+    }
+
+    @Test
+    @DisplayName("Fase 7: cortar o fim da trilha nao quebra a cadeia, por isso a ancoragem externa")
+    void corteNoFimPassaNaVerificacaoInterna() {
+        tresEventos();
+        String ancorado = servico.estadoDaCadeia().ultimo().getHash();
+
+        // Restaurar um backup antigo equivale a cortar os ultimos registros.
+        banco.remove(2);
+
+        AuditoriaService.EstadoCadeia e = servico.estadoDaCadeia();
+        assertTrue(e.integra(), "a cadeia que sobrou continua coerente consigo mesma");
+        assertNotEquals(ancorado, e.ultimo().getHash(),
+                "so a comparacao com o hash guardado fora do servidor revela o corte");
+    }
 }

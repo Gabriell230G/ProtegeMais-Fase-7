@@ -1,0 +1,25 @@
+{
+  "name": "protege-ancoragem",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Protege+ Fase 7 (Parte 4): ancoragem da trilha de auditoria e das evidencias em blockchain",
+  "license": "MIT",
+  "scripts": {
+    "compilar": "hardhat compile",
+    "test": "hardhat test",
+    "no": "hardhat node",
+    "implantar": "hardhat run scripts/implantar.js --network localhost",
+    "ancorar": "hardhat run scripts/ancorar.js --network localhost",
+    "verificar": "hardhat run scripts/verificar.js --network localhost",
+    "provar": "hardhat run scripts/provar-evidencia.js --network localhost"
+  },
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "5.0.0",
+    "hardhat": "2.29.1",
+    "solc": "0.8.28"
+  },
+  "dependencies": {
+    "@openzeppelin/contracts": "5.1.0",
+    "@openzeppelin/merkle-tree": "1.0.7"
+  }
+}

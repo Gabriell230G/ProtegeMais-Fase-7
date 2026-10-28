@@ -13,4 +13,7 @@ public interface EvidenciaRepository extends JpaRepository<Evidencia, Long> {
     Optional<Evidencia> findByIdAndRemovidaFalse(Long id);
 
     long countByDenunciaIdAndRemovidaFalse(Long denunciaId);
+
+    /** Fase 7: evidencias ainda nao ancoradas, em lotes, para a Parte 4. */
+    List<Evidencia> findTop500ByIdGreaterThanAndRemovidaFalseOrderByIdAsc(Long id);
 }
