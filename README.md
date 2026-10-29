@@ -19,7 +19,7 @@
 <br><br>
 
 <a href="https://gabriell230g.github.io/ProtegeMais-Fase-7/"><img src="docs/readme/botao-site.svg" alt="Acessar o site" height="38"></a>
-<a href="https://youtu.be/XXXXXXXX"><img src="docs/readme/botao-video.svg" alt="Vídeo da Fase 7" height="38"></a>
+<a href="https://youtu.be/ekdO6yj0FE4"><img src="docs/readme/botao-video.svg" alt="Vídeo da Fase 7" height="38"></a>
 <a href="docs/Protege_Mais_Visao_de_Futuro_Documento.pdf"><img src="docs/readme/botao-documento.svg" alt="Documento técnico" height="38"></a>
 <a href="docs/Protege_Mais_EC_Atividade5_Relatorio_Final.pdf"><img src="docs/readme/botao-relatorio.svg" alt="Relatório final EGESP" height="38"></a>
 
